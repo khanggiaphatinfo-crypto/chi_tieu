@@ -286,7 +286,7 @@ function DraftCard({
             className="py-2.5 px-4 rounded-2xl text-xs font-bold disabled:opacity-50 transition-all"
             style={{ background: '#E5EBE8', color: '#5B6660' }}
           >
-            ✏️ Editar
+            ✏️ Chỉnh sửa
           </button>
           <button
             onClick={onAccept}

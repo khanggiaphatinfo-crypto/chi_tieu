@@ -27,10 +27,10 @@ export function CoupleBalanceChip({ householdId, myProfileId, partnerProfileId, 
   const bg = balanced ? '#E5EBE8' : partnerOwesMe ? '#DDF0E8' : '#FFE5E0';
   const color = balanced ? '#5B6660' : partnerOwesMe ? '#1F8A68' : '#E25749';
   const label = balanced
-    ? '🤝 Al día'
+    ? '🤝 Đã cân bằng'
     : partnerOwesMe
-    ? `${partnerName ?? 'Pareja'} te debe ${amt}`
-    : `Le debés ${amt} a ${partnerName ?? 'pareja'}`;
+    ? `${partnerName ?? 'Đối tác'} nợ bạn ${amt}`
+    : `Bạn nợ ${amt} cho ${partnerName ?? 'đối tác'}`;
 
   return (
     <Link

@@ -151,13 +151,13 @@ export function CashFlowForecast({
 
       <div className="flex gap-3 mb-3">
         <div className="flex-1 rounded-2xl px-3 py-2.5" style={{ background: '#F1F5F3' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#5B6660' }}>En {horizon} días</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#5B6660' }}>Trong {horizon} ngày</p>
           <p className="text-lg font-black leading-tight tabular-nums" style={{ color: end < 0 ? '#E25749' : '#1F8A68' }}>
             {formatARS(end)}
           </p>
         </div>
         <div className="flex-1 rounded-2xl px-3 py-2.5" style={{ background: dipsNegative ? '#FFE5E0' : '#F1F5F3' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#5B6660' }}>Saldo mínimo</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: '#5B6660' }}>Số dư tối thiểu</p>
           <p className="text-lg font-black leading-tight tabular-nums" style={{ color: dipsNegative ? '#E25749' : '#18211D' }}>
             {formatARS(min.balance)}
           </p>
@@ -174,7 +174,7 @@ export function CashFlowForecast({
       </svg>
 
       <p className="text-[10px] mt-2 leading-snug" style={{ color: '#8C968F' }}>
-        Estimación a nivel hogar: parte del efectivo on-budget de hoy e incluye cuotas futuras y reglas recurrentes fijas. No incluye gastos variables.
+        Dự báo cấp hộ gia đình: bắt đầu từ tiền mặt trong ngân sách hôm nay, bao gồm các khoản trả góp tương lai và quy tắc định kỳ cố định. Không bao gồm chi tiêu biến đổi.
       </p>
     </div>
   );

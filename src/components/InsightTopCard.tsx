@@ -75,7 +75,7 @@ export function InsightTopCard({ householdId, profileId }: { householdId: string
       <div className="mx-4 mb-4 rounded-3xl p-4 flex items-center justify-between" style={{ background: '#EAF0ED' }}>
         <div className="flex items-center gap-3">
           <span className="text-xl">💡</span>
-          <p className="text-sm" style={{ color: '#5B6660' }}>Sin insights aún. Tocá para generar.</p>
+          <p className="text-sm" style={{ color: '#5B6660' }}>Chưa có phân tích. Chạm để tạo.</p>
         </div>
         <button
           onClick={handleRefresh}
