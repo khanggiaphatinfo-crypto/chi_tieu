@@ -252,7 +252,7 @@ export function ReceiptItemsSheet({
               🧾 {merchant || 'Compra'}
             </p>
             <p className="text-xs" style={{ color: '#5B6660' }}>
-              {new Date(occurredOn + 'T00:00:00').toLocaleDateString('es-AR', {
+              {new Date(occurredOn + 'T00:00:00').toLocaleDateString('vi-VN', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',

@@ -29,22 +29,22 @@ function shiftMonth(month: string, delta: number): string {
 
 function monthLabel(month: string): string {
   const [y, m] = month.split('-').map(Number);
-  const s = new Date(y, m - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  const s = new Date(y, m - 1, 1).toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// es-AR number for the table cells — no symbol, so the columns read clean.
+// Vietnamese number formatting for table cells — no symbol, so the columns read clean.
 // `|| 0` collapses negative zero (Math.round(-0.2) === -0) so we never show "-0".
 function fmtCell(n: number): string {
-  return (Math.round(n) || 0).toLocaleString('es-AR');
+  return (Math.round(n) || 0).toLocaleString('vi-VN');
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  return new Date(iso + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' });
 }
 
 function fmtGoalDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
+  return new Date(iso + 'T00:00:00').toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' });
 }
 
 // Available colour with goal awareness. `needed` is how much MORE you still

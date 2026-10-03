@@ -104,7 +104,7 @@ interface AccountMovement {
 }
 
 function fmtMovementDate(iso: string): string {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+  return new Date(iso + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' });
 }
 
 // Bottom sheet listing every movement of one account, mirroring the budget

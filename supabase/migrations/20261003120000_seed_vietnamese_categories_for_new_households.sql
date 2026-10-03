@@ -2,7 +2,7 @@
 -- This forward migration only replaces the seeding RPC used when a household is
 -- created. It does not update categories belonging to existing households, so
 -- custom and previously seeded names remain unchanged.
-create or replace function public.create_household(household_name text default 'Nuestro hogar'::text)
+create or replace function public.create_household(household_name text default 'Gia đình của chúng ta'::text)
  returns uuid
  language plpgsql
  security definer

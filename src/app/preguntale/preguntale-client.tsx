@@ -58,14 +58,14 @@ export default function PreguntaleClient({ householdId, profileId }: { household
     setMicSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
   }, []);
 
-  // Voice dictation (es-AR): fills the input as you speak; tap again to stop.
+  // Voice dictation (vi-VN): fills the input as you speak; tap again to stop.
   function toggleMic() {
     if (listening) { recognitionRef.current?.stop(); return; }
     const w = window as unknown as { SpeechRecognition?: new () => SpeechRec; webkitSpeechRecognition?: new () => SpeechRec };
     const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!SR) return;
     const rec = new SR();
-    rec.lang = 'es-AR';
+    rec.lang = 'vi-VN';
     rec.interimResults = true;
     rec.continuous = false;
     rec.onresult = (e) => {
@@ -163,7 +163,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
       if (!res.ok || !data?.receipt) throw new Error(data?.error || 'parse failed');
       const r = data.receipt as { merchant?: string; total: number; currency: string; items?: unknown[] };
       const cur = r.currency === 'USD' ? 'USD' : 'ARS';
-      const amountTxt = cur === 'USD' ? `US$${Math.round(r.total)}` : `$${Math.round(r.total).toLocaleString('es-AR')}`;
+      const amountTxt = cur === 'USD' ? `US$${Math.round(r.total)}` : `$${Math.round(r.total).toLocaleString('vi-VN')}`;
       const nItems = Array.isArray(r.items) ? r.items.length : 0;
       const summary = `Gasto de ${amountTxt} en ${r.merchant || 'Compra'}${nItems ? ` (${nItems} ítems)` : ''}`;
       const action: PendingAction = { kind: 'record_receipt', payload: { receipt: { ...r, currency: cur } }, summary };
