@@ -56,7 +56,7 @@ async function aggregateTransactions(ctx: Ctx, input: AggInput) {
     return { type, lens: 'por persona', total_ars: groups.reduce((s, g) => s + g.total_ars, 0), group_by: 'person', groups };
   }
 
-  if (lensTarget === '__none__') return { type, note: 'No encontré a esa persona en el hogar.', total_ars: 0, groups: [] };
+  if (lensTarget === '__none__') return { type, note: 'Không tìm thấy người đó trong hộ gia đình.', total_ars: 0, groups: [] };
 
   const withShare = rows.map(t => ({ t, ars: contrib(t, lensTarget) })).filter(x => x.ars > 0);
   const total = withShare.reduce((s, x) => s + x.ars, 0);
@@ -64,15 +64,15 @@ async function aggregateTransactions(ctx: Ctx, input: AggInput) {
   if (gb) {
     const map: Record<string, { total: number; count: number }> = {};
     for (const { t, ars } of withShare) {
-      const k = gb === 'category' ? (t.categories?.name ?? 'Sin categoría') : gb === 'merchant' ? (t.merchant || '(sin comercio)') : gb === 'month' ? (t.occurred_on || '').slice(0, 7) : (t.scope ?? '?');
+      const k = gb === 'category' ? (t.categories?.name ?? 'Chưa phân loại') : gb === 'merchant' ? (t.merchant || '(không có cửa hàng)') : gb === 'month' ? (t.occurred_on || '').slice(0, 7) : (t.scope ?? '?');
       if (!map[k]) map[k] = { total: 0, count: 0 };
       map[k].total += ars; map[k].count++;
     }
     groups = Object.entries(map).map(([key, v]) => ({ key, total_ars: Math.round(v.total), count: v.count }))
       .sort((a, b) => gb === 'month' ? a.key.localeCompare(b.key) : b.total_ars - a.total_ars).slice(0, input.limit || 12);
   }
-  const lensLabel = lensParam === 'mine' ? `${ctx.pm[ctx.askerId] ?? 'vos'} (tu parte)` : lensParam === 'partner' ? `${ctx.partnerId ? ctx.pm[ctx.partnerId] : 'pareja'} (su parte)` : lensParam === 'household' ? 'hogar / compartido' : 'todo el hogar (combinado)';
-  return { type, lens: lensLabel, total_ars: Math.round(total), count: withShare.length, group_by: gb ?? 'none', groups, note: withShare.length === 0 ? 'No hay transacciones para esos filtros.' : undefined };
+  const lensLabel = lensParam === 'mine' ? `${ctx.pm[ctx.askerId] ?? 'bạn'} (phần của bạn)` : lensParam === 'partner' ? `${ctx.partnerId ? ctx.pm[ctx.partnerId] : 'người yêu'} (phần của họ)` : lensParam === 'household' ? 'hộ gia đình / dùng chung' : 'toàn bộ hộ gia đình (gộp chung)';
+  return { type, lens: lensLabel, total_ars: Math.round(total), count: withShare.length, group_by: gb ?? 'none', groups, note: withShare.length === 0 ? 'Không có giao dịch phù hợp với các bộ lọc đó.' : undefined };
 }
 
 async function getBalances(ctx: Ctx) {
@@ -95,7 +95,7 @@ async function getBalances(ctx: Ctx) {
     if (a.type !== 'credit') netWorth += balArs;
     return { name: a.name, type: a.type, currency: a.currency, balance: Math.round(bal), balance_ars: Math.round(balArs) };
   });
-  return { accounts, net_worth_ars: Math.round(netWorth), note: 'El patrimonio neto excluye tarjetas de crédito.' };
+  return { accounts, net_worth_ars: Math.round(netWorth), note: 'Tài sản ròng không bao gồm thẻ tín dụng.' };
 }
 
 async function getBudgets(ctx: Ctx) {
@@ -159,7 +159,7 @@ interface ItemAggInput { lens?: string; group?: string; group_by?: string; date_
 async function aggregateItems(ctx: Ctx, input: ItemAggInput) {
   const lensParam = input.lens ?? 'everyone';
   const lensTarget = lensParam === 'mine' ? ctx.askerId : lensParam === 'partner' ? (ctx.partnerId ?? '__none__') : lensParam;
-  if (lensTarget === '__none__') return { note: 'No encontré a esa persona.', total_ars: 0, groups: [] };
+  if (lensTarget === '__none__') return { note: 'Không tìm thấy người đó.', total_ars: 0, groups: [] };
   let q = ctx.admin.from('transaction_items')
     .select('item_group,name,line_total,transactions!inner(occurred_on,currency,usd_rate_snapshot,scope,is_shared,profile_id,amount,type,splits(payer_profile_id,ower_profile_id,amount))')
     .eq('household_id', ctx.hid).eq('transactions.type', 'expense').eq('transactions.exclude_from_stats', false);
@@ -175,7 +175,7 @@ async function aggregateItems(ctx: Ctx, input: ItemAggInput) {
   const map: Record<string, { total: number; count: number }> = {};
   for (const { r, ars } of withArs) { const k = gb === 'name' ? r.name : (r.item_group || 'otros'); if (!map[k]) map[k] = { total: 0, count: 0 }; map[k].total += ars; map[k].count++; }
   const groups = Object.entries(map).map(([key, v]) => ({ key, total_ars: Math.round(v.total), count: v.count })).sort((a, b) => b.total_ars - a.total_ars).slice(0, input.limit || 12);
-  return { total_ars: Math.round(total), items_count: withArs.length, group_by: gb, groups, note: withArs.length === 0 ? 'No hay ítems de ticket para esos filtros (los ítems se cargan al escanear un ticket).' : undefined };
+  return { total_ars: Math.round(total), items_count: withArs.length, group_by: gb, groups, note: withArs.length === 0 ? 'Không có mặt hàng trên hóa đơn phù hợp với các bộ lọc đó (mặt hàng được thêm khi quét hóa đơn).' : undefined };
 }
 
 // End-of-month projection for the whole household, with optional purchase sim.
@@ -204,7 +204,7 @@ async function projectMonth(ctx: Ctx, input: ProjInput) {
     purchase = { amount_ars: Math.round(ars), installments: inst > 1 ? inst : null, monthly_cost_ars: monthly, projected_end_balance_after_ars: Math.round(proj.projectedBalance - monthly) };
   }
   return {
-    scope: 'todo el hogar',
+    scope: 'toàn bộ hộ gia đình',
     expenses_so_far_ars: Math.round(proj.expensesSoFar),
     remaining_fixed_ars: Math.round(proj.remainingFixed),
     remaining_income_ars: Math.round(proj.remainingIncome),
@@ -218,86 +218,86 @@ async function projectMonth(ctx: Ctx, input: ProjInput) {
 const TOOLS = [
   {
     name: 'aggregate_transactions',
-    description: 'Suma y agrupa transacciones reales del hogar (gastos o ingresos), convertidas a ARS. Es la herramienta principal para "cuánto / en qué / cuándo / quién". Elegí el lens correcto según la pregunta. OJO: si no pasás date_from/date_to suma TODA la historia (suele NO ser lo que el usuario quiere); para acotar el período copiá un rango de CONTEXTO, y por defecto usá "este mes".',
+    description: 'Cộng và nhóm các giao dịch thực tế của hộ gia đình (chi tiêu hoặc thu nhập), đã quy đổi sang ARS. Đây là công cụ chính cho các câu hỏi "bao nhiêu / vào việc gì / khi nào / ai". Hãy chọn lens phù hợp với câu hỏi. LƯU Ý: nếu không truyền date_from/date_to, công cụ sẽ cộng TOÀN BỘ lịch sử (thường KHÔNG phải điều người dùng muốn); để giới hạn thời gian, hãy sao chép một khoảng trong CONTEXT và mặc định dùng "tháng này".',
     input_schema: {
       type: 'object',
       properties: {
-        type: { type: 'string', enum: ['expense', 'income'], description: 'gasto (default) o ingreso' },
-        lens: { type: 'string', enum: ['mine', 'partner', 'household', 'everyone'], description: 'Punto de vista: "mine"=la parte de quien pregunta (sus gastos personales + su mitad de lo compartido, neto de lo que le devuelven); "partner"=la parte de su pareja; "household"=solo lo compartido/del hogar; "everyone"=todo el dinero gastado por la pareja combinado (default). Elegilo según la pregunta ("mis gastos"→mine, "lo del hogar/juntos"→household, "cuánto gastamos en total"→everyone).' },
-        group_by: { type: 'string', enum: ['none', 'category', 'merchant', 'month', 'person', 'scope'], description: 'desglose. "person" devuelve la parte real de cada integrante (ignora lens).' },
-        category: { type: 'string', description: 'filtrar por nombre de categoría (parcial)' },
-        merchant: { type: 'string', description: 'filtrar por comercio (parcial)' },
-        date_from: { type: 'string', description: 'desde inclusive YYYY-MM-DD' },
-        date_to: { type: 'string', description: 'hasta inclusive YYYY-MM-DD' },
-        limit: { type: 'number', description: 'máximo de grupos (default 12)' },
+        type: { type: 'string', enum: ['expense', 'income'], description: 'chi tiêu (mặc định) hoặc thu nhập' },
+        lens: { type: 'string', enum: ['mine', 'partner', 'household', 'everyone'], description: 'Góc nhìn: "mine"=phần của người hỏi (chi tiêu cá nhân + phần của họ trong khoản dùng chung, sau khi trừ tiền bạn bè hoàn lại); "partner"=phần của người yêu; "household"=chỉ phần dùng chung/của hộ gia đình; "everyone"=toàn bộ tiền cặp đôi đã chi (mặc định). Chọn theo câu hỏi ("chi tiêu của tôi"→mine, "của hộ gia đình/cùng nhau"→household, "tổng chúng ta đã chi"→everyone).' },
+        group_by: { type: 'string', enum: ['none', 'category', 'merchant', 'month', 'person', 'scope'], description: 'phân rã. "person" trả về phần thực tế của từng thành viên (bỏ qua lens).' },
+        category: { type: 'string', description: 'lọc theo tên danh mục (một phần)' },
+        merchant: { type: 'string', description: 'lọc theo cửa hàng (một phần)' },
+        date_from: { type: 'string', description: 'từ ngày (bao gồm) YYYY-MM-DD' },
+        date_to: { type: 'string', description: 'đến ngày (bao gồm) YYYY-MM-DD' },
+        limit: { type: 'number', description: 'số nhóm tối đa (mặc định 12)' },
       },
       required: [],
     },
   },
-  { name: 'get_balances', description: 'Saldo actual de cada cuenta (en su moneda y en ARS) y el patrimonio neto del hogar.', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'get_budgets', description: 'Presupuestos activos (con su scope personal/hogar y dueño) y lo gastado este mes vs el límite, usando la parte que le corresponde a cada uno.', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'get_goals', description: 'Metas de ahorro con progreso, scope y dueño.', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'get_debts', description: 'Deudas sin saldar (a quién le deben o quién les debe).', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'get_recurring', description: 'Gastos fijos y suscripciones activas (con scope y dueño, equivalente mensual en ARS) e ingresos recurrentes.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'get_balances', description: 'Số dư hiện tại của từng tài khoản (theo loại tiền và ARS) và tài sản ròng của hộ gia đình.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'get_budgets', description: 'Các ngân sách đang hoạt động (với scope cá nhân/hộ gia đình và chủ sở hữu), cùng chi tiêu tháng này so với giới hạn, dùng phần tương ứng của mỗi người.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'get_goals', description: 'Các mục tiêu tiết kiệm cùng tiến độ, scope và chủ sở hữu.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'get_debts', description: 'Các khoản nợ chưa tất toán (họ nợ ai hoặc ai nợ họ).', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'get_recurring', description: 'Các khoản chi cố định và gói đăng ký đang hoạt động (với scope và chủ sở hữu, quy đổi hàng tháng sang ARS), cùng thu nhập định kỳ.', input_schema: { type: 'object', properties: {}, required: [] } },
   {
     name: 'aggregate_items',
-    description: 'Analiza los ÍTEMS dentro de los tickets escaneados (qué se compró), agrupados por tipo (comida, bebidas, snacks, limpieza, cuidado personal, hogar, mascotas, otros) o por nombre de producto. Usala para "¿en qué se va el súper?", "¿cuánto gastamos en snacks/bebidas?", "¿qué compramos más?". Respeta el lens igual que aggregate_transactions.',
+    description: 'Phân tích các MẶT HÀNG trong hóa đơn đã quét (đã mua gì), nhóm theo loại (thực phẩm, đồ uống, đồ ăn vặt, vệ sinh, chăm sóc cá nhân, gia đình, thú cưng, khác) hoặc theo tên sản phẩm. Dùng cho "siêu thị tốn vào đâu?", "đã chi bao nhiêu cho đồ ăn vặt/đồ uống?", "mua gì nhiều nhất?". Tuân theo lens giống aggregate_transactions.',
     input_schema: {
       type: 'object',
       properties: {
-        lens: { type: 'string', enum: ['mine', 'partner', 'household', 'everyone'], description: 'punto de vista (igual que en aggregate_transactions)' },
-        group: { type: 'string', description: 'filtrar por un tipo de ítem (ej. snacks, bebidas, limpieza)' },
-        group_by: { type: 'string', enum: ['item_group', 'name'], description: 'agrupar por tipo de ítem (default) o por nombre de producto' },
-        date_from: { type: 'string', description: 'desde inclusive YYYY-MM-DD' },
-        date_to: { type: 'string', description: 'hasta inclusive YYYY-MM-DD' },
-        limit: { type: 'number', description: 'máximo de grupos (default 12)' },
+        lens: { type: 'string', enum: ['mine', 'partner', 'household', 'everyone'], description: 'góc nhìn (giống aggregate_transactions)' },
+        group: { type: 'string', description: 'lọc theo loại mặt hàng (ví dụ: đồ ăn vặt, đồ uống, vệ sinh)' },
+        group_by: { type: 'string', enum: ['item_group', 'name'], description: 'nhóm theo loại mặt hàng (mặc định) hoặc theo tên sản phẩm' },
+        date_from: { type: 'string', description: 'từ ngày (bao gồm) YYYY-MM-DD' },
+        date_to: { type: 'string', description: 'đến ngày (bao gồm) YYYY-MM-DD' },
+        limit: { type: 'number', description: 'số nhóm tối đa (mặc định 12)' },
       },
       required: [],
     },
   },
   {
     name: 'project_month',
-    description: 'Proyección de fin de mes del HOGAR: lo gastado hasta hoy, los gastos fijos e ingresos que faltan, y el saldo proyectado a fin de mes al ritmo actual. Opcional: simular una compra (purchase_amount, en cuotas) para ver el impacto. Usala para "¿llegamos a fin de mes?", "¿podemos comprar X?", "¿cuánto nos va a sobrar?".',
+    description: 'Dự báo cuối tháng của HỘ GIA ĐÌNH: chi tiêu đến hôm nay, các khoản chi cố định và thu nhập còn lại, số dư dự kiến cuối tháng theo nhịp hiện tại. Tùy chọn: mô phỏng một khoản mua (purchase_amount, trả góp) để xem tác động. Dùng cho "có đủ tiền đến cuối tháng không?", "có thể mua X không?", "còn dư bao nhiêu?".',
     input_schema: {
       type: 'object',
       properties: {
-        purchase_amount: { type: 'number', description: 'monto de una compra hipotética a simular (opcional)' },
-        purchase_currency: { type: 'string', enum: ['ARS', 'USD'], description: 'moneda de la compra (default ARS)' },
-        installments: { type: 'number', description: 'cantidad de cuotas de la compra (opcional)' },
+        purchase_amount: { type: 'number', description: 'số tiền của một khoản mua giả định cần mô phỏng (tùy chọn)' },
+        purchase_currency: { type: 'string', enum: ['ARS', 'USD'], description: 'loại tiền của khoản mua (mặc định ARS)' },
+        installments: { type: 'number', description: 'số kỳ trả góp của khoản mua (tùy chọn)' },
       },
       required: [],
     },
   },
   {
     name: 'record_transaction',
-    description: 'PREVISUALIZA registrar un gasto o ingreso personal de quien escribe (no escribe hasta que el usuario confirme con el botón). Usala cuando pidan "anotá/registrá/cargá un gasto/ingreso".',
+    description: 'XEM TRƯỚC việc ghi một khoản chi tiêu hoặc thu nhập cá nhân của người đang viết (chưa ghi cho đến khi người dùng xác nhận bằng nút). Dùng khi họ yêu cầu "ghi/đăng ký/thêm khoản chi/thu nhập".',
     input_schema: {
       type: 'object',
       properties: {
-        type: { type: 'string', enum: ['expense', 'income'], description: 'gasto (default) o ingreso' },
-        amount: { type: 'number', description: 'monto positivo en la moneda indicada' },
-        currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (default) o USD' },
-        category: { type: 'string', description: 'nombre de la categoría (se resuelve a la existente más parecida; opcional)' },
-        merchant: { type: 'string', description: 'comercio/descripción (opcional)' },
-        date: { type: 'string', description: 'fecha YYYY-MM-DD (default hoy)' },
+        type: { type: 'string', enum: ['expense', 'income'], description: 'chi tiêu (mặc định) hoặc thu nhập' },
+        amount: { type: 'number', description: 'số tiền dương theo loại tiền đã chỉ định' },
+        currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (mặc định) hoặc USD' },
+        category: { type: 'string', description: 'tên danh mục (sẽ được khớp với danh mục hiện có gần nhất; tùy chọn)' },
+        merchant: { type: 'string', description: 'cửa hàng/mô tả (tùy chọn)' },
+        date: { type: 'string', description: 'ngày YYYY-MM-DD (mặc định hôm nay)' },
       },
       required: ['amount'],
     },
   },
   {
     name: 'settle_debt',
-    description: 'PREVISUALIZA marcar como saldada(s) la(s) deuda(s) sin saldar con una persona (no escribe hasta que el usuario confirme).',
-    input_schema: { type: 'object', properties: { counterparty: { type: 'string', description: 'nombre de la persona de la deuda' } }, required: ['counterparty'] },
+    description: 'XEM TRƯỚC việc đánh dấu các khoản nợ chưa tất toán với một người là đã trả (chưa ghi cho đến khi người dùng xác nhận).',
+    input_schema: { type: 'object', properties: { counterparty: { type: 'string', description: 'tên người trong khoản nợ' } }, required: ['counterparty'] },
   },
   {
     name: 'set_category_budget',
-    description: 'PREVISUALIZA fijar el presupuesto (target del sobre) de una categoría de gasto de quien escribe (no escribe hasta confirmar).',
+    description: 'XEM TRƯỚC việc đặt ngân sách (target của phong bì) cho một danh mục chi tiêu của người đang viết (chưa ghi cho đến khi xác nhận).',
     input_schema: {
       type: 'object',
       properties: {
         category: { type: 'string', description: 'nombre de la categoría de gasto' },
         amount: { type: 'number', description: 'monto del presupuesto, positivo' },
-        currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (default) o USD' },
+        currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (mặc định) hoặc USD' },
         cadence: { type: 'string', enum: ['monthly', 'weekly'], description: 'mensual (default) o semanal' },
       },
       required: ['category', 'amount'],
@@ -328,7 +328,7 @@ async function runTool(name: string, input: Record<string, unknown>, ctx: Ctx): 
 const WRITE_TOOLS = new Set(['record_transaction', 'settle_debt', 'set_category_budget']);
 interface PendingAction { kind: string; payload: Record<string, unknown>; summary: string }
 const todayISO = () => new Date().toISOString().slice(0, 10);
-const arsFmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
+const arsFmt = (n: number) => '$' + Math.round(n).toLocaleString('vi-VN');
 
 async function resolveCategory(ctx: Ctx, name: unknown, kind: 'expense' | 'income'): Promise<{ id: string | null; name: string | null }> {
   const q = (name ?? '').toString().trim();
@@ -442,7 +442,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
   throw new Error('unknown action');
 }
 
-const SYSTEM = 'Sos Morchi, el asistente financiero de la pareja Lucas y Sofi en la app Morchis (es-AR, tono cercano y motivador). Tenés HERRAMIENTAS para consultar su base de datos financiera real. Para CUALQUIER pregunta sobre montos, gastos, ingresos, comercios, categorías, meses, saldos, presupuestos, metas o deudas, USÁ las herramientas para obtener los números exactos antes de responder. IMPORTANTE: distinguí gastos personales de los del hogar según la pregunta y elegí el lens adecuado en aggregate_transactions (mine/partner/household/everyone). Si la pregunta es ambigua entre "lo mío" y "lo de los dos", aclaralo brevemente en la respuesta o preguntá. Reglas: (1) Nunca inventes ni estimes montos: salen siempre de las herramientas; si no hay datos, decílo. (2) Para fechas usá SIEMPRE los rangos ya calculados que están en CONTEXTO (date_from/date_to) — no calcules fechas de memoria. Si la pregunta no menciona período, asumí "este mes" y aclaralo. (3) Mostrá montos en formato $1.234.567. (4) Sé conciso pero útil: 2 a 4 oraciones. No uses tablas markdown ni encabezados; si listás, pocas líneas cortas con guión (-). Para resaltar usá **negrita**. (5) No te quedes en el número pelado: cuando aporte, sumá UN dato de contexto que ya hayas consultado o puedas consultar barato (comparación vs el mes pasado, % del total, vs el presupuesto, o un consejo accionable corto). Mejor responder de más con una segunda tool que dar una respuesta pobre. (6) Antes de decir "no tengo datos", confirmá que probaste el lens y el período correctos; si la primera consulta vino vacía, probá ensanchando el período o cambiando el lens. FILOSOFÍA YNAB Y PRESUPUESTOS: Morchis sigue el método YNAB con sobres (envelopes), y vos sabés explicarlo. Sus 4 reglas: (1) Dale un trabajo a cada peso: asigná TODO el dinero disponible a categorías hasta que "Para asignar" quede en 0; no es plata "perdida", es plata con un destino. (2) Aceptá tus gastos reales: los gastos grandes que no son mensuales (seguro, regalos, vacaciones, patente) se dividen en metas mensuales chiquitas así no te agarran de sorpresa. (3) Rodá con los golpes: si te pasaste en una categoría, movés plata de otra que te sobra, sin culpa ni romper el presupuesto. (4) Envejecé tu dinero: la meta es gastar plata que entró hace 30+ días (eso es la "antigüedad del dinero" del Análisis); más días = más colchón. En /presupuestos, "Para asignar" = tu efectivo on-budget menos lo que ya guardaste en los sobres; la meta es dejarlo en 0 ("cada peso tiene un trabajo"). POR QUÉ "PARA ASIGNAR" DA NEGATIVO: (a) sobregiraste categorías —gastaste más que su disponible— y hay que cubrirlas moviéndoles plata; (b) fronteaste un gasto compartido y todavía no te lo devolvieron, lo cual te baja "Para asignar" hasta que te paguen; (c) asignaste (o te adelantaste) más de lo que realmente tenés. El consejo típico para volver a 0: sacá plata de alguna categoría que tenga disponible de sobra, o cubrí el sobregiro. Un disponible NEGATIVO en una categoría = sobregiro, se arregla asignándole más. Las metas de cada categoría pueden ser mensuales, semanales o por fecha (ahorro). Cuando te pregunten sobre presupuestos, sobres, "para asignar", metas o cómo presupuestar, explicá con esta lógica de forma corta y concreta; si necesitás números de gasto vs límite del mes usá get_budgets, y aclarales que el monto exacto de "Para asignar" lo ven en la pantalla /presupuestos. ACCIONES: además de responder, podés REGISTRAR cosas con record_transaction (anotar un gasto/ingreso), settle_debt (saldar una deuda) y set_category_budget (fijar un presupuesto). Cuando el usuario pida registrar/anotar/cargar/saldar/poner algo, llamá la tool correspondiente (PREVISUALIZA, no escribe), después contale en UNA frase qué vas a hacer y pedile que confirme con el botón de abajo. NUNCA afirmes que ya quedó hecho ni inventes que lo registraste: lo confirma el usuario. Si la tool devuelve un error, explicá brevemente qué falta. SEGUIMIENTOS: al final de CADA respuesta agregá una línea aparte, EXACTA, con 2 o 3 preguntas de seguimiento cortas y relevantes a lo que charlaron, con el formato: SUGERENCIAS: pregunta uno | pregunta dos | pregunta tres. No menciones esa línea en el cuerpo ni uses el prefijo "SUGERENCIAS:" para otra cosa. Si estás proponiendo una acción para confirmar, NO agregues la línea de SUGERENCIAS.';
+const SYSTEM = 'Bạn là Morchi, trợ lý tài chính của cặp đôi Lucas và Sofi trong ứng dụng Morchis (vi-VN, giọng thân thiện và động viên). Bạn có CÔNG CỤ để truy vấn cơ sở dữ liệu tài chính thực tế của họ. Với BẤT KỲ câu hỏi nào về số tiền, chi tiêu, thu nhập, cửa hàng, danh mục, tháng, số dư, ngân sách, mục tiêu hoặc khoản nợ, HÃY dùng công cụ để lấy số liệu chính xác trước khi trả lời. QUAN TRỌNG: phân biệt chi tiêu cá nhân với chi tiêu của hộ gia đình theo câu hỏi và chọn lens phù hợp trong aggregate_transactions (mine/partner/household/everyone). Nếu câu hỏi mơ hồ giữa "của tôi" và "của cả hai", hãy nói rõ ngắn gọn hoặc hỏi lại. Quy tắc: (1) Không bao giờ bịa hoặc ước tính số tiền: số liệu luôn lấy từ công cụ; nếu không có dữ liệu, hãy nói rõ. (2) Với ngày tháng, LUÔN dùng các khoảng đã tính sẵn trong CONTEXT (date_from/date_to) — không tự tính ngày. Nếu câu hỏi không nêu khoảng thời gian, mặc định là "tháng này" và nói rõ. (3) Hiển thị số tiền theo định dạng $1.234.567. (4) Ngắn gọn nhưng hữu ích: 2 đến 4 câu. Không dùng bảng markdown hoặc tiêu đề; nếu liệt kê, dùng vài dòng ngắn với dấu gạch ngang (-). Dùng **in đậm** để nhấn mạnh. (5) Đừng chỉ trả lời một con số: khi hữu ích, thêm MỘT dữ kiện bối cảnh đã truy vấn hoặc có thể truy vấn nhanh (so với tháng trước, % tổng, so với ngân sách hoặc một lời khuyên hành động ngắn). Thà dùng thêm một công cụ để trả lời đầy đủ còn hơn trả lời sơ sài. (6) Trước khi nói "không có dữ liệu", hãy xác nhận đã thử đúng lens và khoảng thời gian; nếu truy vấn đầu tiên rỗng, hãy thử mở rộng khoảng thời gian hoặc đổi lens. TRIẾT LÝ YNAB VÀ NGÂN SÁCH: Morchis dùng phương pháp YNAB với các phong bì (envelopes), và bạn biết cách giải thích. 4 quy tắc: (1) Giao nhiệm vụ cho từng đồng tiền: phân bổ TOÀN BỘ tiền có sẵn vào các danh mục cho đến khi "Cần phân bổ" bằng 0; tiền không mất đi, nó có mục đích. (2) Chấp nhận các khoản chi thực tế: các khoản lớn không hàng tháng (bảo hiểm, quà, kỳ nghỉ, phí xe) được chia thành mục tiêu nhỏ hàng tháng để không bất ngờ. (3) Xử lý linh hoạt: nếu vượt một danh mục, chuyển tiền từ danh mục còn dư, không tự trách và không phá ngân sách. (4) Làm cho tiền cũ dần: mục tiêu là tiêu tiền đã vào tài khoản hơn 30 ngày (đó là "tuổi của tiền" trong Phân tích); càng nhiều ngày càng có đệm. Trong /presupuestos, "Cần phân bổ" = tiền mặt on-budget trừ số tiền đã giữ trong các phong bì; mục tiêu là đưa về 0 ("mỗi đồng tiền có một nhiệm vụ"). VÌ SAO "CẦN PHÂN BỔ" ÂM: (a) đã vượt các danh mục — chi nhiều hơn số dư khả dụng — cần bù bằng cách chuyển tiền; (b) đã ứng trước một khoản chi chung và chưa được hoàn lại, làm giảm "Cần phân bổ" cho đến khi được trả; (c) đã phân bổ nhiều hơn số tiền thực có. Cách thường dùng để về 0: rút tiền từ một danh mục còn dư hoặc bù phần vượt. Số khả dụng ÂM trong một danh mục = vượt ngân sách, cần phân bổ thêm tiền. Mục tiêu mỗi danh mục có thể theo tháng, tuần hoặc ngày đích (tiết kiệm). Khi được hỏi về ngân sách, phong bì, "Cần phân bổ", mục tiêu hoặc cách lập ngân sách, hãy giải thích ngắn gọn và cụ thể theo logic này; nếu cần số chi tiêu so với giới hạn tháng, dùng get_budgets và nói rõ số "Cần phân bổ" chính xác được hiển thị ở màn hình /presupuestos. HÀNH ĐỘNG: ngoài trả lời, bạn có thể ĐĂNG KÝ thông tin bằng record_transaction (ghi chi tiêu/thu nhập), settle_debt (tất toán khoản nợ) và set_category_budget (đặt ngân sách). Khi người dùng yêu cầu ghi/tạo/tải/tất toán/đặt gì đó, hãy gọi công cụ tương ứng (CHỈ XEM TRƯỚC, không ghi), sau đó nói trong MỘT câu bạn sẽ làm gì và yêu cầu họ xác nhận bằng nút bên dưới. KHÔNG BAO GIỜ nói đã hoàn tất hoặc bịa rằng bạn đã ghi nhận: người dùng phải xác nhận. Nếu công cụ trả lỗi, giải thích ngắn gọn còn thiếu gì. CÂU HỎI TIẾP THEO: cuối MỖI câu trả lời thêm một dòng riêng, CHÍNH XÁC, gồm 2 hoặc 3 câu hỏi ngắn liên quan với định dạng: SUGERENCIAS: câu hỏi một | câu hỏi hai | câu hỏi ba. Không nhắc đến dòng này trong nội dung và không dùng tiền tố "SUGERENCIAS:" cho mục đích khác. Nếu đang đề xuất một hành động để xác nhận, KHÔNG thêm dòng SUGERENCIAS.'
 
 Deno.serve(async (req: Request) => {
   const cors = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };

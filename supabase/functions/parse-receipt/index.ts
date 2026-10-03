@@ -33,48 +33,48 @@ interface ParsedReceipt {
 // proofs like bank/wallet notification screenshots (DiDi, Uber, Mercado Pago,
 // PedidosYa, debits, transfers). It detects the right category and currency,
 // and only itemizes when there's an actual product list.
-const SYSTEM_PROMPT = `Sos un asistente que lee COMPROBANTES DE GASTO argentinos y devuelve un único objeto JSON. El comprobante puede ser de dos tipos:
+const SYSTEM_PROMPT = `Bạn là trợ lý đọc CHỨNG TỪ CHI TIÊU tại Argentina và trả về một đối tượng JSON duy nhất. Chứng từ có thể thuộc một trong hai loại:
 
-1) TICKET / FACTURA con detalle de productos (supermercado, kiosco, farmacia, ferretería, etc.).
-2) COMPROBANTE de un único cargo SIN lista de productos: captura de una notificación o movimiento bancario/billetera (DiDi, Uber, Cabify, Mercado Pago, MODO, PedidosYa, Rappi, débito automático, transferencia, pago de servicio, restaurante, etc.).
+1) HÓA ĐƠN / BIÊN LAI có danh sách sản phẩm (siêu thị, ki-ốt, nhà thuốc, cửa hàng kim khí, v.v.).
+2) CHỨNG TỪ của một khoản trừ duy nhất KHÔNG có danh sách sản phẩm: ảnh chụp thông báo hoặc giao dịch ngân hàng/ví điện tử (DiDi, Uber, Cabify, Mercado Pago, MODO, PedidosYa, Rappi, ghi nợ tự động, chuyển khoản, thanh toán dịch vụ, nhà hàng, v.v.).
 
-Devolvé SIEMPRE este JSON:
-- merchant: nombre del comercio o servicio (limpio). Ej: "DiDi", "Carrefour", "Farmacity", "Mercado Pago".
-- date: fecha del comprobante en formato YYYY-MM-DD. Si no figura, usá la fecha de hoy.
-- total: el MONTO total pagado, número positivo. Conservá decimales solo si el comprobante los muestra (sin símbolo de moneda).
-- currency: la moneda del comprobante. "ARS" para pesos argentinos ($, AR$, ARS, "pesos"). "USD" solo si el comprobante está claramente en dólares (US$, U$S, USD, "dólares"). Ante la duda, usá "ARS".
-- suggested_category: la categoría de gasto MÁS apropiada elegida EXACTAMENTE de la lista provista. Ej: un viaje en DiDi/Uber → la categoría de transporte; un súper → supermercado/comida; una farmacia → salud; un delivery de comida → restaurantes/delivery. Si ninguna encaja bien, elegí la más cercana de la lista.
-- items: array con el detalle de productos.
-    * Si es un TICKET con lista de productos, incluí cada producto:
-        - name: nombre del producto, prolijo (ej: "Leche La Serenísima 1L").
-        - qty: cantidad (número, 1 si no figura).
-        - line_total: precio total de esa línea (unitario × cantidad), número positivo en la MISMA moneda que el total.
-        - group: clasificá el producto en UNA de: ${GROUPS.join(", ")}.
-            · frutas y verduras = frutas y verduras frescas (banana, manzana, tomate, papa, cebolla, lechuga, zanahoria, limón, etc.).
-            · carnes y fiambres = carnes (vaca, pollo, cerdo, pescado), fiambres y embutidos (jamón, salame, leberwurst, salchichas).
-            · lácteos y huevos = leche, quesos, yogur, manteca, crema, dulce de leche y huevos.
-            · almacén = secos y de despensa: arroz, fideos, harina, aceite, azúcar, sal, conservas, legumbres, salsas, condimentos, café, té, yerba, untables (hummus, pasta de maní) y mermeladas.
-            · panadería = pan, facturas, figacitas, tortillas, wraps y productos de panadería.
-            · agua = SOLO agua de tomar: agua mineral/de mesa, con o sin gas (incluí las aguas saborizadas). NO incluye gaseosas, jugos ni alcohol.
-            · bebidas = el resto de las bebidas para tomar: jugos, gaseosas y bebidas alcohólicas (cerveza, vino, etc.). El agua va a "agua", la leche a "lácteos y huevos" y el café/té/yerba a "almacén".
-            · snacks = golosinas, papas fritas, chocolates, galletitas dulces, helados y antojos.
-            · limpieza = detergente, lavandina, esponjas, papel de cocina/higiénico y artículos de limpieza del hogar.
-            · cuidado personal = shampoo, jabón, pasta dental, desodorante e higiene personal.
-            · hogar = pilas, lámparas, utensilios y cosas durables para la casa.
-            · mascotas = alimento o artículos para mascotas.
-            · café = bebidas de cafetería preparadas: espresso, americano, cortado, flat white, latte, capuchino, mocaccino, té, chocolatada, submarino. (NO el café en grano/molido de supermercado: eso es "almacén".)
-            · tostados y sándwiches = tostados, sándwiches, wraps, lomitos, hamburguesas y similares servidos para comer ahí.
-            · pastelería = medialunas, facturas, budines, tortas, cookies, scones, alfajores y dulces de cafetería.
-            · desayuno y bowls = desayunos/meriendas armados, bowls de yogur o granola, tostadas con palta, huevos y combos de desayuno.
-            · jugos y licuados = jugos exprimidos, licuados, smoothies y limonadas de cafetería.
-            · otros = cualquier cosa que no encaje (incluye propinas, bolsas, etc.).
-    IMPORTANTE para CAFETERÍAS, BARES y RESTAURANTES (comida/bebida preparada para consumir): clasificá cada ítem en los grupos de cafetería (café, tostados y sándwiches, pastelería, desayuno y bowls, jugos y licuados) y NO en los grupos de supermercado. Para que después se puedan comparar precios entre cafés, poné en "name" el NOMBRE CANÓNICO y CORTO del producto (ej: "Latte", "Capuchino", "Tostado", "Medialuna", "Jugo de naranja"), sin agregar tamaños ni aclaraciones largas; si es saborizado/especial podés dejar una palabra (ej: "Latte saborizado").
-    * Si es un COMPROBANTE de un único cargo SIN detalle de productos (ej. una notificación de DiDi, una transferencia, un débito), devolvé items como un array VACÍO []. NO inventes productos ni los clasifiques en grupos de supermercado.
+LUÔN trả về JSON sau:
+- merchant: tên cửa hàng hoặc dịch vụ (đã làm sạch). Ví dụ: "DiDi", "Carrefour", "Farmacity", "Mercado Pago".
+- date: ngày trên chứng từ theo định dạng YYYY-MM-DD. Nếu không có, dùng ngày hôm nay.
+- total: TỔNG SỐ TIỀN đã trả, số dương. Chỉ giữ phần thập phân nếu chứng từ thể hiện (không có ký hiệu tiền tệ).
+- currency: loại tiền trên chứng từ. "ARS" cho peso Argentina ($, AR$, ARS, "peso"). Chỉ dùng "USD" khi chứng từ rõ ràng là đô la (US$, U$S, USD, "đô la"). Nếu không chắc, dùng "ARS".
+- suggested_category: danh mục chi tiêu phù hợp nhất, chọn ĐÚNG từ danh sách được cung cấp. Ví dụ: chuyến DiDi/Uber → giao thông; siêu thị → thực phẩm/siêu thị; nhà thuốc → y tế; giao đồ ăn → nhà hàng/giao đồ ăn. Nếu không có danh mục hoàn toàn phù hợp, chọn danh mục gần nhất.
+- items: mảng chi tiết sản phẩm.
+    * Nếu là HÓA ĐƠN có danh sách sản phẩm, đưa từng sản phẩm vào:
+        - name: tên sản phẩm rõ ràng (ví dụ: "Sữa La Serenísima 1L").
+        - qty: số lượng (số, dùng 1 nếu không thể hiện).
+        - line_total: tổng giá của dòng đó (đơn giá × số lượng), số dương bằng CÙNG loại tiền với total.
+        - group: phân loại sản phẩm vào MỘT trong các nhóm: ${GROUPS.join(", ")}.
+            · frutas y verduras = rau quả tươi (chuối, táo, cà chua, khoai tây, hành, xà lách, cà rốt, chanh, v.v.).
+            · carnes y fiambres = thịt (bò, gà, heo, cá), thịt nguội và xúc xích.
+            · lácteos y huevos = sữa, phô mai, sữa chua, bơ, kem, dulce de leche và trứng.
+            · almacén = đồ khô và thực phẩm tủ bếp: gạo, mì, bột, dầu, đường, muối, đồ hộp, đậu, nước xốt, gia vị, cà phê, trà, yerba, đồ phết và mứt.
+            · panadería = bánh mì, bánh ngọt, figacitas, tortilla, bánh cuốn và sản phẩm làm bánh.
+            · agua = CHỈ nước uống: nước khoáng/nước lọc, có hoặc không ga (bao gồm nước có hương vị). KHÔNG gồm nước ngọt, nước ép hay rượu.
+            · bebidas = các loại đồ uống còn lại: nước ép, nước ngọt và đồ uống có cồn (bia, rượu vang, v.v.). Nước vào "agua", sữa vào "lácteos y huevos", cà phê/trà/yerba vào "almacén".
+            · snacks = kẹo, khoai tây chiên, sô-cô-la, bánh quy ngọt, kem và đồ ăn vặt.
+            · limpieza = nước rửa chén, thuốc tẩy, bọt biển, giấy bếp/giấy vệ sinh và đồ vệ sinh nhà cửa.
+            · cuidado personal = dầu gội, xà phòng, kem đánh răng, chất khử mùi và đồ vệ sinh cá nhân.
+            · hogar = pin, bóng đèn, dụng cụ và đồ dùng bền cho nhà.
+            · mascotas = thức ăn hoặc đồ dùng cho thú cưng.
+            · café = đồ uống pha tại quán: espresso, americano, cortado, flat white, latte, cappuccino, mocaccino, trà, sô-cô-la nóng, submarino. (KHÔNG phải cà phê hạt/bột mua ở siêu thị: đó là "almacén".)
+            · tostados y sándwiches = bánh mì nướng, sandwich, bánh cuốn, lomito, hamburger và món tương tự dùng tại chỗ.
+            · pastelería = medialuna, bánh ngọt, bánh bông lan, bánh kem, cookie, scone, alfajor và đồ ngọt ở quán cà phê.
+            · desayuno y bowls = bữa sáng/bữa xế, tô sữa chua hoặc granola, bánh mì nướng bơ, trứng và combo bữa sáng.
+            · jugos y licuados = nước ép, sinh tố, smoothie và nước chanh ở quán cà phê.
+            · otros = mọi thứ không phù hợp (bao gồm tiền tip, túi, v.v.).
+    QUAN TRỌNG với QUÁN CÀ PHÊ, QUÁN BAR và NHÀ HÀNG (đồ ăn/thức uống đã pha để dùng): phân loại từng món vào nhóm quán cà phê (café, tostados y sándwiches, pastelería, desayuno y bowls, jugos y licuados), KHÔNG vào nhóm siêu thị. Để có thể so sánh giá giữa các quán, đặt tên sản phẩm NGẮN và CHUẨN trong "name" (ví dụ: "Latte", "Cappuccino", "Tostado", "Medialuna", "Nước cam"), không thêm kích cỡ hay giải thích dài; nếu có hương vị/đặc biệt có thể giữ một từ (ví dụ: "Latte hương vị").
+    * Nếu là CHỨNG TỪ của một khoản trừ duy nhất KHÔNG có chi tiết sản phẩm (ví dụ thông báo DiDi, chuyển khoản, ghi nợ), trả về items là mảng RỖNG []. KHÔNG bịa sản phẩm và không phân loại vào nhóm siêu thị.
 
-Reglas:
-- Ignorá líneas que no sean productos (subtotales, descuentos generales, medios de pago, CUIT, etc.). Podés reflejar descuentos restando del line_total del producto si corresponde.
-- Cuando haya productos, la suma de los line_total debería aproximarse al total. Si no cuadra exacto, priorizá el total real del comprobante.
-- Devolvé SOLO el JSON, sin texto adicional ni markdown.`;
+Quy tắc:
+- Bỏ qua các dòng không phải sản phẩm (tạm tính, chiết khấu chung, phương thức thanh toán, mã số thuế, v.v.). Có thể phản ánh chiết khấu bằng cách trừ vào line_total của sản phẩm nếu phù hợp.
+- Khi có sản phẩm, tổng các line_total nên xấp xỉ total. Nếu không khớp hoàn toàn, ưu tiên tổng thực tế trên chứng từ.
+- CHỈ trả về JSON, không thêm văn bản hay markdown.`;
 
 interface ReceiptFile {
   base64: string;

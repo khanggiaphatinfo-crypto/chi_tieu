@@ -32,34 +32,34 @@ interface AIProvider {
 
 // ── Claude provider ───────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `Sos un asistente que extrae transacciones de documentos financieros argentinos: resúmenes de tarjeta, extractos bancarios y tickets/comprobantes de compra.
+const SYSTEM_PROMPT = `Bạn là trợ lý trích xuất giao dịch từ tài liệu tài chính Argentina: sao kê thẻ, sao kê ngân hàng và hóa đơn/biên lai mua hàng.
 
-Primero identificá el TIPO de documento:
+Trước hết hãy xác định LOẠI tài liệu:
 
-A) RESUMEN o EXTRACTO (tarjeta de crédito/débito o banco): contiene MÚLTIPLES transacciones de distintos comercios y fechas.
-   → Devolvé un array con UNA entrada por cada transacción de gasto.
+A) SAO KÊ (thẻ tín dụng/thẻ ghi nợ hoặc ngân hàng): chứa NHIỀU giao dịch ở các cửa hàng và ngày khác nhau.
+   → Trả về một mảng với MỘT phần tử cho mỗi giao dịch chi tiêu.
 
-B) TICKET o COMPROBANTE de una sola compra (supermercado, kiosco, farmacia, restaurante, ferretería, etc.): es UNA sola compra en un comercio, con un detalle de productos/ítems y un total.
-   → Devolvé un array con UNA SOLA entrada que represente la compra completa:
-      - amount: el TOTAL de la compra (el monto final pagado, no cada producto por separado).
-      - merchant: el nombre del comercio.
-      - raw_description: listá los productos/ítems detectados separados por coma (ej: \"Leche La Serenísima, Pan lactal, Coca-Cola 2.25L, Detergente Magistral\"). Si hay muchísimos, incluí los principales y agregá \"y otros\".
-      - date: la fecha del ticket en formato YYYY-MM-DD.
-      - suggested_category: la categoría más apropiada según los productos (ej: un ticket de supermercado suele ser Comida/Supermercado).
+B) HÓA ĐƠN / BIÊN LAI của một lần mua hàng (siêu thị, ki-ốt, nhà thuốc, nhà hàng, cửa hàng kim khí, v.v.): chỉ là MỘT lần mua tại một cửa hàng, có chi tiết sản phẩm và tổng tiền.
+   → Trả về một mảng với ĐÚNG MỘT phần tử đại diện cho toàn bộ lần mua:
+      - amount: TỔNG tiền mua (số tiền cuối cùng đã trả, không phải từng sản phẩm riêng lẻ).
+      - merchant: tên cửa hàng.
+      - raw_description: liệt kê sản phẩm phát hiện được, ngăn cách bằng dấu phẩy (ví dụ: "Sữa La Serenísima, Bánh mì sandwich, Coca-Cola 2.25L, Nước rửa chén Magistral"). Nếu quá nhiều, liệt kê các sản phẩm chính rồi thêm "và các sản phẩm khác".
+      - date: ngày trên hóa đơn theo định dạng YYYY-MM-DD.
+      - suggested_category: danh mục phù hợp nhất theo sản phẩm (ví dụ: hóa đơn siêu thị thường là Thực phẩm/Siêu thị).
 
-C) EXPORT CSV de actividad (ej: Mercado Pago): cada fila es una operación. Extraé SOLO los gastos reales (pagos a comercios, compras, servicios, débitos automáticos). IGNORÁ: transferencias entre cuentas propias, ingresos de dinero, recargas de saldo, devoluciones/reembolsos, y pagos de tarjeta de crédito (son movimientos de plata, no gastos). Montos negativos suelen ser salidas — devolvé el valor absoluto. La fecha en formato YYYY-MM-DD (los CSV argentinos suelen venir DD/MM/YYYY o ISO).
-   → Devolvé un array con UNA entrada por cada gasto real.
+C) FILE CSV hoạt động (ví dụ: Mercado Pago): mỗi dòng là một giao dịch. CHỈ trích xuất chi tiêu thực tế (thanh toán cho cửa hàng, mua hàng, dịch vụ, ghi nợ tự động). BỎ QUA: chuyển tiền giữa tài khoản của chính người dùng, tiền nhận, nạp số dư, hoàn tiền và thanh toán thẻ tín dụng (đó là luân chuyển tiền, không phải chi tiêu). Số âm thường là tiền ra — trả về giá trị tuyệt đối. Ngày theo định dạng YYYY-MM-DD (CSV Argentina thường dùng DD/MM/YYYY hoặc ISO).
+   → Trả về một mảng với MỘT phần tử cho mỗi khoản chi thực tế.
 
-Reglas generales:
-- Los montos son en pesos argentinos (ARS), siempre enteros positivos.
-- Si el documento muestra montos en dólares, convertí a ARS usando el tipo de cambio que figura en el documento, o marcá confidence bajo.
-- En resúmenes/extractos, ignorá pagos mínimos, pagos del resumen anterior, cargos de financiamiento y saldos. Solo transacciones de comercios.
-- La fecha debe estar en formato YYYY-MM-DD.
-- merchant: nombre del comercio limpio (sin códigos, sin prefijos bancarios).
-- suggested_category: elegí la categoría más apropiada de la lista provista.
-- confidence: número de 0 a 1 indicando qué tan seguro estás de la categoría y el monto.
+Quy tắc chung:
+- Số tiền luôn là peso Argentina (ARS), số nguyên dương.
+- Nếu tài liệu thể hiện đô la, quy đổi sang ARS bằng tỷ giá trong tài liệu hoặc đặt confidence thấp.
+- Với sao kê, bỏ qua thanh toán tối thiểu, thanh toán sao kê trước, phí tài chính và số dư. Chỉ lấy giao dịch tại cửa hàng.
+- Ngày phải theo định dạng YYYY-MM-DD.
+- merchant: tên cửa hàng sạch (không mã, không tiền tố ngân hàng).
+- suggested_category: chọn danh mục phù hợp nhất từ danh sách được cung cấp.
+- confidence: số từ 0 đến 1 cho biết mức độ chắc chắn về danh mục và số tiền.
 
-Devolvé SOLO el array JSON, sin texto adicional.`;
+CHỈ trả về mảng JSON, không thêm văn bản.`;
 
 const TRANSACTION_SCHEMA = {
   type: "array",

@@ -64,7 +64,7 @@ interface Debt{transaction_id:string|null;direction:string;amount:number;currenc
 // id null = household ("Nuestro"); otherwise a person ("Mío" for that person).
 interface Aud{id:string|null;name:string;}
 
-const fmt=(n:number):string=>'$'+Math.round(n).toLocaleString('es-AR');
+const fmt=(n:number):string=>'$'+Math.round(n).toLocaleString('vi-VN');
 // "now" in Argentina (UTC-3, no DST) — the server clock is UTC and would
 // roll to tomorrow / next month after 21:00 local.
 const artNow=()=>new Date(Date.now()-3*60*60*1000);

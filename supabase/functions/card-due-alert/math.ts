@@ -2,7 +2,7 @@
 // Credit-card billing cycle / due-date arithmetic, clamped to month length.
 
 export const isoOf = (d: Date) => d.toISOString().slice(0, 10);
-export const fmtARS = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
+export const fmtARS = (n: number) => '$' + Math.round(n).toLocaleString('vi-VN');
 
 // Next monthly occurrence of `anchorISO`'s day-of-month that is >= today,
 // clamped to each month's length (a day-31 anchor hits Feb 28 / Mar 31).

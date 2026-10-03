@@ -2,7 +2,7 @@
 // HARD RULE (mirrored from the handler): suggested amounts are computed here from
 // real history; Claude only writes a rationale string. It never picks the number.
 
-export const fmt = (n: number): string => '$' + Math.round(n).toLocaleString('es-AR');
+export const fmt = (n: number): string => '$' + Math.round(n).toLocaleString('vi-VN');
 export const iso = (y: number, m: number, d: number) => new Date(y, m, d).toISOString().slice(0, 10);
 
 // Round a raw average up to a "nice" budget figure so suggestions read cleanly.

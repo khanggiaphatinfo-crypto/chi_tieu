@@ -59,26 +59,26 @@ export function buildPrimer(ctx: PrimerCtx): string {
   // tenga que hacer aritmética de fechas (la causa más común de números mal).
   const art = new Date(Date.now() - 3 * 60 * 60 * 1000);
   const y = art.getUTCFullYear(), m = art.getUTCMonth(), d = art.getUTCDate();
-  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const months = ['tháng Một', 'tháng Hai', 'tháng Ba', 'tháng Tư', 'tháng Năm', 'tháng Sáu', 'tháng Bảy', 'tháng Tám', 'tháng Chín', 'tháng Mười', 'tháng Mười Một', 'tháng Mười Hai'];
   const fmt = (dt: Date) => `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
   const u = (yy: number, mm: number, dd: number) => new Date(Date.UTC(yy, mm, dd));
   const day = 86400000;
   const today = fmt(u(y, m, d));
-  const asker = ctx.pm[ctx.askerId] ?? 'el usuario';
-  const partner = ctx.partnerId ? (ctx.pm[ctx.partnerId] ?? 'su pareja') : 'su pareja';
+  const asker = ctx.pm[ctx.askerId] ?? 'người dùng';
+  const partner = ctx.partnerId ? (ctx.pm[ctx.partnerId] ?? 'người yêu của họ') : 'người yêu của họ';
   return [
-    `Hoy es ${today} (${months[m]} de ${y}).`,
-    `Quien te escribe es ${asker}. Su pareja es ${partner}.`,
-    'Rangos de fecha YA CALCULADOS para usar tal cual en date_from / date_to (NO los calcules vos):',
-    `- este mes: ${fmt(u(y, m, 1))} a ${today}`,
-    `- mes pasado: ${fmt(u(y, m - 1, 1))} a ${fmt(u(y, m, 0))}`,
-    `- este año: ${fmt(u(y, 0, 1))} a ${today}`,
-    `- año pasado: ${fmt(u(y - 1, 0, 1))} a ${fmt(u(y - 1, 11, 31))}`,
-    `- últimos 7 días: ${fmt(new Date(u(y, m, d).getTime() - 6 * day))} a ${today}`,
-    `- últimos 30 días: ${fmt(new Date(u(y, m, d).getTime() - 29 * day))} a ${today}`,
-    'Si la pregunta NO menciona período, asumí "este mes" y aclaralo en la respuesta (ej. "este mes...").',
-    `Categorías de gasto existentes (usá estos nombres exactos al filtrar): ${ctx.catNames || 'n/d'}.`,
-    'Cada gasto puede ser personal (de una persona) o del hogar (compartido). Para "mis/mi" usá lens="mine"; para tu pareja lens="partner"; para lo compartido/del hogar/"juntos" lens="household"; para el total combinado lens="everyone".',
-    'La moneda base es el peso argentino (ARS); los dólares ya vienen convertidos en las herramientas.',
+    `Hôm nay là ${today} (${months[m]} năm ${y}).`,
+    `Người đang viết cho bạn là ${asker}. Người yêu của họ là ${partner}.`,
+    'Các khoảng thời gian ĐÃ ĐƯỢC TÍNH SẴN để dùng nguyên văn trong date_from / date_to (ĐỪNG tự tính lại):',
+    `- tháng này: ${fmt(u(y, m, 1))} đến ${today}`,
+    `- tháng trước: ${fmt(u(y, m - 1, 1))} đến ${fmt(u(y, m, 0))}`,
+    `- năm nay: ${fmt(u(y, 0, 1))} đến ${today}`,
+    `- năm ngoái: ${fmt(u(y - 1, 0, 1))} đến ${fmt(u(y - 1, 11, 31))}`,
+    `- 7 ngày qua: ${fmt(new Date(u(y, m, d).getTime() - 6 * day))} đến ${today}`,
+    `- 30 ngày qua: ${fmt(new Date(u(y, m, d).getTime() - 29 * day))} đến ${today}`,
+    'Nếu câu hỏi KHÔNG nêu khoảng thời gian, hãy mặc định là "tháng này" và nói rõ trong câu trả lời (ví dụ: "tháng này...").',
+    `Các danh mục chi tiêu hiện có (dùng đúng tên này khi lọc): ${ctx.catNames || 'không có dữ liệu'}.`,
+    'Mỗi khoản chi có thể là chi tiêu cá nhân hoặc của hộ gia đình (dùng chung). Với "của tôi" hãy dùng lens="mine"; với người yêu dùng lens="partner"; với phần dùng chung/của hộ gia đình/"cùng nhau" dùng lens="household"; với tổng cộng dùng lens="everyone".',
+    'Đơn vị tiền tệ cơ sở là peso Argentina (ARS); các khoản USD đã được công cụ quy đổi sẵn.',
   ].join('\n');
 }

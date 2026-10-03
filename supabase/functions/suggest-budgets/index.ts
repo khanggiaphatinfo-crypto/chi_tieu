@@ -79,18 +79,18 @@ Deno.serve(async (req: Request) => {
 
   // Ask Claude for a one-line rationale per category (numbers come from us).
   try {
-    const facts = suggestions.map((s, i) => `${i + 1}. ${s.name}: promedio 3 meses ${fmt(s.avg3m)}, mes pasado ${fmt(s.lastMonth)}, proyección de este mes ${fmt(s.projected)} → presupuesto sugerido ${fmt(s.suggested)}`).join('\n');
+    const facts = suggestions.map((s, i) => `${i + 1}. ${s.name}: trung bình 3 tháng ${fmt(s.avg3m)}, tháng trước ${fmt(s.lastMonth)}, dự báo tháng này ${fmt(s.projected)} → ngân sách đề xuất ${fmt(s.suggested)}`).join('\n');
     const response = await responsesRequest({
       maxOutputTokens: 700,
-      instructions: 'Sos el coach de Morchis (pareja argentina, es-AR). Te paso categorías de gasto con su promedio, lo del mes pasado y un presupuesto sugerido ya calculado. Devolvé SOLO un array JSON: [{"name":string (igual al dado), "rationale":string (1 frase ≤18 palabras, cálida, que justifique el monto usando los números dados)}]. No inventes ni cambies montos.',
+      instructions: 'Bạn là huấn luyện viên của Morchis (một cặp đôi dùng ứng dụng tại Việt Nam). Tôi cung cấp các danh mục chi tiêu với mức trung bình, chi tiêu tháng trước và ngân sách đề xuất đã được tính sẵn. CHỈ trả về một mảng JSON: [{"name":string (giữ nguyên như đã cho), "rationale":string (1 câu ≤18 từ, thân thiện, giải thích mức tiền bằng các số đã cho)}]. Không bịa hoặc thay đổi số tiền.',
       input: inputText(facts),
     });
     const arr = parseJson<{ name: string; rationale: string }[]>(response.text, []);
     const byName: Record<string, string> = {};
     for (const r of arr) if (r && typeof r.name === 'string' && typeof r.rationale === 'string') byName[r.name] = r.rationale.trim();
-    for (const sg of suggestions) sg.rationale = byName[sg.name] ?? `Según tu gasto reciente (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), este tope te deja un margen cómodo.`;
+    for (const sg of suggestions) sg.rationale = byName[sg.name] ?? `Theo chi tiêu gần đây của bạn (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), giới hạn này vẫn để lại một khoảng đệm thoải mái.`;
   } catch (_e) {
-    for (const sg of suggestions) sg.rationale = `Según tu gasto reciente (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), este tope te deja un margen cómodo.`;
+    for (const sg of suggestions) sg.rationale = `Theo chi tiêu gần đây của bạn (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), giới hạn này vẫn để lại một khoảng đệm thoải mái.`;
   }
 
   return new Response(JSON.stringify({ ok: true, scope, suggestions }), { headers: cors });

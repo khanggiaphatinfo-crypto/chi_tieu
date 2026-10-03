@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
     if (c.statement_ars != null || c.statement_usd != null) {
       const parts: string[] = [];
       if (c.statement_ars) parts.push(fmtARS(Number(c.statement_ars)));
-      if (c.statement_usd) parts.push(`US$${Math.round(Number(c.statement_usd)).toLocaleString('es-AR')}`);
+      if (c.statement_usd) parts.push(`US$${Math.round(Number(c.statement_usd)).toLocaleString('vi-VN')}`);
       if (parts.length) amountTxt = ` · resumen ${parts.join(' + ')}`;
     } else if (c.closing_date) {
       const lastClose = prevOccurrence(c.closing_date, todayISO);
@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
         .gt('occurred_on', prevClose)
         .lte('occurred_on', lastClose);
       const cycle = (txs ?? []).reduce((s, t) => s + (t.type === 'expense' ? Number(t.amount) : t.type === 'income' ? -Number(t.amount) : 0), 0);
-      if (cycle > 0) amountTxt = c.currency === 'USD' ? ` · ciclo US$${Math.round(cycle).toLocaleString('es-AR')}` : ` · ciclo ${fmtARS(cycle)}`;
+      if (cycle > 0) amountTxt = c.currency === 'USD' ? ` · ciclo US$${Math.round(cycle).toLocaleString('vi-VN')}` : ` · ciclo ${fmtARS(cycle)}`;
     }
 
     // Who to tell: the card owner, or both members when ownerless. Honor the

@@ -126,5 +126,5 @@ export function readyToAssign(cash: number, available: Map<string, number>): num
 }
 
 export function formatArs(n: number): string {
-  return `$${Math.round(n).toLocaleString("es-AR")}`;
+  return `$${Math.round(n).toLocaleString("vi-VN")}`;
 }

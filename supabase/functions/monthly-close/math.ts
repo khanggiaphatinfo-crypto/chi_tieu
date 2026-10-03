@@ -6,7 +6,7 @@ import { toArs, personalShareArs } from "../_shared/money.ts";
 export { toArs };
 
 export const isoUTC = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
-export const fmt = (n: number): string => '$' + Math.round(n).toLocaleString('es-AR');
+export const fmt = (n: number): string => '$' + Math.round(n).toLocaleString('vi-VN');
 export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
 export interface Split { payer_profile_id: string; ower_profile_id: string; amount: number }
