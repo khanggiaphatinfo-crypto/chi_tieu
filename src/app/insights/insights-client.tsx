@@ -20,9 +20,9 @@ interface Insight {
 }
 
 const SEVERITY_STYLE: Record<string, { bg: string; border: string; color: string; icon: string; label: string }> = {
-  positive: { bg: '#DDF0E8', border: '#2FA37C', color: '#1F8A68', icon: '✨', label: 'Positivo' },
-  warning:  { bg: '#FFE5E0', border: '#FF6F61', color: '#E25749', icon: '⚠️', label: 'Atención' },
-  info:     { bg: '#EAF0ED', border: '#B0BAB4', color: '#5B6660', icon: '💡', label: 'Info' },
+  positive: { bg: '#DDF0E8', border: '#2FA37C', color: '#1F8A68', icon: '✨', label: 'Tích cực' },
+  warning:  { bg: '#FFE5E0', border: '#FF6F61', color: '#E25749', icon: '⚠️', label: 'Lưu ý' },
+  info:     { bg: '#EAF0ED', border: '#B0BAB4', color: '#5B6660', icon: '💡', label: 'Thông tin' },
 };
 
 export default function InsightsClient({ householdId, profileId }: { householdId: string; profileId: string }) {
@@ -54,7 +54,7 @@ export default function InsightsClient({ householdId, profileId }: { householdId
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error('Iniciá sesión de nuevo para actualizar.');
+        toast.error('Vui lòng đăng nhập lại để cập nhật.');
         return;
       }
       const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-insights`, {
@@ -79,12 +79,12 @@ export default function InsightsClient({ householdId, profileId }: { householdId
       if (!res.ok || !data?.ok) {
         toast.error(
           data && data.generated === 0
-            ? 'No se generaron insights (faltan datos del mes o el análisis falló). Probá más tarde.'
-            : 'No se pudieron actualizar los insights. Probá de nuevo.',
+            ? 'Không tạo được phân tích (thiếu dữ liệu tháng hoặc phân tích bị lỗi). Hãy thử lại sau.'
+            : 'Không thể cập nhật phân tích. Hãy thử lại.',
         );
         return;
       }
-      toast.success(`${data.generated} insight${data.generated === 1 ? '' : 's'} actualizado${data.generated === 1 ? '' : 's'} ✓`);
+      toast.success(`${data.generated} phân tích đã cập nhật ✓`);
       setJustDone(true);
       setTimeout(() => setJustDone(false), 1600);
     } catch (e) {
@@ -98,7 +98,7 @@ export default function InsightsClient({ householdId, profileId }: { householdId
   return (
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="flex items-center justify-between px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Insights ✨</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Phân tích ✨</h1>
         <button
           onClick={handleRefresh}
           disabled={refreshing}
@@ -109,7 +109,7 @@ export default function InsightsClient({ householdId, profileId }: { householdId
             boxShadow: refreshing ? 'none' : 'var(--shadow-glow)',
           }}
         >
-          {refreshing ? 'Analizando…' : justDone ? <span key="done" className="inline-block animate-pop">✓ Listo</span> : 'Actualizar'}
+          {refreshing ? 'Đang phân tích…' : justDone ? <span key="done" className="inline-block animate-pop">✓ Xong</span> : 'Cập nhật'}
         </button>
       </header>
 
@@ -121,8 +121,8 @@ export default function InsightsClient({ householdId, profileId }: { householdId
         {!isLoading && insights.length === 0 && (
           <div className="rounded-3xl p-6 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-4xl mb-3">🤔</p>
-            <p className="font-bold" style={{ color: '#18211D' }}>Todavía no hay insights</p>
-            <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Tocá «Actualizar» para que la IA analice tus gastos.</p>
+            <p className="font-bold" style={{ color: '#18211D' }}>Chưa có phân tích</p>
+            <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Nhấn «Cập nhật» để AI phân tích các khoản chi của bạn.</p>
           </div>
         )}
 
@@ -152,13 +152,13 @@ export default function InsightsClient({ householdId, profileId }: { householdId
                     )}
                     {!insight.seen && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: s.color, color: '#FFFFFF' }}>
-                        nuevo
+                        mới
                       </span>
                     )}
                   </div>
                   <p className="font-black text-sm leading-tight" style={{ color: s.color }}>{insight.title}</p>
                   <p className="text-xs mt-1 leading-snug" style={{ color: s.color, opacity: 0.85 }}>{insight.body}</p>
-                  <p className="text-[11px] font-bold mt-2" style={{ color: s.color }}>Ver más →</p>
+                  <p className="text-[11px] font-bold mt-2" style={{ color: s.color }}>Xem thêm →</p>
                 </div>
               </div>
             </Link>

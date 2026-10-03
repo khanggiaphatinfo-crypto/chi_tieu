@@ -17,10 +17,10 @@ interface SpeechRec {
 }
 
 const SUGGESTIONS = [
-  '¿Cuánto gastamos este mes y en qué se nos va más?',
-  '¿Cuánto gastó cada uno este mes?',
-  '¿Cuál es nuestro patrimonio neto y dónde tenemos más?',
-  '¿En qué podríamos gastar menos?',
+  'Tháng này chúng ta đã chi bao nhiêu và chi nhiều nhất vào đâu?',
+  'Tháng này mỗi người đã chi bao nhiêu?',
+  'Tài sản ròng của chúng ta là bao nhiêu và đang nằm nhiều nhất ở đâu?',
+  'Chúng ta có thể cắt giảm khoản nào?',
 ];
 
 // Render the model's light markdown (**bold**) without a heavy dependency.
@@ -91,7 +91,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setMessages((m) => [...m, { role: 'assistant', content: 'Iniciá sesión de nuevo para que pueda responderte.' }]);
+        setMessages((m) => [...m, { role: 'assistant', content: 'Vui lòng đăng nhập lại để tôi có thể trả lời.' }]);
         return;
       }
       const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ask-morchis`, {
@@ -102,10 +102,10 @@ export default function PreguntaleClient({ householdId, profileId }: { household
       const data = await res.json().catch(() => null);
       const answer = res.ok && data?.answer
         ? data.answer
-        : 'Uy, no pude responder eso ahora. Probá de nuevo en un ratito.';
+        : 'Xin lỗi, hiện tôi chưa thể trả lời. Hãy thử lại sau ít phút.';
       setMessages((m) => [...m, { role: 'assistant', content: answer, action: (res.ok && data?.pending_action) || null, suggestions: (res.ok && data?.suggestions) || undefined }]);
     } catch {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Uy, no pude responder eso ahora. Probá de nuevo en un ratito.' }]);
+      setMessages((m) => [...m, { role: 'assistant', content: 'Xin lỗi, hiện tôi chưa thể trả lời. Hãy thử lại sau ít phút.' }]);
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setMessages((m) => [...m, { role: 'assistant', content: 'Iniciá sesión de nuevo para confirmar.' }]);
+        setMessages((m) => [...m, { role: 'assistant', content: 'Vui lòng đăng nhập lại để xác nhận.' }]);
         return;
       }
       const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ask-morchis`, {
@@ -128,28 +128,28 @@ export default function PreguntaleClient({ householdId, profileId }: { household
         body: JSON.stringify({ confirm: action }),
       });
       const data = await res.json().catch(() => null);
-      const answer = res.ok && data?.answer ? data.answer : 'Uy, no pude completar esa acción. Probá de nuevo.';
+      const answer = res.ok && data?.answer ? data.answer : 'Xin lỗi, tôi chưa thể hoàn tất thao tác này. Hãy thử lại.';
       setMessages((m) => [...m, { role: 'assistant', content: answer }]);
     } catch {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Uy, no pude completar esa acción. Probá de nuevo.' }]);
+      setMessages((m) => [...m, { role: 'assistant', content: 'Xin lỗi, tôi chưa thể hoàn tất thao tác này. Hãy thử lại.' }]);
     } finally {
       setLoading(false);
     }
   }
 
   function cancelAction(idx: number) {
-    setMessages((m) => [...m.map((msg, i) => (i === idx ? { ...msg, action: null } : msg)), { role: 'assistant', content: 'Listo, no registré nada. 👍' }]);
+    setMessages((m) => [...m.map((msg, i) => (i === idx ? { ...msg, action: null } : msg)), { role: 'assistant', content: 'Xong, tôi chưa ghi nhận gì. 👍' }]);
   }
 
   // Photo of a receipt: upload → parse-receipt → propose the parsed expense as a
   // confirm card (reuses the same confirm flow as the write actions).
   async function handlePhoto(file: File) {
     if (loading) return;
-    setMessages((m) => [...m.map((msg) => (msg.action ? { ...msg, action: null } : msg)), { role: 'user', content: '🧾 Te mandé un ticket' }]);
+    setMessages((m) => [...m.map((msg) => (msg.action ? { ...msg, action: null } : msg)), { role: 'user', content: '🧾 Tôi đã gửi hóa đơn' }]);
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { setMessages((m) => [...m, { role: 'assistant', content: 'Iniciá sesión de nuevo para leer el ticket.' }]); return; }
+      if (!session) { setMessages((m) => [...m, { role: 'assistant', content: 'Vui lòng đăng nhập lại để đọc hóa đơn.' }]); return; }
       const ext = file.name.split('.').pop() || 'jpg';
       const path = `${householdId}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage.from('statements').upload(path, file, { contentType: file.type, upsert: false });
@@ -165,11 +165,11 @@ export default function PreguntaleClient({ householdId, profileId }: { household
       const cur = r.currency === 'USD' ? 'USD' : 'ARS';
       const amountTxt = cur === 'USD' ? `US$${Math.round(r.total)}` : `$${Math.round(r.total).toLocaleString('vi-VN')}`;
       const nItems = Array.isArray(r.items) ? r.items.length : 0;
-      const summary = `Gasto de ${amountTxt} en ${r.merchant || 'Compra'}${nItems ? ` (${nItems} ítems)` : ''}`;
+      const summary = `Chi ${amountTxt} tại ${r.merchant || 'Mua sắm'}${nItems ? ` (${nItems} mặt hàng)` : ''}`;
       const action: PendingAction = { kind: 'record_receipt', payload: { receipt: { ...r, currency: cur } }, summary };
-      setMessages((m) => [...m, { role: 'assistant', content: `Leí el ticket 🧾 — ${summary}. ¿Lo cargo?`, action }]);
+      setMessages((m) => [...m, { role: 'assistant', content: `Tôi đã đọc hóa đơn 🧾 — ${summary}. Bạn có muốn ghi nhận không?`, action }]);
     } catch {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Uy, no pude leer el ticket. Probá con una foto más nítida o cargalo a mano.' }]);
+      setMessages((m) => [...m, { role: 'assistant', content: 'Xin lỗi, tôi không thể đọc hóa đơn. Hãy thử ảnh rõ hơn hoặc nhập thủ công.' }]);
     } finally {
       setLoading(false);
     }
@@ -178,8 +178,8 @@ export default function PreguntaleClient({ householdId, profileId }: { household
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-3 shrink-0">
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Preguntale a Morchi ✨</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#5B6660' }}>Preguntá lo que quieras sobre su plata.</p>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Hỏi Morchi ✨</h1>
+        <p className="text-sm mt-0.5" style={{ color: '#5B6660' }}>Hãy hỏi bất cứ điều gì về tài chính của bạn.</p>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-44">
@@ -187,9 +187,9 @@ export default function PreguntaleClient({ householdId, profileId }: { household
           <div className="mt-2">
             <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               <p className="text-3xl mb-2">👋</p>
-              <p className="font-bold" style={{ color: '#18211D' }}>Hola, soy Morchi</p>
+              <p className="font-bold" style={{ color: '#18211D' }}>Xin chào, tôi là Morchi</p>
               <p className="text-sm mt-1 leading-snug" style={{ color: '#5B6660' }}>
-                Puedo consultar todos sus movimientos: gastos, ingresos, comercios, categorías, meses, saldos, presupuestos, metas y deudas. Probá con una de estas:
+                Tôi có thể xem các giao dịch của bạn: chi tiêu, thu nhập, cửa hàng, danh mục, tháng, số dư, ngân sách, mục tiêu và các khoản nợ. Hãy thử một câu hỏi sau:
               </p>
             </div>
             <div className="mt-3 flex flex-col gap-2">

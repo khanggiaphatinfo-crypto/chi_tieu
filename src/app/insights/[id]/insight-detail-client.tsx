@@ -21,9 +21,9 @@ interface Insight {
 }
 
 const SEVERITY_STYLE: Record<string, { bg: string; border: string; color: string; icon: string; label: string }> = {
-  positive: { bg: '#DDF0E8', border: '#2FA37C', color: '#1F8A68', icon: '✨', label: 'Buena noticia' },
-  warning:  { bg: '#FFE5E0', border: '#FF6F61', color: '#E25749', icon: '⚠️', label: 'Atención' },
-  info:     { bg: '#EAF0ED', border: '#B0BAB4', color: '#5B6660', icon: '💡', label: 'Para tener en cuenta' },
+  positive: { bg: '#DDF0E8', border: '#2FA37C', color: '#1F8A68', icon: '✨', label: 'Tin vui' },
+  warning:  { bg: '#FFE5E0', border: '#FF6F61', color: '#E25749', icon: '⚠️', label: 'Lưu ý' },
+  info:     { bg: '#EAF0ED', border: '#B0BAB4', color: '#5B6660', icon: '💡', label: 'Đáng lưu ý' },
 };
 
 // What each insight kind means + where to go to act on it. Keeps the detail
@@ -31,72 +31,71 @@ const SEVERITY_STYLE: Record<string, { bg: string; border: string; color: string
 // next step (the relevant section of the app).
 const KIND_META: Record<string, { label: string; explain: string; href: string; cta: string }> = {
   saving: {
-    label: 'Tasa de ahorro',
-    explain: 'Compara cuánto entró contra cuánto se gastó este mes. Subir este porcentaje es la forma más directa de ahorrar más.',
+    label: 'Tỷ lệ tiết kiệm',
+    explain: 'So sánh số tiền thu vào với số tiền đã chi trong tháng này. Tăng tỷ lệ này là cách trực tiếp nhất để tiết kiệm nhiều hơn.',
     href: '/analisis',
-    cta: 'Ver mi ahorro',
+    cta: 'Xem khoản tiết kiệm',
   },
   spike: {
-    label: 'Pico de gasto',
-    explain: 'Una categoría gastó bastante más que su promedio de los últimos meses. Vale la pena revisar qué lo empujó.',
+    label: 'Đỉnh chi tiêu',
+    explain: 'Một danh mục đã chi nhiều hơn đáng kể so với mức trung bình các tháng gần đây. Bạn nên kiểm tra nguyên nhân.',
     href: '/analisis',
-    cta: 'Ver análisis',
+    cta: 'Xem phân tích',
   },
   anthill: {
-    label: 'Gastos hormiga',
-    explain: 'Muchas compras chicas que, sumadas, pesan más de lo que parece. Detectarlas ayuda a recortar sin esfuerzo.',
+    label: 'Chi tiêu lặt vặt',
+    explain: 'Nhiều khoản mua nhỏ cộng lại có thể lớn hơn bạn nghĩ. Nhận diện chúng giúp bạn cắt giảm dễ dàng hơn.',
     href: '/movimientos',
-    cta: 'Ver movimientos',
+    cta: 'Xem giao dịch',
   },
   duplicate: {
-    label: 'Posible cargo duplicado',
-    explain: 'Un mismo comercio aparece con el mismo monto más de una vez el mismo día. Conviene chequear que no sea un cobro repetido.',
+    label: 'Có thể bị tính phí trùng',
+    explain: 'Cùng một cửa hàng xuất hiện nhiều lần trong cùng ngày với cùng số tiền. Bạn nên kiểm tra xem có bị tính phí trùng không.',
     href: '/movimientos',
-    cta: 'Revisar movimientos',
+    cta: 'Kiểm tra giao dịch',
   },
   subscription: {
-    label: 'Suscripciones y gastos fijos',
-    explain: 'Lo que se paga todos los meses sí o sí. Cancelar lo que no usás baja el gasto fijo de forma permanente.',
+    label: 'Dịch vụ đăng ký và chi phí cố định',
+    explain: 'Các khoản phải trả mỗi tháng. Hủy những dịch vụ bạn không dùng sẽ giảm chi phí cố định lâu dài.',
     href: '/analisis',
-    cta: 'Ver suscripciones',
+    cta: 'Xem dịch vụ đăng ký',
   },
   budget: {
-    label: 'Presupuesto',
-    explain: 'Cómo viene una categoría contra el límite que le pusiste. Ajustar el ritmo a tiempo evita pasarte.',
+    label: 'Ngân sách',
+    explain: 'Theo dõi một danh mục so với giới hạn bạn đặt ra. Điều chỉnh kịp thời giúp bạn không vượt ngân sách.',
     href: '/presupuestos',
-    cta: 'Ver presupuestos',
+    cta: 'Xem ngân sách',
   },
   goal: {
-    label: 'Meta de ahorro',
-    explain: 'Cuánto falta y cuánto apartar por mes para llegar a tu objetivo en fecha.',
+    label: 'Mục tiêu tiết kiệm',
+    explain: 'Còn thiếu bao nhiêu và cần dành ra mỗi tháng bao nhiêu để đạt mục tiêu đúng hạn.',
     href: '/presupuestos',
-    cta: 'Ver metas',
+    cta: 'Xem mục tiêu',
   },
   debt: {
-    label: 'Deudas',
-    explain: 'Plata que te deben o que debés, vinculada a gastos compartidos.',
+    label: 'Các khoản nợ',
+    explain: 'Khoản tiền người khác nợ bạn hoặc bạn đang nợ, liên quan đến các chi phí dùng chung.',
     href: '/deudas',
-    cta: 'Ver deudas',
+    cta: 'Xem các khoản nợ',
   },
   monthly_close: {
-    label: 'Cierre de mes',
-    explain: 'Resumen del mes cerrado: gastos, ahorro y presupuestos del mes que terminó, comparado con el anterior.',
+    label: 'Chốt tháng',
+    explain: 'Tóm tắt tháng đã kết thúc: chi tiêu, tiết kiệm và ngân sách, so sánh với tháng trước.',
     href: '/analisis',
-    cta: 'Ver análisis',
+    cta: 'Xem phân tích',
   },
   summary: {
-    label: 'Resumen del mes',
-    explain: 'Una foto general de en qué se fue la plata este mes.',
+    label: 'Tổng quan tháng',
+    explain: 'Tổng quan về các khoản đã chi trong tháng này.',
     href: '/analisis',
-    cta: 'Ver análisis',
+    cta: 'Xem phân tích',
   },
 };
 
 function periodLabel(period: string | null): string | null {
   if (!period || !/^\d{4}-\d{2}$/.test(period)) return null;
   const [y, m] = period.split('-').map(Number);
-  const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  return `${months[m - 1]} de ${y}`;
+  return `tháng ${m} năm ${y}`;
 }
 
 export default function InsightDetailClient({
@@ -129,7 +128,7 @@ export default function InsightDetailClient({
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/insights" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Insight ✨</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Phân tích ✨</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
@@ -141,7 +140,7 @@ export default function InsightDetailClient({
               {s.label}
             </span>
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: '#FFFFFF99', color: s.color }}>
-              {isHousehold ? '🏠 Hogar' : '👤 Personal'}
+              {isHousehold ? '🏠 Hộ gia đình' : '👤 Cá nhân'}
             </span>
           </div>
           <p className="text-xl font-black leading-tight mb-2" style={{ color: s.color }}>{insight.title}</p>
@@ -159,7 +158,7 @@ export default function InsightDetailClient({
         {/* What this kind of insight means */}
         <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>
-            ¿Qué es esto?
+            Đó là gì?
           </p>
           <p className="text-sm font-black mb-1" style={{ color: '#18211D' }}>{kind.label}</p>
           <p className="text-sm leading-relaxed" style={{ color: '#5B6660' }}>{kind.explain}</p>
@@ -169,18 +168,18 @@ export default function InsightDetailClient({
         <div className="rounded-3xl p-5 flex flex-col gap-2.5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           {period && (
             <div className="flex items-center justify-between">
-              <span className="text-sm" style={{ color: '#5B6660' }}>Período analizado</span>
+              <span className="text-sm" style={{ color: '#5B6660' }}>Giai đoạn phân tích</span>
               <span className="text-sm font-bold capitalize" style={{ color: '#18211D' }}>{period}</span>
             </div>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-sm" style={{ color: '#5B6660' }}>Generado el</span>
+            <span className="text-sm" style={{ color: '#5B6660' }}>Ngày tạo</span>
             <span className="text-sm font-bold" style={{ color: '#18211D' }}>{created}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm" style={{ color: '#5B6660' }}>Alcance</span>
+            <span className="text-sm" style={{ color: '#5B6660' }}>Phạm vi</span>
             <span className="text-sm font-bold" style={{ color: '#18211D' }}>
-              {isHousehold ? 'Gastos del hogar' : 'Tus gastos personales'}
+              {isHousehold ? 'Chi tiêu hộ gia đình' : 'Chi tiêu cá nhân'}
             </span>
           </div>
         </div>
@@ -196,7 +195,7 @@ export default function InsightDetailClient({
         </Link>
 
         <Link href="/insights" className="text-xs font-bold text-center pt-1" style={{ color: '#1F8A68' }}>
-          Ver todos los insights
+          Xem tất cả phân tích
         </Link>
       </div>
     </div>
@@ -342,10 +341,10 @@ function CategoryInsightSection({
       <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
         <div className="flex items-center justify-between mb-1">
           <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>
-            {matchedCat.icon} {matchedCat.name} · este mes
+            {matchedCat.icon} {matchedCat.name} · tháng này
           </p>
           <span className="text-[11px]" style={{ color: '#5B6660' }}>
-            {proj.count} {proj.count === 1 ? 'movimiento' : 'movimientos'}
+            {proj.count} giao dịch
           </span>
         </div>
         <p className="text-3xl font-black leading-none" style={{ color: accent, fontVariantNumeric: 'tabular-nums' }}>
@@ -358,7 +357,7 @@ function CategoryInsightSection({
               <div key={t.id} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || matchedCat.name}</p>
-                  <p className="text-[11px]" style={{ color: '#5B6660' }}>{fmtDate(t.occurred_on)}{t.is_shared ? ' · compartido' : ''}</p>
+                  <p className="text-[11px]" style={{ color: '#5B6660' }}>{fmtDate(t.occurred_on)}{t.is_shared ? ' · dùng chung' : ''}</p>
                 </div>
                 <p className="text-sm font-black" style={{ color: '#FF6F61' }}>-{formatARS(shareArs(t))}</p>
               </div>
@@ -367,7 +366,7 @@ function CategoryInsightSection({
         )}
 
         <Link href="/analisis" className="block text-xs font-bold mt-3" style={{ color: '#1F8A68' }}>
-          Ver todo el detalle de {matchedCat.name} →
+          Xem chi tiết toàn bộ {matchedCat.name} →
         </Link>
       </div>
 
@@ -375,10 +374,10 @@ function CategoryInsightSection({
       <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
         <div className="flex items-center justify-between mb-1">
           <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>
-            Si seguís así, fin de mes
+            Nếu tiếp tục như vậy, cuối tháng
           </p>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${projColor}22`, color: projColor }}>
-            estimado
+            ước tính
           </span>
         </div>
 
@@ -387,23 +386,23 @@ function CategoryInsightSection({
         </p>
         {budget > 0 && (
           <p className="text-xs" style={{ color: projColor, opacity: 0.75 }}>
-            {Math.round(projPct * 100)}% del presupuesto ({formatARS(budget)})
+            {Math.round(projPct * 100)}% ngân sách ({formatARS(budget)})
           </p>
         )}
 
         {/* How we got there: gastado · ritmo · días restantes */}
         <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${projColor}33` }}>
           <div>
-            <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Gastado</p>
+              <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Đã chi</p>
             <p className="text-sm font-bold" style={{ color: projColor }}>{formatARS(proj.spentSoFar)}</p>
           </div>
           <div>
-            <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Ritmo</p>
-            <p className="text-sm font-bold" style={{ color: projColor }}>~{formatARS(proj.dailyRate)}/día</p>
+              <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Tốc độ</p>
+              <p className="text-sm font-bold" style={{ color: projColor }}>~{formatARS(proj.dailyRate)}/ngày</p>
           </div>
           <div>
-            <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Quedan</p>
-            <p className="text-sm font-bold" style={{ color: projColor }}>{proj.daysRemaining} días</p>
+              <p className="text-[11px]" style={{ color: projColor, opacity: 0.75 }}>Còn lại</p>
+              <p className="text-sm font-bold" style={{ color: projColor }}>{proj.daysRemaining} ngày</p>
           </div>
         </div>
 
@@ -414,11 +413,11 @@ function CategoryInsightSection({
         )}
 
         <p className="text-[11px] mt-3 leading-relaxed" style={{ color: projColor, opacity: 0.75 }}>
-          Vas {formatARS(proj.spentSoFar)} en {proj.daysElapsed} {proj.daysElapsed === 1 ? 'día' : 'días'} (~{formatARS(proj.dailyRate)}/día).
+          Đã chi {formatARS(proj.spentSoFar)} trong {proj.daysElapsed} ngày (~{formatARS(proj.dailyRate)}/ngày).
           {proj.daysRemaining > 0
-            ? ` Si seguís a este ritmo, cerrás el mes en ~${formatARS(proj.projected)}.`
-            : ' Es el último día del mes.'}
-          {overBudget ? ` Te pasarías ${formatARS(proj.projected - budget)} del presupuesto.` : ''}
+            ? ` Nếu tiếp tục với tốc độ này, cuối tháng bạn sẽ chi khoảng ${formatARS(proj.projected)}.`
+            : ' Hôm nay là ngày cuối tháng.'}
+          {overBudget ? ` Bạn sẽ vượt ${formatARS(proj.projected - budget)} ngân sách.` : ''}
         </p>
       </div>
     </>

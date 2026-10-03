@@ -37,10 +37,10 @@ const MUTED = '#5B6660';
 const BORDER = '#E5EBE8';
 
 const SUGGESTIONS = [
-  'Quiero comprar un teléfono de $1.500.000 en 12 cuotas',
-  'Notebook US$800 en 6 cuotas',
-  'Viaje $500.000',
-  'Smart TV $350.000 en 3 cuotas',
+  'Tôi muốn mua điện thoại giá 1.500.000 trong 12 kỳ trả góp',
+  'Laptop US$800 trong 6 kỳ trả góp',
+  'Chuyến du lịch 500.000',
+  'TV thông minh 350.000 trong 3 kỳ trả góp',
 ];
 
 export default function SimuladorClient({ profile }: { profile: Profile }) {
@@ -88,12 +88,12 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
           body: JSON.stringify({ text }),
         },
       );
-      if (!resp.ok) throw new Error('Error en el servidor');
+      if (!resp.ok) throw new Error('Lỗi máy chủ');
       const data: SimResult = await resp.json();
       setResult(data);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     } catch (e) {
-      setError('No se pudo simular. Intentá de nuevo.');
+      setError('Không thể mô phỏng. Hãy thử lại.');
       console.error(e);
     } finally {
       setLoading(false);
@@ -116,21 +116,21 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
       {/* Header */}
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl leading-none" style={{ color: MUTED }}>←</Link>
-        <h1 className="text-2xl font-black" style={{ color: CHARCOAL }}>Simulador</h1>
+        <h1 className="text-2xl font-black" style={{ color: CHARCOAL }}>Trình mô phỏng</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
         {/* Input card */}
         <div className="rounded-3xl p-5" style={{ background: SURFACE, boxShadow: 'var(--shadow-card)' }}>
           <p className="text-sm font-semibold mb-3" style={{ color: MUTED }}>
-            ¿Qué querés comprar, {name}?
+            Bạn muốn mua gì, {name}?
           </p>
           <textarea
             ref={textareaRef}
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); simulate(); } }}
-            placeholder="Quiero comprar un teléfono de $1.500.000 en 12 cuotas"
+            placeholder="Tôi muốn mua điện thoại giá 1.500.000 trong 12 kỳ trả góp"
             rows={3}
             className="w-full resize-none rounded-2xl px-4 py-3 text-base outline-none border"
             style={{
@@ -168,7 +168,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
               opacity: loading || !text.trim() ? 0.6 : 1,
             }}
           >
-            {loading ? 'Simulando…' : 'Simular'}
+            {loading ? 'Đang mô phỏng…' : 'Mô phỏng'}
           </button>
         </div>
 
@@ -186,7 +186,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
             >
               <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
               <div className="relative flex items-center justify-between">
-                <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Compra analizada</p>
+                <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Món mua đã phân tích</p>
               </div>
               <p className="relative text-base font-bold mt-2" style={{ color: 'rgba(255,255,255,0.92)' }}>
                 {result.parsed.item}
@@ -196,14 +196,14 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
               </p>
               {result.parsed.installments && (
                 <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  {result.parsed.installments} cuotas de{' '}
+                  {result.parsed.installments} kỳ trả góp, mỗi kỳ{' '}
                   <span className="font-black" style={{ color: '#FFFFFF' }}>{format(result.monthly_cost)}</span>
-                  /mes
+                  /tháng
                 </p>
               )}
               {result.parsed.currency_input === 'USD' && (
                 <p className="relative text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Convertido a {formatARS(result.parsed.amount_ars)} al dólar blue ({formatARS(Math.round(result.fx_rate))})
+                  Đã quy đổi sang {formatARS(result.parsed.amount_ars)} theo tỷ giá blue ({formatARS(Math.round(result.fx_rate))})
                 </p>
               )}
             </div>
@@ -211,11 +211,11 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
             {/* Month-end projection */}
             <div className="px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
               <p className="text-[11px] font-black uppercase tracking-widest mb-3" style={{ color: '#8C968F' }}>
-                Proyección fin de mes
+                Dự báo cuối tháng
               </p>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <p className="text-xs" style={{ color: MUTED }}>Sin la compra</p>
+                  <p className="text-xs" style={{ color: MUTED }}>Không mua</p>
                   <p className="text-xl font-black" style={{ color: result.projection.current >= 0 ? SAGE : CORAL }}>
                     {format(result.projection.current)}
                   </p>
@@ -223,7 +223,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
                 </div>
                 <div className="text-2xl self-center" style={{ color: MUTED }}>→</div>
                 <div className="flex-1">
-                  <p className="text-xs" style={{ color: MUTED }}>Con la compra</p>
+                  <p className="text-xs" style={{ color: MUTED }}>Có mua</p>
                   <p className="text-xl font-black" style={{ color: result.projection.new >= 0 ? SAGE : CORAL }}>
                     {format(result.projection.new)}
                   </p>
@@ -235,7 +235,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
             {/* Savings rate */}
             <div className="px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
               <p className="text-[11px] font-black uppercase tracking-widest mb-3" style={{ color: '#8C968F' }}>
-                Tasa de ahorro
+                Tỷ lệ tiết kiệm
               </p>
               <div className="flex items-center gap-3">
                 <span className="text-xl font-black" style={{ color: SAGE }}>
@@ -258,7 +258,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
             {result.goal_delays.length > 0 && (
               <div className="px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
                 <p className="text-[11px] font-black uppercase tracking-widest mb-3" style={{ color: '#8C968F' }}>
-                  Impacto en tus metas
+                  Ảnh hưởng đến mục tiêu
                 </p>
                 <div className="flex flex-col gap-2">
                   {result.goal_delays.map((g, i) => (
@@ -267,10 +267,10 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
                         {g.icon} {g.name}
                       </span>
                       {g.slip_months === 0 ? (
-                        <span className="text-sm font-semibold" style={{ color: SAGE }}>Sin impacto</span>
+                        <span className="text-sm font-semibold" style={{ color: SAGE }}>Không ảnh hưởng</span>
                       ) : (
                         <span className="text-sm font-semibold px-2 py-0.5 rounded-full" style={{ background: '#FFF0EE', color: CORAL }}>
-                          ~{g.slip_months} mes{g.slip_months !== 1 ? 'es' : ''} de retraso
+                          ~{g.slip_months} tháng trì hoãn
                         </span>
                       )}
                     </div>
@@ -283,7 +283,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
             {result.budget_overflows.length > 0 && (
               <div className="px-5 py-4" style={{ borderBottom: `1px solid ${BORDER}` }}>
                 <p className="text-[11px] font-black uppercase tracking-widest mb-3" style={{ color: '#8C968F' }}>
-                  Presupuesto excedido
+                  Vượt ngân sách
                 </p>
                 {result.budget_overflows.map((b, i) => (
                   <div key={i}>
@@ -298,7 +298,7 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
                       />
                     </div>
                     <p className="text-xs mt-1" style={{ color: CORAL }}>
-                      Te pasás {format(b.after_purchase - b.budget)} del presupuesto
+                      Bạn vượt {format(b.after_purchase - b.budget)} ngân sách
                     </p>
                   </div>
                 ))}
@@ -313,15 +313,15 @@ export default function SimuladorClient({ profile }: { profile: Profile }) {
               <p className="text-sm font-bold" style={{ color: result.is_negative_impact ? CORAL : SAGE }}>
                 {result.is_negative_impact
                   ? result.projection.new < 0
-                    ? `Si comprás esto, terminás el mes en rojo (${format(result.projection.new)}).`
-                    : `Esta compra impacta tu ahorro este mes.`
-                  : `Esta compra entra dentro de tu capacidad de ahorro del mes.`}
+                    ? `Nếu mua món này, bạn sẽ kết thúc tháng âm (${format(result.projection.new)}).`
+                    : `Món mua này ảnh hưởng đến khoản tiết kiệm tháng này.`
+                  : `Món mua này vẫn nằm trong khả năng tiết kiệm tháng này.`}
               </p>
               {result.goal_delays.some(g => g.slip_months > 0) && (
                 <p className="text-xs mt-1" style={{ color: result.is_negative_impact ? CORAL : MUTED }}>
                   {result.goal_delays
                     .filter(g => g.slip_months > 0)
-                    .map(g => `La meta "${g.name}" se atrasa ~${g.slip_months} mes${g.slip_months !== 1 ? 'es' : ''}.`)
+                    .map(g => `Mục tiêu "${g.name}" bị trễ khoảng ${g.slip_months} tháng.`)
                     .join(' ')}
                 </p>
               )}

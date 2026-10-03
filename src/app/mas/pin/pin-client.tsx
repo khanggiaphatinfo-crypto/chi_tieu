@@ -42,21 +42,21 @@ export default function PinClient() {
   }
 
   async function handleConfirm() {
-    if (digits.length < 4) { setError('Ingresá al menos 4 dígitos.'); return; }
+    if (digits.length < 4) { setError('Nhập ít nhất 4 chữ số.'); return; }
     if (step === 'enter') {
       setFirstPin(digits);
       setDigits('');
       setStep('confirm');
     } else if (step === 'confirm') {
       if (digits !== firstPin) {
-        setError('Los PINs no coinciden. Intentá de nuevo.');
+        setError('Các mã PIN không khớp. Hãy thử lại.');
         setDigits('');
         setFirstPin('');
         setStep('enter');
         return;
       }
       await setPin(digits);
-      setSuccess('PIN configurado correctamente.');
+      setSuccess('Đã thiết lập mã PIN.');
       setStep('menu');
       setDigits('');
       setFirstPin('');
@@ -65,7 +65,7 @@ export default function PinClient() {
 
   async function handleDisable() {
     await setPin(null);
-    setSuccess('PIN desactivado.');
+    setSuccess('Đã tắt mã PIN.');
   }
 
   const hasPin = pin !== null;
@@ -74,7 +74,7 @@ export default function PinClient() {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Bloqueo con PIN</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Khóa bằng PIN</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
@@ -89,35 +89,35 @@ export default function PinClient() {
             {hasPin ? (
               <>
                 <div className="px-5 py-4" style={{ borderBottom: '1px solid #E5EBE8' }}>
-                  <p className="font-semibold" style={{ color: '#18211D' }}>PIN activo</p>
-                  <p className="text-sm mt-0.5" style={{ color: '#5B6660' }}>Tu app está protegida con PIN.</p>
+                  <p className="font-semibold" style={{ color: '#18211D' }}>PIN đang bật</p>
+                  <p className="text-sm mt-0.5" style={{ color: '#5B6660' }}>Ứng dụng của bạn được bảo vệ bằng mã PIN.</p>
                 </div>
                 <button
                   onClick={() => { setStep('enter'); setDigits(''); setError(''); setSuccess(''); }}
                   className="w-full px-5 py-4 text-left font-semibold transition-colors hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
                   style={{ borderBottom: '1px solid #E5EBE8', color: '#18211D' }}
                 >
-                  Cambiar PIN →
+                  Đổi PIN →
                 </button>
                 <button
                   onClick={handleDisable}
                   className="w-full px-5 py-4 text-left font-semibold transition-colors hover:bg-[#FFE5E0] active:bg-[#FFE5E0]"
                   style={{ color: '#FF6F61' }}
                 >
-                  Desactivar PIN
+                  Tắt PIN
                 </button>
               </>
             ) : (
               <div className="px-5 py-6 text-center">
                 <p className="text-3xl mb-3">🔐</p>
-                <p className="font-bold mb-1" style={{ color: '#18211D' }}>Sin PIN configurado</p>
-                <p className="text-sm mb-4" style={{ color: '#5B6660' }}>Configurá un PIN para proteger tu app.</p>
+                <p className="font-bold mb-1" style={{ color: '#18211D' }}>Chưa thiết lập PIN</p>
+                <p className="text-sm mb-4" style={{ color: '#5B6660' }}>Thiết lập PIN để bảo vệ ứng dụng.</p>
                 <button
                   onClick={() => { setStep('enter'); setDigits(''); setError(''); setSuccess(''); }}
                   className="px-6 py-3 rounded-2xl font-bold text-white transition-transform active:scale-95"
                   style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
                 >
-                  Configurar PIN
+                  Thiết lập PIN
                 </button>
               </div>
             )}
@@ -127,7 +127,7 @@ export default function PinClient() {
         {(step === 'enter' || step === 'confirm') && (
           <div className="flex flex-col items-center gap-6 pt-4">
             <p className="text-base font-bold" style={{ color: '#18211D' }}>
-              {step === 'enter' ? 'Ingresá tu nuevo PIN (4–6 dígitos)' : 'Confirmá tu PIN'}
+              {step === 'enter' ? 'Nhập mã PIN mới (4–6 chữ số)' : 'Xác nhận mã PIN'}
             </p>
 
             <PinInput digits={digits} maxDigits={MAX_DIGITS} />
@@ -144,7 +144,7 @@ export default function PinClient() {
                   className="flex-1 py-3 rounded-2xl border font-bold text-sm transition-colors hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
                   style={{ borderColor: '#E5EBE8', color: '#5B6660', background: '#FFFFFF' }}
                 >
-                  Cancelar
+                  Hủy
                 </button>
                 <button
                   onClick={handleConfirm}
@@ -152,7 +152,7 @@ export default function PinClient() {
                   className="flex-1 py-3 rounded-2xl font-bold text-sm text-white disabled:opacity-40 transition-transform active:scale-95 disabled:active:scale-100"
                   style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
                 >
-                  {step === 'enter' ? 'Siguiente' : 'Guardar'}
+                  {step === 'enter' ? 'Tiếp theo' : 'Lưu'}
                 </button>
               </div>
             </div>

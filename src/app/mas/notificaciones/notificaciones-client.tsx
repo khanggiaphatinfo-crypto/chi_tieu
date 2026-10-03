@@ -9,32 +9,32 @@ import { createClient } from '@/lib/supabase';
 const PREFERENCES = [
   {
     key: 'budget_alerts',
-    label: 'Alertas de presupuesto',
-    description: 'Aviso cuando un presupuesto pasa el 80% o se excede',
+    label: 'Cảnh báo ngân sách',
+    description: 'Thông báo khi ngân sách vượt 80% hoặc bị vượt mức',
     icon: '⚠️',
   },
   {
     key: 'insights',
-    label: 'Insights del coach',
-    description: 'Resumen semanal y mensual con consejos',
+    label: 'Phân tích từ trợ lý',
+    description: 'Tóm tắt tuần và tháng kèm lời khuyên',
     icon: '💡',
   },
   {
     key: 'monthly_report',
-    label: 'Cierre de mes',
-    description: 'Reporte del mes cerrado cada día 1',
+    label: 'Chốt tháng',
+    description: 'Báo cáo tháng đã kết thúc vào ngày 1 hàng tháng',
     icon: '📊',
   },
   {
     key: 'card_due',
-    label: 'Vencimientos de tarjeta',
-    description: 'Aviso 3 días antes del vencimiento',
+    label: 'Ngày đến hạn thẻ',
+    description: 'Thông báo trước ngày đến hạn 3 ngày',
     icon: '💳',
   },
   {
     key: 'settle_reminder',
-    label: 'Saldar cuentas',
-    description: 'Recordatorio mensual del balance de pareja',
+    label: 'Thanh toán công nợ',
+    description: 'Nhắc hàng tháng về số dư giữa hai người',
     icon: '👫',
   },
 ] as const;
@@ -91,7 +91,7 @@ export default function NotificacionesClient() {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Notificaciones</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Thông báo</h1>
       </header>
 
       <div className="px-4">
@@ -124,7 +124,7 @@ export default function NotificacionesClient() {
           ))}
         </div>
         <p className="text-xs mt-4 px-2" style={{ color: '#5B6660' }}>
-          Las notificaciones requieren que hayas aceptado los permisos de notificaciones en tu dispositivo.
+          Thông báo yêu cầu bạn đã cho phép quyền thông báo trên thiết bị.
         </p>
       </div>
     </div>

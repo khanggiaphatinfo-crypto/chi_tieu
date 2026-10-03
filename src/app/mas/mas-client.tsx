@@ -45,30 +45,30 @@ export default function MasClient({ profile }: { profile: Profile }) {
   }
 
   const sections = [
-    { title: 'Cuentas', items: [{ href: '/cuentas', icon: '🏦', label: 'Cuentas' }] },
-    { title: 'Pareja & deudas', items: [
-      { href: '/pareja', icon: '👫', label: 'Vista de pareja' },
-      { href: '/deudas', icon: '🤝', label: 'Deudas' },
+    { title: 'Tài khoản', items: [{ href: '/cuentas', icon: '🏦', label: 'Tài khoản' }] },
+    { title: 'Cặp đôi & khoản nợ', items: [
+      { href: '/pareja', icon: '👫', label: 'Chế độ xem cặp đôi' },
+      { href: '/deudas', icon: '🤝', label: 'Các khoản nợ' },
     ] },
-    { title: 'Planificación', items: [
-      { href: '/reglas', icon: '📅', label: 'Ingresos y gastos fijos' },
-      { href: '/simulador', icon: '🔮', label: 'Simulador de compras' },
+    { title: 'Lập kế hoạch', items: [
+      { href: '/reglas', icon: '📅', label: 'Thu nhập và chi phí cố định' },
+      { href: '/simulador', icon: '🔮', label: 'Mô phỏng mua sắm' },
     ] },
-    { title: 'Capturar', items: [
-      { href: '/ticket', icon: '🧾', label: 'Escanear ticket' },
-      { href: '/super', icon: '🛒', label: 'Compras de súper' },
-      { href: '/cafes', icon: '☕', label: 'Cafés' },
-      { href: '/extractos', icon: '🧾', label: 'Extractos de tarjeta' },
+    { title: 'Ghi nhận', items: [
+      { href: '/ticket', icon: '🧾', label: 'Quét hóa đơn' },
+      { href: '/super', icon: '🛒', label: 'Mua sắm siêu thị' },
+      { href: '/cafes', icon: '☕', label: 'Cà phê' },
+      { href: '/extractos', icon: '🧾', label: 'Sao kê thẻ' },
     ] },
-    { title: 'Ajustes', items: [
-      { href: '/mas/notificaciones', icon: '🔔', label: 'Notificaciones' },
+    { title: 'Cài đặt', items: [
+      { href: '/mas/notificaciones', icon: '🔔', label: 'Thông báo' },
     ] },
   ];
 
   return (
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Más</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Thêm</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
@@ -99,7 +99,7 @@ export default function MasClient({ profile }: { profile: Profile }) {
             className="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
           >
             <span className="text-xl">💌</span>
-            <p className="flex-1 text-sm font-semibold" style={{ color: '#5B6660' }}>Invitar a mi pareja</p>
+            <p className="flex-1 text-sm font-semibold" style={{ color: '#5B6660' }}>Mời bạn đời</p>
             <span style={{ color: '#5B6660' }}>→</span>
           </button>
           <Link
@@ -108,7 +108,7 @@ export default function MasClient({ profile }: { profile: Profile }) {
             style={{ borderTop: '1px solid #E5EBE8' }}
           >
             <span className="text-xl">🔐</span>
-            <p className="flex-1 text-sm font-semibold" style={{ color: '#5B6660' }}>Bloqueo con PIN</p>
+            <p className="flex-1 text-sm font-semibold" style={{ color: '#5B6660' }}>Khóa bằng PIN</p>
             <span style={{ color: '#5B6660' }}>→</span>
           </Link>
         </div>
@@ -118,7 +118,7 @@ export default function MasClient({ profile }: { profile: Profile }) {
           className="w-full py-4 rounded-3xl text-sm font-bold border transition-colors hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
           style={{ borderColor: '#E5EBE8', color: '#5B6660', background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}
         >
-          Cerrar sesión
+          Đăng xuất
         </button>
       </div>
 
