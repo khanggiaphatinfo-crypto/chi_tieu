@@ -14,7 +14,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: 'Morchis',
-  description: 'Nuestra plata, juntos',
+  description: 'Tiền của chúng ta, cùng nhau',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -40,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={nunito.variable}>
+    <html lang="vi" className={nunito.variable}>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

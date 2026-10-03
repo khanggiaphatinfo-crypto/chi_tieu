@@ -14,7 +14,7 @@ export function PinLockScreen() {
   const [error, setError] = useState('');
 
   async function handleConfirm() {
-    if (digits.length < 4) { setError('Ingresá al menos 4 dígitos.'); return; }
+    if (digits.length < 4) { setError('Vui lòng nhập ít nhất 4 chữ số.'); return; }
     const hash = await sha256Hex(digits);
     if (hash === pin) {
       unlock();
@@ -23,9 +23,9 @@ export function PinLockScreen() {
       setAttempts(newAttempts);
       setDigits('');
       if (newAttempts >= MAX_ATTEMPTS) {
-        setError('Demasiados intentos. Cerrá y volvé a abrir la app.');
+        setError('Quá nhiều lần thử. Hãy đóng rồi mở lại ứng dụng.');
       } else {
-        setError(`PIN incorrecto. Intentos restantes: ${MAX_ATTEMPTS - newAttempts}`);
+        setError(`PIN không đúng. Còn ${MAX_ATTEMPTS - newAttempts} lần thử`);
       }
     }
   }
@@ -49,13 +49,13 @@ export function PinLockScreen() {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8"
       style={{ background: '#F1F5F3' }}
     >
-      {/* Title */}
+// Tiêu đề
       <div className="text-center">
         <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#5B6660' }}>Morchis</p>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Ingresá tu PIN</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Nhập PIN</h1>
       </div>
 
-      {/* Dots */}
+// Các dấu chấm
       <div className="flex gap-4">
         {Array.from({ length: MAX_DIGITS }).map((_, i) => (
           <div
@@ -66,12 +66,12 @@ export function PinLockScreen() {
         ))}
       </div>
 
-      {/* Error */}
+// Lỗi
       {error && (
         <p className="text-sm font-semibold text-center px-8" style={{ color: '#FF6F61' }}>{error}</p>
       )}
 
-      {/* Keypad */}
+// Bàn phím
       {!blocked && (
         <div className="w-full max-w-xs">
           <NumberKeypad onDigit={handleDigit} onBackspace={handleBackspace} onConfirm={handleConfirm} />
@@ -81,7 +81,7 @@ export function PinLockScreen() {
             className="mt-4 w-full py-4 rounded-2xl font-bold text-white mx-4 disabled:opacity-40"
             style={{ background: '#2FA37C', width: 'calc(100% - 2rem)', marginLeft: '1rem' }}
           >
-            Confirmar
+            Xác nhận
           </button>
         </div>
       )}

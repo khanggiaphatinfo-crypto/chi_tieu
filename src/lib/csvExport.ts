@@ -14,15 +14,15 @@ type TxRow = {
 };
 
 const TYPE_LABEL: Record<string, string> = {
-  expense: 'Gasto',
-  income: 'Ingreso',
-  transfer: 'Transferencia',
+  expense: 'Chi tiêu',
+  income: 'Thu nhập',
+  transfer: 'Chuyển khoản',
 };
 
 export function exportTransactionsToCSV(transactions: TxRow[], filename: string): void {
-  // Amount is exported in each row's own currency, with an explicit Moneda
-  // column, so a USD movement isn't mislabelled as pesos.
-  const header = ['Fecha', 'Tipo', 'Categoría', 'Comercio', 'Monto', 'Moneda', 'Alcance', 'Compartido'];
+// Số tiền được xuất theo đúng loại tiền của từng dòng, kèm cột Tiền tệ rõ ràng
+  // để giao dịch USD không bị ghi nhầm là peso.
+  const header = ['Ngày', 'Loại', 'Danh mục', 'Cửa hàng', 'Số tiền', 'Tiền tệ', 'Phạm vi', 'Đã chia sẻ'];
 
   const rows = transactions.map((tx) => [
     tx.occurred_on,
@@ -31,8 +31,8 @@ export function exportTransactionsToCSV(transactions: TxRow[], filename: string)
     tx.merchant ?? '',
     String(tx.amount),
     tx.currency ?? 'ARS',
-    tx.scope === 'household' ? 'Hogar' : 'Personal',
-    tx.is_shared ? 'Sí' : 'No',
+    tx.scope === 'household' ? 'Hộ gia đình' : 'Cá nhân',
+    tx.is_shared ? 'Có' : 'Không',
   ]);
 
   const csv = [header, ...rows]
@@ -40,8 +40,8 @@ export function exportTransactionsToCSV(transactions: TxRow[], filename: string)
       row
         .map((cell) => {
           let s = String(cell);
-          // Neutralize spreadsheet formula injection: a merchant named
-          // "=HYPERLINK(...)" must open as text in Excel, not execute.
+      // Vô hiệu hóa việc chèn công thức bảng tính: merchant tên
+          // "=HYPERLINK(...)" phải mở dưới dạng văn bản trong Excel, không được thực thi.
           if (/^[=+@\t\r]/.test(s)) s = `'${s}`;
           return s.includes(',') || s.includes('"') || s.includes('\n')
             ? `"${s.replace(/"/g, '""')}"`

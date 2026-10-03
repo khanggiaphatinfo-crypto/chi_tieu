@@ -1,5 +1,5 @@
 import { PageSkeleton } from '@/components/PageSkeleton';
 
 export default function Loading() {
-  return <PageSkeleton title="Deudas" />;
+  return <PageSkeleton title="Các khoản nợ" />;
 }

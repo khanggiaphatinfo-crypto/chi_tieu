@@ -1,13 +1,13 @@
 {
   "name": "Morchis",
   "short_name": "Morchis",
-  "description": "Nuestra plata, juntos",
+  "description": "Tiền của chúng ta, cùng nhau",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F1F5F3",
   "theme_color": "#F1F5F3",
-  "lang": "es-AR",
+  "lang": "vi-VN",
   "icons": [
     {
       "src": "/icons/icon-192.png",

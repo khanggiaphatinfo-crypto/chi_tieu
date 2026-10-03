@@ -19,7 +19,7 @@ export function InvitePartnerModal({
     setLoading(true);
     const { data, error } = await supabase.rpc('generate_invite_code');
     if (!error && data) setCode(data as string);
-    else toast.error('No se pudo generar el código.');
+    else toast.error('Không thể tạo mã.');
     setLoading(false);
   }
 
@@ -32,7 +32,7 @@ export function InvitePartnerModal({
     if (!code) return;
     try {
       await navigator.clipboard.writeText(code);
-      toast.success('Código copiado ✓');
+      toast.success('Đã sao chép mã ✓');
     } catch {
       /* clipboard not available */
     }
@@ -40,7 +40,7 @@ export function InvitePartnerModal({
 
   async function share() {
     if (!code) return;
-    const text = `Sumate a nuestro hogar en Morchis con el código ${code}. Ingresalo en "Unirme con código" al crear tu cuenta. Expira en 7 días.`;
+    const text = `Hãy tham gia hộ gia đình Morchis của chúng ta bằng mã ${code}. Nhập mã trong mục "Tham gia bằng mã" khi tạo tài khoản. Mã có hiệu lực trong 7 ngày.`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ text });
@@ -67,19 +67,19 @@ export function InvitePartnerModal({
 
         <div className="text-center mb-4">
           <p className="text-4xl mb-2">💌</p>
-          <h3 className="text-lg font-black" style={{ color: '#18211D' }}>Invitar a tu pareja</h3>
+          <h3 className="text-lg font-black" style={{ color: '#18211D' }}>Mời người đồng hành</h3>
           <p className="text-sm mt-1" style={{ color: '#5B6660' }}>
-            Compartí este código. Tu pareja lo ingresa en “Unirme con código” al crear su cuenta y entra al mismo hogar.
+            Chia sẻ mã này. Người đồng hành nhập mã trong mục “Tham gia bằng mã” khi tạo tài khoản để vào cùng hộ gia đình.
           </p>
         </div>
 
         <div className="rounded-2xl p-5 mb-4 text-center" style={{ background: '#DDF0E8' }}>
           {loading || !code ? (
-            <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>Generando código…</p>
+            <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>Đang tạo mã…</p>
           ) : (
             <>
               <div className="text-4xl font-black tracking-widest" style={{ color: '#1F8A68' }}>{code}</div>
-              <p className="text-xs mt-1" style={{ color: '#5B6660' }}>Expira en 7 días</p>
+              <p className="text-xs mt-1" style={{ color: '#5B6660' }}>Có hiệu lực trong 7 ngày</p>
             </>
           )}
         </div>
@@ -91,7 +91,7 @@ export function InvitePartnerModal({
             className="flex-1 py-3 rounded-2xl text-sm font-bold disabled:opacity-40"
             style={{ background: '#E5EBE8', color: '#18211D' }}
           >
-            Copiar
+            Sao chép
           </button>
           <button
             onClick={share}
@@ -99,7 +99,7 @@ export function InvitePartnerModal({
             className="flex-1 py-3 rounded-2xl text-sm font-black text-white disabled:opacity-40"
             style={{ background: '#2FA37C' }}
           >
-            Compartir
+            Chia sẻ
           </button>
         </div>
 
@@ -108,7 +108,7 @@ export function InvitePartnerModal({
           className="w-full mt-3 py-2 text-sm font-semibold"
           style={{ color: '#5B6660' }}
         >
-          Cerrar
+          Đóng
         </button>
       </div>
     </div>

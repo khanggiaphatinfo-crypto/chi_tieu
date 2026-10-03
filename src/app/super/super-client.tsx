@@ -98,7 +98,7 @@ export default function SuperClient({ profile }: { profile: Profile }) {
   // to tell which purchases have detail.
   const { data: itemRows = [] } = useQuery<ItemRow[]>({
     // 'v2' busts any stale cache from the earlier query shape that didn't select
-    // `name` (a 5-min staleTime was serving it as "Sin nombre"). The invalidation
+    // `name` (a 5-min staleTime was serving it as "Không có tên"). The invalidation
     // in ReceiptItemsSheet uses the ['super-items'] prefix, so it still matches.
     queryKey: ['super-items', profile.household_id, 'v2'],
     queryFn: async () => {
@@ -210,7 +210,7 @@ export default function SuperClient({ profile }: { profile: Profile }) {
     [visible, itemsByTx],
   );
 
-  const rangeLabel = range === 'month' ? 'este mes' : range === 'prev' ? 'mes pasado' : 'histórico';
+  const rangeLabel = range === 'month' ? 'tháng này' : range === 'prev' ? 'tháng trước' : 'toàn bộ lịch sử';
   const coveragePct = totalArs > 0 ? Math.round((scanned.amount / totalArs) * 100) : 0;
 
   return (
@@ -218,8 +218,8 @@ export default function SuperClient({ profile }: { profile: Profile }) {
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
         <div>
-          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Compras de súper 🛒</h1>
-          <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>Todo lo de tu categoría de súper</p>
+          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Mua sắm siêu thị 🛒</h1>
+          <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>Tất cả chi tiêu trong danh mục siêu thị</p>
         </div>
       </header>
 
@@ -237,7 +237,7 @@ export default function SuperClient({ profile }: { profile: Profile }) {
               boxShadow: range === r ? '0 4px 12px -4px rgba(47,163,124,0.55)' : 'var(--shadow-soft)',
             }}
           >
-            {r === 'month' ? 'Este mes' : r === 'prev' ? 'Mes pasado' : 'Histórico'}
+            {r === 'month' ? 'Tháng này' : r === 'prev' ? 'Tháng trước' : 'Lịch sử'}
           </button>
         ))}
       </div>
@@ -246,13 +246,13 @@ export default function SuperClient({ profile }: { profile: Profile }) {
         {isLoading ? (
           <div className="rounded-3xl p-8 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-3xl mb-2 animate-pulse">🛒</p>
-            <p className="text-sm" style={{ color: '#5B6660' }}>Cargando…</p>
+            <p className="text-sm" style={{ color: '#5B6660' }}>Đang tải…</p>
           </div>
         ) : purchases.length === 0 ? (
           <EmptyState
             icon="🛒"
-            title="Sin compras de súper"
-            subtitle="No hay gastos de tu categoría de súper en este período."
+            title="Chưa có mua sắm siêu thị"
+            subtitle="Không có chi tiêu trong danh mục siêu thị trong giai đoạn này."
           />
         ) : (
           <>
@@ -261,11 +261,11 @@ export default function SuperClient({ profile }: { profile: Profile }) {
               <div className="relative px-5 pt-5 pb-5 overflow-hidden" style={{ background: 'linear-gradient(135deg, #FF8173 0%, #E25749 100%)' }}>
                 <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
                 <div className="relative flex items-center justify-between">
-                  <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Total en súper · {rangeLabel}</p>
+                  <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Tổng siêu thị · {rangeLabel}</p>
                 </div>
                 <p className="relative text-[2.4rem] leading-none font-black mt-2 tracking-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>{format(totalArs)}</p>
                 <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  {purchases.length} compra{purchases.length !== 1 ? 's' : ''} · {scanned.count} con detalle
+                  {purchases.length} lần mua · {scanned.count} có chi tiết
                 </p>
               </div>
             </div>
@@ -274,11 +274,11 @@ export default function SuperClient({ profile }: { profile: Profile }) {
             {byGroup.groups.length > 0 ? (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                 <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>
-                  En qué se va la plata
+                  Tiền được chi vào đâu
                 </p>
                 <p className="text-[11px] mb-4 mt-0.5" style={{ color: '#8C968F' }}>
-                  Desglose de lo escaneado: {format(scanned.amount)} de {format(totalArs)} ({coveragePct}%).
-                  {coveragePct < 100 && ' El resto son compras sin ticket escaneado.'}
+                  Chi tiết phần đã quét: {format(scanned.amount)} trên {format(totalArs)} ({coveragePct}%).
+                  {coveragePct < 100 && ' Phần còn lại là các lần mua chưa quét hóa đơn.'}
                 </p>
                 <div className="flex flex-col gap-3.5">
                   {byGroup.groups.map(({ g, total }) => {
@@ -297,7 +297,7 @@ export default function SuperClient({ profile }: { profile: Profile }) {
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#EAF0ED' }}>
                           <div className="h-full rounded-full" style={{ width: `${Math.max(pct, 3)}%`, background: meta.color }} />
                         </div>
-                        <p className="text-[10px] mt-1" style={{ color: '#B0BAB4' }}>{n} producto{n !== 1 ? 's' : ''} · tocá para ver</p>
+                        <p className="text-[10px] mt-1" style={{ color: '#B0BAB4' }}>{n} sản phẩm · chạm để xem</p>
                       </button>
                     );
                   })}
@@ -305,16 +305,16 @@ export default function SuperClient({ profile }: { profile: Profile }) {
               </div>
             ) : (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-                <p className="text-sm font-bold mb-1" style={{ color: '#18211D' }}>Sin desglose por producto</p>
+                <p className="text-sm font-bold mb-1" style={{ color: '#18211D' }}>Chưa có chi tiết theo sản phẩm</p>
                 <p className="text-xs" style={{ color: '#5B6660' }}>
-                  Ninguna compra de este período tiene ticket escaneado. Escaneá tus tickets de súper para ver en qué se va la plata (carnes, verduras, etc.).
+                  Không có lần mua nào trong giai đoạn này có hóa đơn đã quét. Hãy quét hóa đơn siêu thị để xem tiền được chi vào đâu (thịt, rau củ, v.v.).
                 </p>
               </div>
             )}
 
-            {/* Purchases list — all of them; manual ones flagged "sin detalle" */}
+            {/* Purchases list — all of them; manual ones flagged "không có chi tiết" */}
             <div>
-              <p className="text-sm font-black mb-2 px-1" style={{ color: '#18211D' }}>Compras</p>
+              <p className="text-sm font-black mb-2 px-1" style={{ color: '#18211D' }}>Các lần mua</p>
               <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                 {purchases.map(({ tx, count }, i) => (
                   <button
@@ -326,17 +326,17 @@ export default function SuperClient({ profile }: { profile: Profile }) {
                     <span className="text-2xl shrink-0">🧾</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>
-                        {tx.merchant || 'Compra'}
+                        {tx.merchant || 'Mua hàng'}
                       </p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-xs" style={{ color: '#5B6660' }}>
-                          {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                          {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })}
                         </span>
                         {count > 0 ? (
-                          <span className="text-xs" style={{ color: '#5B6660' }}>· {count} producto{count !== 1 ? 's' : ''}</span>
+                          <span className="text-xs" style={{ color: '#5B6660' }}>· {count} sản phẩm</span>
                         ) : (
                           <span className="text-[11px] px-1.5 py-0.5 rounded-md font-semibold" style={{ background: '#EAF0ED', color: '#8C968F' }}>
-                            sin detalle
+                            không có chi tiết
                           </span>
                         )}
                       </div>
@@ -371,7 +371,7 @@ export default function SuperClient({ profile }: { profile: Profile }) {
                 <span className="text-lg font-black tabular-nums" style={{ color: meta.color }}>{format(groupTotal)}</span>
               </div>
               <p className="text-xs mb-4" style={{ color: '#5B6660' }}>
-                {list.length} producto{list.length !== 1 ? 's' : ''} · {rangeLabel}
+                {list.length} sản phẩm · {rangeLabel}
               </p>
               <div className="flex flex-col">
                 {list.map((it, i) => (
@@ -382,10 +382,10 @@ export default function SuperClient({ profile }: { profile: Profile }) {
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm truncate" style={{ color: '#18211D' }}>
-                        {it.qty && it.qty > 1 ? `${it.qty}× ` : ''}{it.name || 'Sin nombre'}
+                        {it.qty && it.qty > 1 ? `${it.qty}× ` : ''}{it.name || 'Không có tên'}
                       </p>
                       <p className="text-[11px] truncate" style={{ color: '#8C968F' }}>
-                        {it.merchant || 'Compra'} · {new Date(it.occurred_on + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                        {it.merchant || 'Mua hàng'} · {new Date(it.occurred_on + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })}
                       </p>
                     </div>
                     <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: '#18211D' }}>{format(it.ars)}</span>

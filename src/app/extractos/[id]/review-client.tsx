@@ -98,11 +98,11 @@ function EditDraftModal({
     >
       <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-5 pb-8 animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-pop)' }}>
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-        <h3 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Editar movimiento</h3>
+        <h3 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Chỉnh sửa giao dịch</h3>
 
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Comercio</p>
+            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Cửa hàng</p>
             <input
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
@@ -111,7 +111,7 @@ function EditDraftModal({
             />
           </div>
           <div>
-            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Monto (ARS)</p>
+            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Số tiền (ARS)</p>
             <MoneyInput
               value={parseMoney(amount)}
               onChange={(n) => setAmount(n ? String(n) : '')}
@@ -120,7 +120,7 @@ function EditDraftModal({
             />
           </div>
           <div>
-            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Fecha</p>
+            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Ngày</p>
             <input
               type="date"
               value={date}
@@ -130,7 +130,7 @@ function EditDraftModal({
             />
           </div>
           <div>
-            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Categoría</p>
+            <p className="text-xs font-bold mb-1" style={{ color: '#5B6660' }}>Danh mục</p>
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto">
               {categories.filter((c) => c.kind === 'expense').map((cat) => (
                 <button
@@ -156,7 +156,7 @@ function EditDraftModal({
           className="w-full mt-5 py-4 rounded-2xl text-sm font-black"
           style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', color: '#FFFFFF', boxShadow: 'var(--shadow-glow)' }}
         >
-          Guardar
+          Lưu
         </button>
       </div>
     </div>
@@ -212,7 +212,7 @@ function DraftCard({
   }
 
   const swipeColor = swipeX > 40 ? '#2FA37C' : swipeX < -40 ? '#FF6F61' : '#FFFFFF';
-  const swipeLabel = swipeX > 40 ? '✓ Aceptar' : swipeX < -40 ? '✗ Rechazar' : '';
+  const swipeLabel = swipeX > 40 ? '✓ Chấp nhận' : swipeX < -40 ? '✗ Từ chối' : '';
 
   return (
     <div className="relative overflow-hidden rounded-3xl mb-3" style={{ background: swipeColor }}>
@@ -251,7 +251,7 @@ function DraftCard({
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-xs" style={{ color: '#5B6660' }}>
-                {new Date(draft.payload.date + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                {new Date(draft.payload.date + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })}
               </p>
               {cat && (
                 <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold" style={{ background: '#DDF0E8', color: '#1F8A68' }}>
@@ -260,7 +260,7 @@ function DraftCard({
               )}
               {highConf && (
                 <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold" style={{ background: '#DDF0E8', color: '#1F8A68' }}>
-                  ✓ Alta confianza
+                  ✓ Độ tin cậy cao
                 </span>
               )}
             </div>
@@ -278,7 +278,7 @@ function DraftCard({
             className="flex-1 py-2.5 rounded-2xl text-xs font-bold disabled:opacity-50 transition-all"
             style={{ background: '#FFE5E0', color: '#FF6F61', boxShadow: 'var(--shadow-soft)' }}
           >
-            ✗ Rechazar
+            ✗ Từ chối
           </button>
           <button
             onClick={onEdit}
@@ -294,7 +294,7 @@ function DraftCard({
             className="flex-1 py-2.5 rounded-2xl text-xs font-bold disabled:opacity-50 transition-all"
             style={{ background: '#DDF0E8', color: '#1F8A68', boxShadow: 'var(--shadow-soft)' }}
           >
-            {pending ? '…' : '✓ Aceptar'}
+            {pending ? '…' : '✓ Chấp nhận'}
           </button>
         </div>
       </div>
@@ -400,7 +400,7 @@ export default function ReviewClient({
       source: 'statement',
     });
 
-    if (error) { toast.error('No se pudo guardar el movimiento'); return false; }
+    if (error) { toast.error('Không thể lưu giao dịch'); return false; }
 
     await supabase
       .from('draft_transactions')
@@ -432,7 +432,7 @@ export default function ReviewClient({
         // An imported expense can push a budget past 80%/100% just like a
         // manual one — best-effort push, dedup handled server-side.
         triggerBudgetAlerts(supabase);
-        toast.success('Movimiento aceptado');
+        toast.success('Đã chấp nhận giao dịch');
       }
     } finally {
       clearInFlight([draft.id]);
@@ -475,7 +475,7 @@ export default function ReviewClient({
         !inFlightRef.current.has(d.id) &&
         (d.payload.confidence ?? d.confidence ?? 0) >= 0.85,
     );
-    if (highConf.length === 0) { toast('No hay movimientos de alta confianza'); return; }
+    if (highConf.length === 0) { toast('Không có giao dịch nào có độ tin cậy cao'); return; }
     const ids = highConf.map((d) => d.id);
     markInFlight(ids);
     setAccepting(true);
@@ -500,7 +500,7 @@ export default function ReviewClient({
       }));
 
       const { error } = await supabase.from('transactions').insert(rows);
-      if (error) { toast.error('Error al aceptar en masa'); return; }
+      if (error) { toast.error('Lỗi khi chấp nhận hàng loạt'); return; }
 
       await supabase
         .from('draft_transactions')
@@ -513,7 +513,7 @@ export default function ReviewClient({
       await qc.invalidateQueries({ queryKey: ['spent-by-category'] });
       // A month of imported card spend can blow through budgets — check once.
       triggerBudgetAlerts(supabase);
-      toast.success(`${highConf.length} movimientos aceptados`);
+      toast.success(`${highConf.length} giao dịch đã chấp nhận`);
     } finally {
       clearInFlight(ids);
       setAccepting(false);
@@ -529,9 +529,9 @@ export default function ReviewClient({
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <button onClick={() => router.push('/extractos')} className="text-2xl">←</button>
         <div>
-          <h1 className="text-xl font-black" style={{ color: '#18211D' }}>Revisar extracto</h1>
+          <h1 className="text-xl font-black" style={{ color: '#18211D' }}>Kiểm tra sao kê</h1>
           <p className="text-xs" style={{ color: '#5B6660' }}>
-            {new Date(statement.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}
+            {new Date(statement.created_at).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long' })}
           </p>
         </div>
       </header>
@@ -541,8 +541,8 @@ export default function ReviewClient({
         <div className="mx-4 mb-4 rounded-3xl p-5 flex items-center gap-3" style={{ background: '#DDF0E8', boxShadow: 'var(--shadow-soft)' }}>
           <span className="text-2xl animate-spin">⚙️</span>
           <div>
-            <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>Analizando con IA…</p>
-            <p className="text-xs" style={{ color: '#1F8A68' }}>Esto puede tardar un minuto.</p>
+            <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>Đang phân tích bằng AI…</p>
+            <p className="text-xs" style={{ color: '#1F8A68' }}>Việc này có thể mất một phút.</p>
           </div>
         </div>
       )}
@@ -552,9 +552,9 @@ export default function ReviewClient({
         <div className="mx-4 mb-4 rounded-3xl p-4 flex items-center justify-between gap-3" style={{ background: '#DDF0E8', boxShadow: 'var(--shadow-soft)' }}>
           <div>
             <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>
-              {highConfCount} con alta confianza
+              {highConfCount} có độ tin cậy cao
             </p>
-            <p className="text-xs" style={{ color: '#1F8A68' }}>Aceptalos todos de una vez</p>
+            <p className="text-xs" style={{ color: '#1F8A68' }}>Chấp nhận tất cả cùng lúc</p>
           </div>
           <button
             onClick={handleBulkAccept}
@@ -562,7 +562,7 @@ export default function ReviewClient({
             className="px-4 py-2.5 rounded-2xl text-xs font-black shrink-0"
             style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', color: '#FFFFFF', boxShadow: 'var(--shadow-soft)' }}
           >
-            {accepting ? '…' : `Aceptar ${highConfCount}`}
+            {accepting ? '…' : `Chấp nhận ${highConfCount}`}
           </button>
         </div>
       )}
@@ -572,19 +572,19 @@ export default function ReviewClient({
         <div className="text-center py-16 px-8">
           <p className="text-5xl mb-4">✅</p>
           <p className="text-base font-bold" style={{ color: '#18211D' }}>
-            {statementStatus === 'failed' ? 'Error al analizar el resumen' : 'Todo revisado'}
+            {statementStatus === 'failed' ? 'Lỗi khi phân tích sao kê' : 'Đã kiểm tra xong'}
           </p>
           <p className="text-sm mt-2" style={{ color: '#5B6660' }}>
             {statementStatus === 'failed'
-              ? 'Intentá con otro archivo o foto más nítida.'
-              : 'Los movimientos aceptados ya aparecen en Movimientos.'}
+              ? 'Hãy thử tệp khác hoặc ảnh rõ hơn.'
+              : 'Các giao dịch đã chấp nhận đã xuất hiện trong mục Giao dịch.'}
           </p>
           <button
             onClick={() => router.push('/movimientos')}
             className="mt-5 px-6 py-3 rounded-2xl text-sm font-bold"
             style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', color: '#FFFFFF', boxShadow: 'var(--shadow-glow)' }}
           >
-            Ver movimientos
+            Xem giao dịch
           </button>
         </div>
       )}
@@ -593,7 +593,7 @@ export default function ReviewClient({
       {!isParsing && drafts.length > 0 && (
         <div className="px-4">
           <p className="text-xs font-bold mb-3" style={{ color: '#5B6660' }}>
-            {drafts.length} movimiento{drafts.length !== 1 ? 's' : ''} para revisar · Deslizá → aceptar · ← rechazar
+            {drafts.length} giao dịch cần kiểm tra · Vuốt → chấp nhận · ← từ chối
           </p>
           {drafts.map((draft) => (
             <DraftCard

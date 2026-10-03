@@ -24,20 +24,20 @@ export default function AuthPage() {
           redirectTo: `${window.location.origin}/auth/callback`,
         });
         if (error) { toast.error(error.message); return; }
-        toast.success('Te mandamos un link para cambiar tu contraseña. Revisá tu email.');
+        toast.success('Đã gửi liên kết đổi mật khẩu. Hãy kiểm tra email của bạn.');
         setMode('login');
         return;
       }
 
       if (password.length < 6) {
-        toast.error('La contraseña debe tener al menos 6 caracteres.');
+        toast.error('Mật khẩu phải có ít nhất 6 ký tự.');
         return;
       }
 
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          toast.error('Email o contraseña incorrectos.');
+          toast.error('Email hoặc mật khẩu không đúng.');
           return;
         }
         router.push('/presupuestos');
@@ -51,7 +51,7 @@ export default function AuthPage() {
           router.push('/presupuestos');
           router.refresh();
         } else {
-          toast.success('¡Cuenta creada! Ahora ingresá con tu email y contraseña.');
+          toast.success('Tạo tài khoản thành công! Hãy đăng nhập bằng email và mật khẩu.');
           setMode('login');
         }
       }
@@ -67,7 +67,7 @@ export default function AuthPage() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-3">💚</div>
           <h1 className="text-4xl font-black tracking-tight" style={{ color: '#18211D' }}>Morchis</h1>
-          <p className="text-base mt-1" style={{ color: '#5B6660' }}>Nuestra plata, juntos</p>
+          <p className="text-base mt-1" style={{ color: '#5B6660' }}>Tiền của chúng ta, cùng nhau</p>
         </div>
 
         {/* Mode toggle (only login/signup) */}
@@ -83,13 +83,13 @@ export default function AuthPage() {
                   color: mode === m ? '#18211D' : '#5B6660',
                 }}
               >
-                {m === 'login' ? 'Entrar' : 'Crear cuenta'}
+                {m === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
               </button>
             ))}
           </div>
         )}
         {mode === 'reset' && (
-          <p className="text-base font-bold mb-6" style={{ color: '#18211D' }}>Recuperar contraseña</p>
+          <p className="text-base font-bold mb-6" style={{ color: '#18211D' }}>Khôi phục mật khẩu</p>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -99,7 +99,7 @@ export default function AuthPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="vos@ejemplo.com"
+              placeholder="tên@ví dụ.com"
               required
               autoComplete="email"
               className="w-full px-4 py-3 rounded-2xl text-base outline-none border"
@@ -111,12 +111,12 @@ export default function AuthPage() {
 
           {mode !== 'reset' && (
             <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#18211D' }}>Contraseña</label>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#18211D' }}>Mật khẩu</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Tối thiểu 6 ký tự"
                 required
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 className="w-full px-4 py-3 rounded-2xl text-base outline-none border"
@@ -133,7 +133,7 @@ export default function AuthPage() {
             className="w-full py-4 rounded-2xl text-base font-bold text-white transition-opacity disabled:opacity-50 mt-2"
             style={{ background: '#2FA37C' }}
           >
-            {loading ? '…' : mode === 'login' ? 'Entrar' : mode === 'signup' ? 'Crear cuenta' : 'Enviar link'}
+            {loading ? '…' : mode === 'login' ? 'Đăng nhập' : mode === 'signup' ? 'Tạo tài khoản' : 'Gửi liên kết'}
           </button>
         </form>
 
@@ -143,7 +143,7 @@ export default function AuthPage() {
             className="block text-center text-xs mt-4 underline w-full"
             style={{ color: '#5B6660' }}
           >
-            Olvidé mi contraseña
+            Quên mật khẩu
           </button>
         )}
         {mode === 'reset' && (
@@ -152,12 +152,12 @@ export default function AuthPage() {
             className="block text-center text-xs mt-4 underline w-full"
             style={{ color: '#5B6660' }}
           >
-            ← Volver a entrar
+            ← Quay lại đăng nhập
           </button>
         )}
 
         <p className="text-center text-xs mt-6" style={{ color: '#5B6660' }}>
-          Tu sesión se mantiene activa. No vas a tener que volver a entrar.
+          Phiên đăng nhập của bạn sẽ được duy trì. Bạn sẽ không phải đăng nhập lại.
         </p>
       </div>
     </div>

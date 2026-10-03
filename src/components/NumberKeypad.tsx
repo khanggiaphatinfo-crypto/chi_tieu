@@ -6,9 +6,8 @@ interface NumberKeypadProps {
   onDigit: (d: string) => void;
   onBackspace: () => void;
   onConfirm?: () => void;
-  // When provided, a fourth column of arithmetic operators is shown so the user
-  // can do quick math (e.g. split a bill) while loading an amount. Left out for
-  // the PIN keypad, which stays a plain 3-column numpad.
+// Khi truyền onOperator, hiển thị thêm một cột toán tử để người dùng tính nhanh
+  // (ví dụ chia hóa đơn) khi nhập số tiền. Bỏ qua với bàn phím PIN, vốn vẫn có 3 cột.
   onOperator?: (op: string) => void;
 }
 
@@ -19,7 +18,7 @@ const KEYS = [
   [',', '0', '⌫'],
 ];
 
-// Same digits, with an operator column appended for the calculator variant.
+// Các phím số, với thêm một cột toán tử cho phiên bản máy tính.
 const KEYS_WITH_OPS = [
   ['1', '2', '3', '÷'],
   ['4', '5', '6', '×'],
@@ -27,16 +26,16 @@ const KEYS_WITH_OPS = [
   [',', '0', '⌫', '+'],
 ];
 
-// Display symbol -> the ASCII operator handed back to the caller.
+// Ký hiệu hiển thị -> toán tử ASCII gửi lại cho bên gọi.
 const OP_SYMBOLS: Record<string, string> = { '÷': '/', '×': '*', '−': '-', '+': '+' };
 
 const KEY_LABEL: Record<string, string> = {
-  '⌫': 'Borrar',
-  ',': 'Coma decimal',
-  '÷': 'Dividir',
-  '×': 'Multiplicar',
-  '−': 'Restar',
-  '+': 'Sumar',
+  '⌫': 'Xóa',
+  ',': 'Dấu phẩy thập phân',
+  '÷': 'Chia',
+  '×': 'Nhân',
+  '−': 'Trừ',
+  '+': 'Cộng',
 };
 
 export function NumberKeypad({ onDigit, onBackspace, onConfirm, onOperator }: NumberKeypadProps) {
@@ -48,9 +47,8 @@ export function NumberKeypad({ onDigit, onBackspace, onConfirm, onOperator }: Nu
     else onDigit(k);
   }
 
-  // Hardware-keyboard support: digits, comma/period, operators, Backspace,
-  // Enter — but only when focus isn't in a text field (so typing the
-  // description isn't hijacked).
+// Hỗ trợ bàn phím phần cứng: số, dấu phẩy/chấm, toán tử, Backspace,
+  // Enter — chỉ khi focus không nằm trong trường văn bản (để không chiếm phím nhập mô tả).
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const el = document.activeElement as HTMLElement | null;
@@ -72,7 +70,7 @@ export function NumberKeypad({ onDigit, onBackspace, onConfirm, onOperator }: Nu
     <div
       className={`grid ${onOperator ? 'grid-cols-4' : 'grid-cols-3'} gap-2 px-4`}
       role="group"
-      aria-label="Teclado numérico"
+      aria-label="Bàn phím số"
     >
       {keys.map((row, ri) =>
         row.map((k) => {

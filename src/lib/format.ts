@@ -1,9 +1,9 @@
-// Money formatting helpers — all math in TypeScript, never in LLM.
-// Amounts are stored as numeric(14,2): up to 2 decimals. We show cents only
-// when present (minimumFractionDigits: 0) so whole amounts stay clean.
+// Các hàm định dạng tiền — mọi phép tính thực hiện bằng TypeScript, không bao giờ trong LLM.
+// Các khoản tiền lưu numeric(14,2): tối đa 2 chữ số thập phân. Chỉ hiện phần lẻ khi có giá trị
+// (minimumFractionDigits: 0) để số tròn luôn gọn.
 
 export function formatARS(amount: number): string {
-  return new Intl.NumberFormat('es-AR', {
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'ARS',
     minimumFractionDigits: 0,
@@ -12,7 +12,7 @@ export function formatARS(amount: number): string {
 }
 
 export function formatUSD(amount: number): string {
-  return new Intl.NumberFormat('es-AR', {
+  return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
@@ -21,17 +21,16 @@ export function formatUSD(amount: number): string {
 }
 
 /**
- * Format the raw string being typed on the keypad (e.g. "1234,8") into a
- * currency display WITHOUT round-tripping through a float. This keeps the
- * decimal comma visible the moment it's pressed and preserves trailing zeros
- * (so "0,80" shows as "$ 0,80", not "$ 0,8"). The integer part is grouped via
- * Intl so the currency symbol/spacing matches formatARS/formatUSD exactly.
+ * Định dạng chuỗi thô đang nhập trên bàn phím số (ví dụ “1234,8”) thành
+ * hiển thị tiền tệ mà KHÔNG chuyển vòng qua số thực. Nhờ đó dấu phẩy thập phân
+ * vẫn hiện ngay khi bấm và giữ được số 0 ở cuối ("0,80" hiển thị "$ 0,80", không phải "$ 0,8").
+ * Phần nguyên được nhóm bằng Intl để ký hiệu/khoảng cách tiền tệ khớp chính xác với formatARS/formatUSD.
  */
 export function formatTypedAmount(raw: string, currency: 'ARS' | 'USD'): string {
   const commaAt = raw.indexOf(',');
   const intDigits = (commaAt === -1 ? raw : raw.slice(0, commaAt)).replace(/\D/g, '');
   const intValue = intDigits ? parseInt(intDigits, 10) : 0;
-  const intDisplay = new Intl.NumberFormat('es-AR', {
+  const intDisplay = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
@@ -43,13 +42,10 @@ export function formatTypedAmount(raw: string, currency: 'ARS' | 'USD'): string 
 }
 
 /**
- * Evaluate a small arithmetic expression typed in place of a plain amount, so
- * the user can do quick math while loading a movement ("1200+350", "990*3",
- * "5000/2"). Supports + − × ÷ with the usual precedence (× ÷ before + −).
- * Each operand is parsed with parseMoney (es-AR tolerant), so "1.200,50+300"
- * works too. A leading or trailing operator is ignored, a doubled operator
- * keeps the last one, and division by zero collapses to 0. Returns a number
- * rounded to 2 decimals (0 when there's nothing usable to evaluate).
+  * Đánh giá một biểu thức số học nhỏ được nhập thay cho số tiền, để tính nhanh
+ * khi thêm giao dịch ("1200+350", "990*3", "5000/2"). Hỗ trợ + − × ÷ theo thứ tự ưu tiên thông thường
+ * (× ÷ trước + −). Mỗi toán hạng được phân tích bằng parseMoney (hỗ trợ es-AR), nên "1.200,50+300"
+ * cũng hoạt động. Bỏ qua toán tử ở đầu/cuối, nếu lặp toán tử thì giữ toán tử cuối và chia cho 0 cho kết quả 0. Trả về số được làm tròn 2 chữ số thập phân (0 nếu không có gì hợp lệ để tính).
  */
 export function evalMoneyExpr(input: string): number {
   if (!input) return 0;
@@ -98,16 +94,15 @@ export function evalMoneyExpr(input: string): number {
   return Number.isFinite(result) ? roundMoney(result) : 0;
 }
 
-/** True when the string carries an arithmetic operator (so it's an expression,
- * not a plain amount). */
+/** Đúng khi chuỗi chứa toán tử số học (tức là biểu thức, không phải số tiền đơn). */
 export function hasMoneyOperator(input: string): boolean {
   return /[+\-*/×÷]/.test(input);
 }
 
 /**
- * Format a typed expression for display: each operand gets es-AR thousands
- * grouping (keeping the decimal comma) and operators are shown as ×, ÷, −, +
- * with surrounding spaces. Used to echo the formula the user is building.
+ * Định dạng biểu thức đang nhập để hiển thị: mỗi toán hạng được nhóm hàng nghìn theo vi-VN
+ * (giữ dấu phẩy thập phân), toán tử hiển thị thành ×, ÷, −, + với khoảng trắng hai bên.
+ * Dùng để phản chiếu công thức người dùng đang xây dựng.
  */
 export function formatExprDisplay(expr: string): string {
   const tokens = expr.match(/[\d.,]+|[+\-*/×÷]/g);
@@ -120,7 +115,7 @@ export function formatExprDisplay(expr: string): string {
       }
       const commaAt = t.indexOf(',');
       const intDigits = (commaAt === -1 ? t : t.slice(0, commaAt)).replace(/\D/g, '');
-      const intDisplay = intDigits ? parseInt(intDigits, 10).toLocaleString('es-AR') : '0';
+      const intDisplay = intDigits ? parseInt(intDigits, 10).toLocaleString('vi-VN') : '0';
       if (commaAt === -1) return intDisplay;
       const dec = t.slice(commaAt + 1).replace(/\D/g, '').slice(0, 2);
       return `${intDisplay},${dec}`;
@@ -137,16 +132,15 @@ export function usdToArs(usd: number, rateArsPerUsd: number): number {
   return roundMoney(usd * rateArsPerUsd);
 }
 
-/** Round to 2 decimals for storage/display, avoiding float drift. */
+/** Làm tròn 2 chữ số để lưu/hiển thị, tránh sai số số thực. */
 export function roundMoney(n: number): number {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
 /**
- * Parse a money string into a number with up to 2 decimals.
- * Tolerant of es-AR formatting (1.234,56) and plain input (1234.56):
- * the LAST separator (',' or '.') is treated as the decimal point and any
- * earlier separators are thousands. Everything else is stripped.
+ * Phân tích chuỗi tiền thành số có tối đa 2 chữ số thập phân.
+ * Hỗ trợ định dạng vi-VN (1.234,56) và nhập thông thường (1234.56):
+ * dấu phân cách CUỐI CÙNG (',' hoặc '.') được xem là dấu thập phân, các dấu trước đó là phân cách hàng nghìn. Mọi thứ khác bị loại bỏ.
  */
 export function parseMoney(input: string): number {
   if (!input) return 0;

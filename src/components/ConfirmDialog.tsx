@@ -1,6 +1,6 @@
 'use client';
 
-// Styled confirm dialog to replace the native window.confirm().
+// Hộp thoại xác nhận được tạo kiểu, thay cho window.confirm() gốc.
 export function ConfirmDialog({
   open,
   title,

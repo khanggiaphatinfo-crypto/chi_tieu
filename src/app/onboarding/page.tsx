@@ -6,18 +6,18 @@ import { useRouter } from 'next/navigation';
 const steps = [
   {
     emoji: '📱',
-    title: 'Instalá Morchis en tu iPhone',
+    title: 'Cài Morchis trên iPhone',
     body: (
       <>
         <p className="text-base text-center" style={{ color: '#5B6660' }}>
-          Para que se abra como una app de verdad, seguí estos pasos en Safari:
+          Để mở ứng dụng như một app thật, hãy làm theo các bước sau trong Safari:
         </p>
         <ol className="mt-4 space-y-3 text-left">
           {[
-            { icon: '1️⃣', text: 'Abrí esta página en Safari' },
-            { icon: '2️⃣', text: 'Tocá el botón Compartir (cuadrado con flecha ↑)' },
-            { icon: '3️⃣', text: 'Elegí "Agregar a Inicio"' },
-            { icon: '4️⃣', text: '¡Listo! Morchis aparece en tu pantalla de inicio 🎉' },
+            { icon: '1️⃣', text: 'Mở trang này trong Safari' },
+            { icon: '2️⃣', text: 'Nhấn nút Chia sẻ (hình vuông có mũi tên ↑)' },
+            { icon: '3️⃣', text: 'Chọn “Thêm vào Màn hình chính”' },
+            { icon: '4️⃣', text: 'Xong! Morchis sẽ xuất hiện trên màn hình chính 🎉' },
           ].map((s) => (
             <li key={s.icon} className="flex items-start gap-3">
               <span className="text-xl shrink-0">{s.icon}</span>
@@ -26,17 +26,17 @@ const steps = [
           ))}
         </ol>
         <div className="mt-4 rounded-2xl p-3 text-sm text-center" style={{ background: '#FFE5E0', color: '#E25749' }}>
-          Sólo funciona en <strong>Safari</strong>. Chrome e Instagram browser no lo soportan.
+          Chỉ hoạt động trên <strong>Safari</strong>. Chrome và trình duyệt Instagram không hỗ trợ.
         </div>
       </>
     ),
   },
   {
     emoji: '💚',
-    title: '¡Todo listo, Morch!',
+    title: 'Mọi thứ đã sẵn sàng, Morch!',
     body: (
       <p className="text-base text-center" style={{ color: '#5B6660' }}>
-        Ya podés empezar a registrar gastos e ingresos juntos. Tocá <strong>+</strong> para agregar tu primer movimiento.
+        Đã đến lúc ghi lại các khoản chi và thu nhập cùng nhau. Nhấn <strong>+</strong> để thêm giao dịch đầu tiên.
       </p>
     ),
   },
@@ -85,7 +85,7 @@ export default function OnboardingPage() {
           className="w-full py-4 rounded-2xl text-base font-bold text-white"
           style={{ background: '#2FA37C' }}
         >
-          {isLast ? '¡Empecemos! 🚀' : 'Siguiente'}
+          {isLast ? 'Bắt đầu thôi! 🚀' : 'Tiếp theo'}
         </button>
 
         {!isLast && (
@@ -94,7 +94,7 @@ export default function OnboardingPage() {
             className="w-full py-3 text-sm text-center"
             style={{ color: '#5B6660' }}
           >
-            Saltar
+            Bỏ qua
           </button>
         )}
       </div>

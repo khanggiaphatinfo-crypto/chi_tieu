@@ -213,7 +213,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
     for (const tx of displayTxs) {
       const rows = itemsByTx.get(tx.id);
       if (!rows) continue;
-      const merchant = tx.merchant?.trim() || 'Sin nombre';
+      const merchant = tx.merchant?.trim() || 'Không có tên';
       for (const r of rows) {
         const nm = (r.name || '').trim();
         if (!nm || isNonProduct(nm)) continue;
@@ -244,11 +244,11 @@ export default function CafesClient({ profile }: { profile: Profile }) {
       .sort((a, b) => b.merchants.length - a.merchants.length || b.count - a.count || a.name.localeCompare(b.name));
   }, [displayTxs, itemsByTx, toArs]);
 
-  // Café ranking — total spend & visits per place (tips folded into the visit).
+  // Quán cà phê ranking — total spend & visits per place (tips folded into the visit).
   const cafes = useMemo(() => {
     const m = new Map<string, { total: number; visits: number }>();
     for (const tx of displayTxs) {
-      const k = tx.merchant?.trim() || 'Sin nombre';
+      const k = tx.merchant?.trim() || 'Không có tên';
       const e = m.get(k) ?? { total: 0, visits: 0 };
       e.total += visitArs(tx);
       e.visits += 1;
@@ -267,7 +267,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
   );
 
   const comparable = products.filter((p) => p.merchants.length > 1).length;
-  const rangeLabel = range === 'month' ? 'este mes' : range === 'prev' ? 'mes pasado' : 'histórico';
+  const rangeLabel = range === 'month' ? 'tháng này' : range === 'prev' ? 'tháng trước' : 'toàn bộ lịch sử';
   const sel = openProduct ? products.find((p) => p.key === openProduct) ?? null : null;
 
   return (
@@ -275,8 +275,8 @@ export default function CafesClient({ profile }: { profile: Profile }) {
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
         <div>
-          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Cafés ☕</h1>
-          <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>Compará precios entre cafeterías</p>
+          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Quán cà phê ☕</h1>
+          <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>So sánh giá giữa các quán cà phê</p>
         </div>
       </header>
 
@@ -294,7 +294,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
               boxShadow: range === r ? '0 4px 12px -4px rgba(111,78,55,0.55)' : 'var(--shadow-soft)',
             }}
           >
-            {r === 'month' ? 'Este mes' : r === 'prev' ? 'Mes pasado' : 'Histórico'}
+            {r === 'month' ? 'Tháng này' : r === 'prev' ? 'Tháng trước' : 'Lịch sử'}
           </button>
         ))}
       </div>
@@ -303,13 +303,13 @@ export default function CafesClient({ profile }: { profile: Profile }) {
         {isLoading ? (
           <div className="rounded-3xl p-8 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-3xl mb-2 animate-pulse">☕</p>
-            <p className="text-sm" style={{ color: '#5B6660' }}>Cargando…</p>
+            <p className="text-sm" style={{ color: '#5B6660' }}>Đang tải…</p>
           </div>
         ) : purchases.length === 0 ? (
           <EmptyState
             icon="☕"
-            title="Sin cafés todavía"
-            subtitle="No hay gastos de tu categoría de cafeterías en este período."
+            title="Chưa có quán cà phê nào"
+            subtitle="Không có chi tiêu trong danh mục quán cà phê trong giai đoạn này."
           />
         ) : (
           <>
@@ -317,10 +317,10 @@ export default function CafesClient({ profile }: { profile: Profile }) {
             <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-pop)' }}>
               <div className="relative px-5 pt-5 pb-5 overflow-hidden" style={{ background: 'linear-gradient(135deg, #8A6B52 0%, #6F4E37 100%)' }}>
                 <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
-                <p className="relative text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Total en cafés · {rangeLabel}</p>
+                <p className="relative text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>Tổng cà phê · {rangeLabel}</p>
                 <p className="relative text-[2.4rem] leading-none font-black mt-2 tracking-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>{format(totalArs)}</p>
                 <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  {cafes.rows.length} café{cafes.rows.length !== 1 ? 's' : ''} · {products.length} producto{products.length !== 1 ? 's' : ''} con detalle
+                  {cafes.rows.length} quán cà phê · {products.length} sản phẩm có chi tiết
                 </p>
               </div>
             </div>
@@ -328,11 +328,11 @@ export default function CafesClient({ profile }: { profile: Profile }) {
             {/* Product comparator */}
             {products.length > 0 ? (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Comparador de productos</p>
+                <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>So sánh sản phẩm</p>
                 <p className="text-[11px] mb-4 mt-0.5" style={{ color: '#8C968F' }}>
                   {comparable > 0
-                    ? `${comparable} producto${comparable !== 1 ? 's' : ''} en más de un café. Tocá para ver dónde está más barato.`
-                    : 'Escaneá tickets de distintos cafés para comparar el mismo producto.'}
+                    ? `${comparable} sản phẩm ở nhiều quán cà phê. Chạm để xem nơi nào rẻ nhất.`
+                    : 'Hãy quét hóa đơn từ các quán cà phê khác nhau để so sánh cùng một sản phẩm.'}
                 </p>
                 <div className="flex flex-col gap-1">
                   {products.map((p) => {
@@ -355,10 +355,10 @@ export default function CafesClient({ profile }: { profile: Profile }) {
                             </div>
                             <div className="flex items-center justify-between gap-2 mt-0.5">
                               <span className="text-[11px] truncate" style={{ color: multi ? '#1F8A68' : '#8C968F' }}>
-                                {multi ? `más barato en ${p.min.merchant}` : `${p.min.merchant} · ${p.count} vez${p.count !== 1 ? 'es' : ''}`}
+                                {multi ? `rẻ nhất tại ${p.min.merchant}` : `${p.min.merchant} · ${p.count} lần`}
                               </span>
                               <span className="text-[11px] shrink-0" style={{ color: '#B0BAB4' }}>
-                                {p.merchants.length} café{p.merchants.length !== 1 ? 's' : ''} ›
+                                {p.merchants.length} quán cà phê ›
                               </span>
                             </div>
                           </div>
@@ -370,17 +370,17 @@ export default function CafesClient({ profile }: { profile: Profile }) {
               </div>
             ) : (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-                <p className="text-sm font-bold mb-1" style={{ color: '#18211D' }}>Sin productos para comparar</p>
+                <p className="text-sm font-bold mb-1" style={{ color: '#18211D' }}>Chưa có sản phẩm để so sánh</p>
                 <p className="text-xs" style={{ color: '#5B6660' }}>
-                  Ninguna compra de este período tiene ticket escaneado. Escaneá tus tickets de café (con el 🧾) para comparar el precio del latte, el tostado, etc. entre cafeterías.
+                  Không có lần mua nào trong giai đoạn này có hóa đơn đã quét. Hãy quét hóa đơn cà phê (bằng 🧾) để so sánh giá latte, bánh mì nướng, v.v. giữa các quán.
                 </p>
               </div>
             )}
 
-            {/* Café ranking */}
+            {/* Quán cà phê ranking */}
             {cafes.rows.length > 1 && (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>Tus cafés · {rangeLabel}</p>
+                <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>Các quán cà phê của bạn · {rangeLabel}</p>
                 <div className="flex flex-col gap-2.5">
                   {cafes.rows.slice(0, 8).map((c) => (
                     <div key={c.merchant}>
@@ -392,7 +392,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
                         <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#EFE7E0' }}>
                           <div className="h-full rounded-full" style={{ width: `${Math.max((c.total / cafes.max) * 100, 3)}%`, background: '#8A6B52' }} />
                         </div>
-                        <span className="text-[11px] tabular-nums shrink-0" style={{ color: '#8C968F' }}>{c.visits} visita{c.visits !== 1 ? 's' : ''}</span>
+                        <span className="text-[11px] tabular-nums shrink-0" style={{ color: '#8C968F' }}>{c.visits} lần</span>
                       </div>
                     </div>
                   ))}
@@ -400,9 +400,9 @@ export default function CafesClient({ profile }: { profile: Profile }) {
               </div>
             )}
 
-            {/* Tickets list */}
+            {/* Hóa đơn list */}
             <div>
-              <p className="text-sm font-black mb-2 px-1" style={{ color: '#18211D' }}>Tickets</p>
+              <p className="text-sm font-black mb-2 px-1" style={{ color: '#18211D' }}>Hóa đơn</p>
               <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                 {purchases.map(({ tx, count }, i) => (
                   <button
@@ -413,21 +413,21 @@ export default function CafesClient({ profile }: { profile: Profile }) {
                   >
                     <span className="text-2xl shrink-0">☕</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{tx.merchant || 'Café'}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{tx.merchant || 'Quán cà phê'}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="text-xs" style={{ color: '#5B6660' }}>
-                          {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                          {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })}
                         </span>
                         {count > 0 ? (
-                          <span className="text-xs" style={{ color: '#5B6660' }}>· {count} producto{count !== 1 ? 's' : ''}</span>
+                          <span className="text-xs" style={{ color: '#5B6660' }}>· {count} sản phẩm</span>
                         ) : (
                           <span className="text-[11px] px-1.5 py-0.5 rounded-md font-semibold" style={{ background: '#EAF0ED', color: '#8C968F' }}>
-                            sin detalle
+                            không có chi tiết
                           </span>
                         )}
                         {(tipByTxId.get(tx.id) ?? 0) > 0 && (
                           <span className="text-[11px] px-1.5 py-0.5 rounded-md font-semibold" style={{ background: '#EFE7E0', color: '#6F4E37' }}>
-                            + propina
+                            + tiền boa
                           </span>
                         )}
                       </div>
@@ -438,7 +438,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] mt-2 px-1" style={{ color: '#8C968F' }}>Tocá un ticket para ver o editar sus productos.</p>
+              <p className="text-[11px] mt-2 px-1" style={{ color: '#8C968F' }}>Chạm vào hóa đơn để xem hoặc chỉnh sửa sản phẩm.</p>
             </div>
           </>
         )}
@@ -459,8 +459,8 @@ export default function CafesClient({ profile }: { profile: Profile }) {
             </div>
             <p className="text-xs mb-4" style={{ color: '#5B6660' }}>
               {sel.merchants.length > 1
-                ? `Precio promedio por café · ${sel.count} compra${sel.count !== 1 ? 's' : ''}`
-                : `${sel.count} compra${sel.count !== 1 ? 's' : ''} en un solo café`}
+                ? `Giá trung bình tại mỗi quán · ${sel.count} lần mua`
+                : `${sel.count} lần mua tại một quán duy nhất`}
             </p>
             <div className="flex flex-col">
               {sel.merchants.map((m, i) => {
@@ -472,8 +472,8 @@ export default function CafesClient({ profile }: { profile: Profile }) {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{m.merchant}</p>
                       <p className="text-[11px]" style={{ color: '#8C968F' }}>
-                        {m.times} vez{m.times !== 1 ? 'es' : ''}
-                        {isCheapest ? ' · más barato 🏆' : isDearest ? ' · el más caro' : ''}
+                        {m.times} lần
+                        {isCheapest ? ' · rẻ nhất 🏆' : isDearest ? ' · đắt nhất' : ''}
                       </p>
                     </div>
                     <span className="text-sm font-black tabular-nums shrink-0" style={{ color }}>{format(Math.round(m.unit))}</span>
@@ -484,7 +484,7 @@ export default function CafesClient({ profile }: { profile: Profile }) {
             {sel.merchants.length > 1 && (
               <div className="mt-4 rounded-2xl p-3" style={{ background: '#DDF0E8' }}>
                 <p className="text-xs font-semibold" style={{ color: '#1F8A68' }}>
-                  Ahorrás {format(Math.round(sel.max.unit - sel.min.unit))} tomando {sel.name.toLowerCase()} en {sel.min.merchant} en vez de {sel.max.merchant}.
+                  Bạn tiết kiệm {format(Math.round(sel.max.unit - sel.min.unit))} khi gọi {sel.name.toLowerCase()} tại {sel.min.merchant} thay vì {sel.max.merchant}.
                 </p>
               </div>
             )}

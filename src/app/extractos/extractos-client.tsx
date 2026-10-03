@@ -30,10 +30,10 @@ interface Statement {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  uploaded: { label: 'Subido', color: '#5B6660', bg: '#E5EBE8', icon: '📄' },
-  parsing: { label: 'Analizando…', color: '#1F8A68', bg: '#DDF0E8', icon: '⚙️' },
-  parsed: { label: 'Listo', color: '#1F8A68', bg: '#DDF0E8', icon: '✅' },
-  failed: { label: 'Error', color: '#E25749', bg: '#FFE5E0', icon: '⚠️' },
+  uploaded: { label: 'Đã tải lên', color: '#5B6660', bg: '#E5EBE8', icon: '📄' },
+  parsing: { label: 'Đang phân tích…', color: '#1F8A68', bg: '#DDF0E8', icon: '⚙️' },
+  parsed: { label: 'Sẵn sàng', color: '#1F8A68', bg: '#DDF0E8', icon: '✅' },
+  failed: { label: 'Lỗi', color: '#E25749', bg: '#FFE5E0', icon: '⚠️' },
 };
 
 export default function ExtractosClient({
@@ -113,21 +113,21 @@ export default function ExtractosClient({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error ?? 'Error al analizar');
+        throw new Error(err.error ?? 'Lỗi khi phân tích');
       }
 
       await qc.invalidateQueries({ queryKey: ['statements'] });
-      toast.success('Resumen subido — analizando con IA…');
+      toast.success('Đã tải sao kê — đang phân tích bằng AI…');
       router.push(`/extractos/${statementId}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al subir el resumen');
+      toast.error(err instanceof Error ? err.message : 'Lỗi khi tải lên sao kê');
     } finally {
       setUploading(false);
     }
   }
 
   function fmtDate(d: string) {
-    return new Date(d).toLocaleDateString('es-AR', {
+    return new Date(d).toLocaleDateString('vi-VN', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -137,15 +137,15 @@ export default function ExtractosClient({
   return (
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Extractos</h1>
-        <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>Subí un resumen para importar movimientos — PDF, foto o CSV (ej: actividad de Mercado Pago)</p>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Sao kê</h1>
+        <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>Tải lên sao kê để nhập giao dịch — PDF, ảnh hoặc CSV (ví dụ: hoạt động Mercado Pago)</p>
       </header>
 
       {/* Upload card */}
       <div className="mx-4 mb-4 rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
         {accounts.length > 0 && (
           <div className="mb-4">
-            <p className="text-[11px] font-black uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Cuenta</p>
+            <p className="text-[11px] font-black uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Tài khoản</p>
             <div className="flex gap-2 flex-wrap">
               {accounts.map((acc) => (
                 <button
@@ -191,7 +191,7 @@ export default function ExtractosClient({
             className="flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all"
             style={{ background: '#DDF0E8', color: '#1F8A68', boxShadow: 'var(--shadow-soft)' }}
           >
-            📄 Subir archivo
+            📄 Tải tệp lên
           </button>
           <button
             onClick={() => {
@@ -204,13 +204,13 @@ export default function ExtractosClient({
             className="flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all"
             style={{ background: 'linear-gradient(135deg, #FF8173 0%, #E25749 100%)', color: '#FFFFFF', boxShadow: 'var(--shadow-glow)' }}
           >
-            📷 Sacar foto
+            📷 Chụp ảnh
           </button>
         </div>
 
         {uploading && (
           <p className="text-xs text-center mt-3 font-semibold" style={{ color: '#2FA37C' }}>
-            Subiendo y analizando con IA…
+            Đang tải lên và phân tích bằng AI…
           </p>
         )}
       </div>
@@ -218,7 +218,7 @@ export default function ExtractosClient({
       {/* Statement history */}
       {statements.length > 0 && (
         <div className="px-4">
-          <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Historial</p>
+          <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Lịch sử</p>
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             {statements.map((s, i) => {
               const badge = STATUS_LABELS[s.status] ?? STATUS_LABELS.uploaded;
@@ -237,7 +237,7 @@ export default function ExtractosClient({
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#18211D' }}>
-                      {accounts.find((a) => a.id === s.account_id)?.name ?? 'Sin cuenta'}
+                      {accounts.find((a) => a.id === s.account_id)?.name ?? 'Không có tài khoản'}
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>
                       {fmtDate(s.created_at)}
@@ -260,9 +260,9 @@ export default function ExtractosClient({
       {statements.length === 0 && !uploading && (
         <div className="text-center py-16 px-8">
           <p className="text-5xl mb-4">🧾</p>
-          <p className="text-base font-bold" style={{ color: '#18211D' }}>Ningún extracto todavía</p>
+          <p className="text-base font-bold" style={{ color: '#18211D' }}>Chưa có sao kê nào</p>
           <p className="text-sm mt-2" style={{ color: '#5B6660' }}>
-            Subí tu resumen en PDF, foto o CSV (ej: actividad de Mercado Pago) — la IA extrae todos los movimientos para que los revisés.
+            Tải lên sao kê dưới dạng PDF, ảnh hoặc CSV (ví dụ: hoạt động Mercado Pago) — AI sẽ trích xuất tất cả giao dịch để bạn kiểm tra.
           </p>
         </div>
       )}

@@ -9,25 +9,25 @@ interface BottomNavProps {
   onFab: (type: 'expense' | 'income' | 'transfer') => void;
 }
 
-// All the screens that used to live behind the "Más" page, surfaced directly in
-// a slide-up menu so they're one tap away. Invite + PIN are de-emphasised at the
-// bottom (rarely used).
+// Tất cả màn hình từng nằm sau trang “Thêm”, nay hiển thị trực tiếp trong
+// menu trượt lên để chỉ cần một lần chạm. Mời người đồng hành + PIN được đưa xuống
+// cuối menu vì ít dùng.
 const MENU = [
-  { href: '/insights', icon: '✨', label: 'Insights' },
-  { href: '/cuentas', icon: '🏦', label: 'Cuentas' },
-  { href: '/reglas', icon: '📅', label: 'Fijos' },
-  { href: '/deudas', icon: '🤝', label: 'Deudas' },
-  { href: '/pareja', icon: '👫', label: 'Pareja' },
-  { href: '/super', icon: '🛒', label: 'Súper' },
-  { href: '/cafes', icon: '☕', label: 'Cafés' },
-  { href: '/ticket', icon: '🧾', label: 'Escanear ticket' },
-  { href: '/extractos', icon: '💳', label: 'Extractos' },
-  { href: '/simulador', icon: '🔮', label: 'Simulador' },
-  { href: '/mas/notificaciones', icon: '🔔', label: 'Notificaciones' },
+  { href: '/insights', icon: '✨', label: 'Phân tích chuyên sâu' },
+  { href: '/cuentas', icon: '🏦', label: 'Tài khoản' },
+  { href: '/reglas', icon: '📅', label: 'Khoản định kỳ' },
+  { href: '/deudas', icon: '🤝', label: 'Công nợ' },
+  { href: '/pareja', icon: '👫', label: 'Người đồng hành' },
+  { href: '/super', icon: '🛒', label: 'Siêu thị' },
+  { href: '/cafes', icon: '☕', label: 'Cà phê' },
+  { href: '/ticket', icon: '🧾', label: 'Quét hóa đơn' },
+  { href: '/extractos', icon: '💳', label: 'Sao kê' },
+  { href: '/simulador', icon: '🔮', label: 'Mô phỏng' },
+  { href: '/mas/notificaciones', icon: '🔔', label: 'Thông báo' },
 ];
 const SECONDARY = [
-  { href: '/mas', icon: '💌', label: 'Invitar a mi pareja' },
-  { href: '/mas/pin', icon: '🔐', label: 'Bloqueo con PIN' },
+  { href: '/mas', icon: '💌', label: 'Mời người đồng hành' },
+  { href: '/mas/pin', icon: '🔐', label: 'Khóa bằng PIN' },
 ];
 
 export function BottomNav({ onFab }: BottomNavProps) {
@@ -56,7 +56,7 @@ export function BottomNav({ onFab }: BottomNavProps) {
     );
   }
 
-  // Desktop top-nav link (horizontal pill instead of stacked icon+label).
+// Liên kết thanh điều hướng desktop (pill ngang thay cho icon + nhãn xếp dọc).
   function topTab(href: string, label: string, icon: string) {
     const active = path === href || path.startsWith(href + '/');
     return (
@@ -89,11 +89,11 @@ export function BottomNav({ onFab }: BottomNavProps) {
 
   return (
     <>
-      {/* Floating "Preguntale a Morchi" button — hidden on the chat itself. */}
+{/* Nút nổi “Hỏi Morchi” — ẩn trên chính trang trò chuyện. */}
       {!path.startsWith('/preguntale') && (
         <Link
           href="/preguntale"
-          aria-label="Preguntale a Morchi"
+          aria-label="Hỏi Morchi"
           className="fixed z-40 flex items-center justify-center rounded-full md:hidden active:scale-95 transition-transform"
           style={{
             right: 16,
@@ -124,26 +124,26 @@ export function BottomNav({ onFab }: BottomNavProps) {
             className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-sm font-black text-white shadow-lg"
             style={{ background: '#2FA37C' }}
           >
-            <span className="text-lg">💰</span> Ingreso
+            <span className="text-lg">💰</span> Thu nhập
           </button>
           <button
             onClick={() => pick('expense')}
             className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-sm font-black text-white shadow-lg"
             style={{ background: '#FF6F61' }}
           >
-            <span className="text-lg">💸</span> Gasto
+            <span className="text-lg">💸</span> Chi tiêu
           </button>
           <button
             onClick={() => pick('transfer')}
             className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-full text-sm font-black text-white shadow-lg"
             style={{ background: '#4E84E0' }}
           >
-            <span className="text-lg">🔄</span> Transferencia
+            <span className="text-lg">🔄</span> Chuyển khoản
           </button>
         </div>
       )}
 
-      {/* "Más" slide-up menu */}
+{/* Menu “Thêm” trượt lên */}
       {moreOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center animate-in fade-in duration-200" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={() => setMoreOpen(false)}>
           <div
@@ -152,7 +152,7 @@ export function BottomNav({ onFab }: BottomNavProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: '#E5EBE8' }} />
-            <h2 className="text-lg font-black mb-4 px-1" style={{ color: '#18211D' }}>Menú</h2>
+            <h2 className="text-lg font-black mb-4 px-1" style={{ color: '#18211D' }}>Menu</h2>
 
             <div className="grid grid-cols-3 gap-2">
               {MENU.map((item) => (
@@ -188,14 +188,14 @@ export function BottomNav({ onFab }: BottomNavProps) {
                 style={{ color: '#5B6660' }}
               >
                 <span className="text-lg">🚪</span>
-                <span className="font-semibold">Cerrar sesión</span>
+                <span className="font-semibold">Đăng xuất</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Desktop top nav — replaces the bottom bar on md+. */}
+{/* Thanh điều hướng desktop — thay cho thanh dưới trên md+. */}
       <nav
         className="glass hidden md:flex fixed top-0 left-0 right-0 items-center z-40"
         style={{ borderBottom: '1px solid var(--glass-border)' }}
@@ -204,13 +204,13 @@ export function BottomNav({ onFab }: BottomNavProps) {
           <Link href="/presupuestos" className="text-lg font-black mr-3" style={{ color: '#18211D' }}>
             Morchis
           </Link>
-          {topTab('/presupuestos', 'Presupuesto', '💵')}
-          {topTab('/movimientos', 'Movimientos', '📋')}
-          {topTab('/analisis', 'Análisis', '📊')}
+          {topTab('/presupuestos', 'Ngân sách', '💵')}
+          {topTab('/movimientos', 'Giao dịch', '📋')}
+          {topTab('/analisis', 'Phân tích', '📊')}
 
           <div className="flex-1" />
 
-          {/* + Agregar with dropdown speed-dial */}
+{/* Nút + Thêm với menu thao tác nhanh */}
           <div className="relative">
             <button
               onClick={() => setMenuOpen((v) => !v)}
@@ -219,7 +219,7 @@ export function BottomNav({ onFab }: BottomNavProps) {
               aria-haspopup="menu"
               aria-expanded={menuOpen}
             >
-              <span className="text-base">+</span> Agregar
+              <span className="text-base">+</span> Thêm
             </button>
             {menuOpen && (
               <div
@@ -231,21 +231,21 @@ export function BottomNav({ onFab }: BottomNavProps) {
                   className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-left"
                   style={{ color: '#18211D' }}
                 >
-                  <span className="text-lg">💰</span> Ingreso
+                  <span className="text-lg">💰</span> Thu nhập
                 </button>
                 <button
                   onClick={() => pick('expense')}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-left"
                   style={{ color: '#18211D' }}
                 >
-                  <span className="text-lg">💸</span> Gasto
+                  <span className="text-lg">💸</span> Chi tiêu
                 </button>
                 <button
                   onClick={() => pick('transfer')}
                   className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-left"
                   style={{ color: '#18211D' }}
                 >
-                  <span className="text-lg">🔄</span> Transferencia
+                  <span className="text-lg">🔄</span> Chuyển khoản
                 </button>
               </div>
             )}
@@ -253,7 +253,7 @@ export function BottomNav({ onFab }: BottomNavProps) {
 
           <Link
             href="/preguntale"
-            aria-label="Preguntale a Morchi"
+            aria-label="Hỏi Morchi"
             className="ml-1 flex items-center justify-center rounded-full w-10 h-10 text-xl"
             style={{ background: '#DDF0E8' }}
           >
@@ -264,16 +264,16 @@ export function BottomNav({ onFab }: BottomNavProps) {
             onClick={() => setMoreOpen(true)}
             className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold"
             style={{ color: moreActive ? '#1F8A68' : '#5B6660', background: moreActive ? '#DDF0E8' : 'transparent' }}
-            aria-label="Menú"
+            aria-label="Menu"
             aria-expanded={moreOpen}
           >
-            <span className="text-base">☰</span> Más
+            <span className="text-base">☰</span> Thêm
           </button>
         </div>
       </nav>
 
-      {/* Speed-dial dropdown backdrop (desktop) — closes the menu on outside click.
-          z-30 keeps it below the top nav (z-40) so the dropdown (z-50) stays clickable. */}
+{/* Nền menu thao tác nhanh trên desktop — đóng menu khi bấm ra ngoài.
+          z-30 đặt dưới thanh điều hướng trên (z-40) để menu (z-50) vẫn bấm được. */}
       {menuOpen && (
         <div className="hidden md:block fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
       )}
@@ -286,29 +286,29 @@ export function BottomNav({ onFab }: BottomNavProps) {
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
       >
-        {tab('/presupuestos', 'Presupuesto', '💵')}
-        {tab('/movimientos', 'Movimientos', '📋')}
+        {tab('/presupuestos', 'Ngân sách', '💵')}
+        {tab('/movimientos', 'Giao dịch', '📋')}
         <div className="flex-1 flex justify-center">
           <button
             onClick={() => setMenuOpen((v) => !v)}
             className="w-14 h-14 rounded-full text-2xl text-white flex items-center justify-center -mt-5 transition-transform duration-200"
             style={{ background: 'linear-gradient(180deg, #FF8173 0%, #FF6F61 60%, #E25749 100%)', boxShadow: 'var(--shadow-glow-coral)', transform: menuOpen ? 'rotate(45deg) scale(1.05)' : 'none' }}
-            aria-label="Agregar movimiento"
+            aria-label="Thêm giao dịch"
             aria-expanded={menuOpen}
           >
             +
           </button>
         </div>
-        {tab('/analisis', 'Análisis', '📊')}
+        {tab('/analisis', 'Phân tích', '📊')}
         <button
           onClick={() => setMoreOpen(true)}
           className="flex flex-col items-center gap-0.5 flex-1 py-2"
           style={{ color: moreActive ? '#2FA37C' : '#5B6660' }}
-          aria-label="Menú"
+          aria-label="Menu"
           aria-expanded={moreOpen}
         >
           <span className="text-2xl">☰</span>
-          <span className="text-[10px] font-semibold">Más</span>
+          <span className="text-[10px] font-semibold">Thêm</span>
         </button>
       </nav>
     </>

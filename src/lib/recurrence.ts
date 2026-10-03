@@ -1,10 +1,9 @@
 import { toLocalISO } from '@/lib/date';
 
-// Shared recurrence math for `recurring_rules`. Extracted from reglas-client so
-// the register strip (próximos vencimientos) and the cash-flow projection can
-// reuse the exact same cadence logic the rules screen and the cron use.
+// Tính toán lịch lặp dùng chung cho `recurring_rules`. Được tách từ reglas-client để
+// dải thanh ghi (các khoản sắp đến hạn) và dự báo dòng tiền dùng cùng logic với màn hình quy tắc và cron.
 //
-// (ms arithmetic is safe here: Argentina has no DST, so days are always 24h.)
+// (Phép tính mili-giây an toàn: Argentina không có DST nên mỗi ngày luôn là 24 giờ.)
 
 export interface RecurrenceLike {
   cadence: string; // 'weekly' | 'biweekly' | 'monthly'
@@ -12,16 +11,14 @@ export interface RecurrenceLike {
   next_run: string | null;
 }
 
-// A day-of-month for a given year/month, clamped to that month's length — mirrors
-// the cron's `least(anchor_day, last_day_of_month)`. Without this, anchor day 31
-// in February makes `new Date(year, 1, 31)` overflow into March and the schedule
-// drifts. So anchor_day 31 means "último día del mes".
+// Ngày trong tháng cho một năm/tháng, giới hạn theo số ngày thực tế của tháng — tương ứng với
+// ngày 31 trong tháng 2 sẽ tràn sang tháng 3 và làm lệch lịch. Vì vậy, ngày 31 nghĩa là “ngày cuối tháng”.
 export function dayOfMonth(year: number, month: number, day: number): Date {
   const lastDay = new Date(year, month + 1, 0).getDate();
   return new Date(year, month, Math.min(day, lastDay));
 }
 
-// Whole days from start-of-today to the given ISO date (negative = past).
+// Số ngày nguyên tính từ đầu hôm nay đến ngày ISO đã cho (âm = quá khứ).
 export function daysUntil(dateStr: string): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -29,14 +26,14 @@ export function daysUntil(dateStr: string): number {
   return Math.round((d.getTime() - today.getTime()) / 86400000);
 }
 
-// Human label for a day offset: "Hoy" / "Mañana" / "En N días".
+// Nhãn thân thiện cho số ngày lệch: “Hôm nay” / “Ngày mai” / “Sau N ngày”.
 export function whenLabel(d: number): string {
-  if (d <= 0) return 'Hoy';
-  if (d === 1) return 'Mañana';
-  return `En ${d} días`;
+  if (d <= 0) return 'Hôm nay';
+  if (d === 1) return 'Ngày mai';
+  return `Sau ${d} ngày`;
 }
 
-// Count how many times a given weekday (0=Sun..6=Sat) falls in a month.
+// Đếm số lần một thứ trong tuần (0=CN..6=Thứ Bảy) xuất hiện trong tháng.
 export function weekdayOccurrencesInMonth(weekday: number, year: number, month: number): number {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   let count = 0;
@@ -46,10 +43,10 @@ export function weekdayOccurrencesInMonth(weekday: number, year: number, month: 
   return count;
 }
 
-// Normalize any cadence to the actual amount for the current month so totals
-// reflect the real number of occurrences (e.g. a weekly expense on Thursdays
-// counts the exact number of Thursdays in this month, not an average of 4.33;
-// a biweekly one counts its actual 14-day cycle dates, which can be 1–3).
+// Chuẩn hóa mọi tần suất thành số lần thực tế trong tháng hiện tại để tổng tiền
+// phản ánh đúng số lần phát sinh (ví dụ chi hàng tuần vào thứ Năm đếm đúng số thứ Năm
+// trong tháng, không lấy trung bình 4,33; chi hai tuần một lần đếm đúng các ngày chu kỳ 14 ngày
+// (có thể từ 1–3 lần).
 export function monthlyEquivalent(amount: number, cadence: string, anchorDay: number | null, nextRun: string | null): number {
   if (cadence === 'weekly') {
     const now = new Date();
@@ -75,8 +72,8 @@ export function monthlyEquivalent(amount: number, cadence: string, anchorDay: nu
   return amount;
 }
 
-// Advance a date by one cycle of the rule's cadence. Mirrors the cron's
-// advancement (+7 / +14 / same anchor day next month, clamped to month length).
+// Tăng ngày thêm một chu kỳ theo tần suất của quy tắc. Tương ứng với cron
+// (+7 / +14 / cùng ngày neo ở tháng sau, giới hạn theo số ngày trong tháng).
 export function advanceOccurrence(dateISO: string, rule: RecurrenceLike): string {
   const base = new Date(dateISO + 'T00:00:00');
   if (rule.cadence === 'weekly') return toLocalISO(new Date(base.getTime() + 7 * 86400000));
@@ -85,19 +82,19 @@ export function advanceOccurrence(dateISO: string, rule: RecurrenceLike): string
   return toLocalISO(dayOfMonth(base.getFullYear(), base.getMonth() + 1, anchor));
 }
 
-// Advance a rule's own next_run by one cycle WITHOUT posting — used to skip a
-// single occurrence on the rules screen.
+// Tăng next_run của chính quy tắc thêm một chu kỳ nhưng KHÔNG tạo giao dịch — dùng để bỏ qua
+// một lần phát sinh trên màn hình quy tắc.
 export function advanceNextRun(rule: RecurrenceLike): string {
   return advanceOccurrence(rule.next_run ?? toLocalISO(new Date()), rule);
 }
 
-// Expand a rule's future occurrence dates (ISO) within [fromISO, toISO]
-// inclusive, walking from its next_run. Caps iterations as a safety net.
+// Mở rộng các ngày phát sinh tương lai (ISO) trong [fromISO, toISO]
+// bao gồm cả hai đầu, bắt đầu từ next_run. Giới hạn số vòng lặp để an toàn.
 export function expandOccurrences(rule: RecurrenceLike, fromISO: string, toISO: string): string[] {
   if (!rule.next_run) return [];
   const out: string[] = [];
   let cur = rule.next_run;
-  // Fast-forward to the window start if next_run is behind it.
+// Bỏ nhanh đến đầu khoảng thời gian nếu next_run nằm trước khoảng đó.
   let guard = 0;
   while (cur < fromISO && guard++ < 1000) cur = advanceOccurrence(cur, rule);
   while (cur <= toISO && guard++ < 1000) {

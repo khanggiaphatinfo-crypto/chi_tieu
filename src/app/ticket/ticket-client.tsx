@@ -90,7 +90,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
       return data;
     },
   });
-  const partnerName = partner?.nickname || partner?.display_name || 'tu pareja';
+  const partnerName = partner?.nickname || partner?.display_name || 'đối tác của bạn';
 
   const [accountId, setAccountId] = useState<string>('none');
   const [isShared, setIsShared] = useState(false);
@@ -144,7 +144,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
         body: JSON.stringify({ file_paths: filePaths }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'No se pudo leer el ticket');
+      if (!res.ok) throw new Error(json.error ?? 'Không thể đọc hóa đơn');
 
       const r = json.receipt as Receipt;
       // Guard the currency in case an older function version omits it.
@@ -152,7 +152,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
       setCategoryId(defaultCategory(r.suggested_category));
       setStatus('review');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al leer el ticket');
+      toast.error(err instanceof Error ? err.message : 'Lỗi khi đọc hóa đơn');
       setStatus('idle');
     }
   }
@@ -185,7 +185,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
           usd_rate_snapshot: arsPerUsd,
           category_id: categoryId || null,
           account_id: accountId === 'none' ? null : accountId,
-          merchant: receipt.merchant || 'Compra',
+          merchant: receipt.merchant || 'Mua hàng',
           occurred_on: receipt.date,
           description: summary || null,
           source: 'receipt',
@@ -197,7 +197,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
         })
         .select('id')
         .single();
-      if (txErr || !tx) throw txErr ?? new Error('No se pudo guardar');
+      if (txErr || !tx) throw txErr ?? new Error('Không thể lưu');
 
       // 50/50 split with the partner, tracked in ARS like the manual sheet.
       // For a custom split, edit the saved movement afterwards.
@@ -242,9 +242,9 @@ export default function TicketClient({ profile }: { profile: Profile }) {
       }
       triggerBudgetAlerts(supabase);
       setStatus('done');
-      toast.success('Comprobante guardado ✓');
+      toast.success('Đã lưu hóa đơn ✓');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar');
+      toast.error(err instanceof Error ? err.message : 'Lỗi khi lưu');
       setStatus('review');
     }
   }
@@ -260,7 +260,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Escanear comprobante 🧾</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Quét hóa đơn 🧾</h1>
       </header>
 
       <input
@@ -281,11 +281,11 @@ export default function TicketClient({ profile }: { profile: Profile }) {
         {status === 'idle' && (
           <div className="rounded-3xl p-6 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-5xl mb-3">🧾</p>
-            <p className="font-bold mb-1" style={{ color: '#18211D' }}>Subí un ticket o un comprobante</p>
+            <p className="font-bold mb-1" style={{ color: '#18211D' }}>Tải lên biên lai hoặc hóa đơn</p>
             <p className="text-sm mb-5" style={{ color: '#5B6660' }}>
-              Sirve para tickets de súper, facturas o capturas de notificaciones del banco/billetera
-              (DiDi, Mercado Pago, etc.). La IA lo categoriza y detecta la moneda.
-              ¿Ticket largo? Sacale varias fotos y subílas todas juntas: se leen como un único comprobante.
+              Dùng cho hóa đơn siêu thị, hóa đơn dịch vụ hoặc ảnh chụp thông báo từ ngân hàng/ví điện tử
+              (DiDi, Mercado Pago, v.v.). AI sẽ phân loại và nhận diện tiền tệ.
+              Hóa đơn dài? Hãy chụp nhiều ảnh và tải lên cùng lúc: chúng sẽ được đọc như một hóa đơn duy nhất.
             </p>
             <div className="flex gap-3">
               <button
@@ -293,14 +293,14 @@ export default function TicketClient({ profile }: { profile: Profile }) {
                 className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white transition-all"
                 style={{ background: 'linear-gradient(135deg, #FF8173 0%, #E25749 100%)', boxShadow: 'var(--shadow-glow)' }}
               >
-                📷 Sacar foto
+                📷 Chụp ảnh
               </button>
               <button
                 onClick={() => { fileRef.current?.removeAttribute('capture'); fileRef.current?.click(); }}
                 className="flex-1 py-3.5 rounded-2xl text-sm font-bold transition-all"
                 style={{ background: '#DDF0E8', color: '#1F8A68', boxShadow: 'var(--shadow-soft)' }}
               >
-                🖼️ Subir imagen
+                🖼️ Tải ảnh lên
               </button>
             </div>
           </div>
@@ -310,8 +310,8 @@ export default function TicketClient({ profile }: { profile: Profile }) {
         {status === 'working' && (
           <div className="rounded-3xl p-8 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-4xl mb-3 animate-pulse">🤖</p>
-            <p className="font-bold" style={{ color: '#18211D' }}>Leyendo el comprobante…</p>
-            <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Esto tarda unos segundos.</p>
+            <p className="font-bold" style={{ color: '#18211D' }}>Đang đọc hóa đơn…</p>
+            <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Việc này mất vài giây.</p>
           </div>
         )}
 
@@ -325,7 +325,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
                 onChange={(e) => setReceipt({ ...receipt, merchant: e.target.value })}
                 className="w-full text-lg font-black outline-none bg-transparent"
                 style={{ color: '#18211D' }}
-                placeholder="Comercio"
+                placeholder="Cửa hàng"
               />
               <input
                 type="date"
@@ -337,7 +337,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
 
               <div className="flex items-end justify-between gap-3 mt-4 pt-4" style={{ borderTop: '1px solid #EAF0ED' }}>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: '#8C968F' }}>Total</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: '#8C968F' }}>Tổng cộng</p>
                   <MoneyInput
                     value={receipt.total}
                     onChange={(n) => setReceipt({ ...receipt, total: n })}
@@ -361,7 +361,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
 
               {receipt.items.length > 0 && Math.abs(itemsSum - receipt.total) > Math.max(50, receipt.total * 0.05) && (
                 <p className="text-[11px] mt-3" style={{ color: '#B8860B' }}>
-                  ⚠️ La suma de productos ({fmt(itemsSum)}) no coincide con el total. Revisá los ítems.
+                  ⚠️ Tổng sản phẩm ({fmt(itemsSum)}) không khớp với tổng cộng. Hãy kiểm tra các mặt hàng.
                 </p>
               )}
             </div>
@@ -369,7 +369,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
             {/* Category, account + split */}
             <div className="rounded-3xl p-5 flex flex-col gap-3" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Categoría</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Danh mục</p>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
@@ -382,7 +382,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
                 </select>
               </div>
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Cuenta</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: '#8C968F' }}>Tài khoản</p>
                 {/* Which account paid + whether the expense is split with the partner */}
                 <select
                   value={accountId}
@@ -390,7 +390,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
                   className="w-full px-3 py-2.5 rounded-2xl border text-sm bg-white outline-none"
                   style={{ borderColor: '#E5EBE8', color: '#18211D' }}
                 >
-                  <option value="none">💳 Sin cuenta</option>
+                  <option value="none">💳 Không có tài khoản</option>
                   {accounts.map((a) => (
                     <option key={a.id} value={a.id}>{a.type === 'credit' ? '💳' : '🏦'} {a.name}</option>
                   ))}
@@ -402,12 +402,12 @@ export default function TicketClient({ profile }: { profile: Profile }) {
                   className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border text-sm transition-all"
                   style={{ borderColor: isShared ? '#2FA37C' : '#E5EBE8', background: isShared ? '#EAF6F1' : '#FFFFFF', boxShadow: isShared ? 'var(--shadow-soft)' : 'none' }}
                 >
-                  <span style={{ color: '#18211D' }}>👫 Compartido con {partnerName} (50/50)</span>
+                  <span style={{ color: '#18211D' }}>👫 Chia sẻ với {partnerName} (50/50)</span>
                   <span
                     className="text-xs font-black px-2.5 py-1 rounded-full"
                     style={{ background: isShared ? '#2FA37C' : '#EAF0ED', color: isShared ? '#FFFFFF' : '#8C968F' }}
                   >
-                    {isShared ? 'Sí' : 'No'}
+                    {isShared ? 'Có' : 'Không'}
                   </span>
                 </button>
               )}
@@ -416,7 +416,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
             {/* Group breakdown */}
             {groupTotals.length > 0 && (
               <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: '#5B6660' }}>En qué se fue</p>
+                <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: '#5B6660' }}>Chi tiêu vào đâu</p>
                 <div className="flex flex-col gap-3.5">
                   {groupTotals.map(({ g, total }) => {
                     const meta = GROUP_META[g] ?? GROUP_META.otros;
@@ -444,7 +444,7 @@ export default function TicketClient({ profile }: { profile: Profile }) {
             {receipt.items.length > 0 && (
             <div className="rounded-3xl p-3" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               <p className="text-xs font-bold uppercase tracking-wide mb-2 px-2" style={{ color: '#5B6660' }}>
-                Productos ({receipt.items.length})
+                Sản phẩm ({receipt.items.length})
               </p>
               <div className="flex flex-col">
                 {receipt.items.map((it, i) => (
@@ -481,14 +481,14 @@ export default function TicketClient({ profile }: { profile: Profile }) {
               disabled={receipt.total <= 0}
               className="w-full py-4 text-sm"
             >
-              Guardar gasto de {fmt(receipt.total)}
+              Lưu khoản chi {fmt(receipt.total)}
             </PrimaryButton>
             <button
               onClick={() => { setReceipt(null); setStatus('idle'); }}
               className="w-full py-3 rounded-2xl text-sm font-bold"
               style={{ color: '#5B6660' }}
             >
-              Descartar
+              Hủy bỏ
             </button>
           </>
         )}
@@ -497,22 +497,22 @@ export default function TicketClient({ profile }: { profile: Profile }) {
         {status === 'done' && (
           <div className="rounded-3xl p-6 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-5xl mb-3">✅</p>
-            <p className="font-bold mb-1" style={{ color: '#18211D' }}>¡Comprobante guardado!</p>
-            <p className="text-sm mb-5" style={{ color: '#5B6660' }}>Quedó cargado en tus movimientos.</p>
+            <p className="font-bold mb-1" style={{ color: '#18211D' }}>Đã lưu hóa đơn!</p>
+            <p className="text-sm mb-5" style={{ color: '#5B6660' }}>Đã thêm vào các giao dịch của bạn.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => { setReceipt(null); setStatus('idle'); }}
                 className="flex-1 py-3.5 rounded-2xl text-sm font-bold transition-all"
                 style={{ background: '#DDF0E8', color: '#1F8A68', boxShadow: 'var(--shadow-soft)' }}
               >
-                Escanear otro
+                Quét hóa đơn khác
               </button>
               <Link
                 href="/movimientos"
                 className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white flex items-center justify-center transition-all"
                 style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
               >
-                Ver movimientos
+                Xem giao dịch
               </Link>
             </div>
           </div>

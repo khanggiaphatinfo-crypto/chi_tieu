@@ -20,7 +20,7 @@ export default function HouseholdPage() {
   async function createHousehold() {
     setLoading(true);
     try {
-      // Use SECURITY DEFINER RPC to avoid RLS circular-dependency on households
+// Dùng RPC SECURITY DEFINER để tránh vòng lặp phụ thuộc RLS trên households
       const { data, error } = await supabase.rpc('create_household', {
         household_name: householdName || 'Nuestro hogar',
       });
@@ -29,7 +29,7 @@ export default function HouseholdPage() {
       setStep('profile');
     } catch (err: unknown) {
       console.error(err);
-      toast.error('Error al crear el hogar. Intentá de nuevo.');
+      toast.error('Không thể tạo hộ gia đình. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ export default function HouseholdPage() {
       });
       if (error) {
         if (error.message?.includes('invalid_or_expired_code')) {
-          toast.error('Código inválido o expirado. Pedile uno nuevo a tu pareja.');
+          toast.error('Mã không hợp lệ hoặc đã hết hạn. Hãy xin mã mới từ người đồng hành.');
         } else {
           throw error;
         }
@@ -53,7 +53,7 @@ export default function HouseholdPage() {
       setStep('profile');
     } catch (err: unknown) {
       console.error(err);
-      toast.error('Algo salió mal. Intentá de nuevo.');
+      toast.error('Đã xảy ra lỗi. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export default function HouseholdPage() {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No autenticado');
+      if (!user) throw new Error('Chưa đăng nhập');
       const { error } = await supabase
         .from('profiles')
         .update({ nickname: nickname.trim() || 'Morch' })
@@ -72,61 +72,61 @@ export default function HouseholdPage() {
       router.push('/onboarding');
     } catch (err: unknown) {
       console.error(err);
-      toast.error('Error al guardar. Intentá de nuevo.');
+      toast.error('Không thể lưu. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   }
 
-  // ── CHOOSE ─────────────────────────────────────────────────────────────────
+// ── CHỌN ─────────────────────────────────────────────────────────────────
   if (step === 'choose') {
     return (
       <Screen>
         <div className="text-center mb-10">
           <div className="text-5xl mb-3">🏡</div>
           <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>
-            ¿Cómo arrancamos?
+            ¿Chúng ta bắt đầu thế nào?
           </h1>
         </div>
         <div className="flex flex-col gap-3">
-          <Btn onClick={() => setStep('create')}>Crear un hogar nuevo</Btn>
-          <Btn variant="outline" onClick={() => setStep('join')}>Unirme con código</Btn>
+          <Btn onClick={() => setStep('create')}>Tạo hộ gia đình mới</Btn>
+          <Btn variant="outline" onClick={() => setStep('join')}>Tham gia bằng mã</Btn>
         </div>
       </Screen>
     );
   }
 
-  // ── CREATE ──────────────────────────────────────────────────────────────────
+// ── TẠO ──────────────────────────────────────────────────────────────────
   if (step === 'create') {
     return (
       <Screen>
         <BackBtn onClick={() => setStep('choose')} />
-        <h1 className="text-2xl font-black mb-6" style={{ color: '#18211D' }}>Crear hogar</h1>
+        <h1 className="text-2xl font-black mb-6" style={{ color: '#18211D' }}>Tạo hộ gia đình</h1>
         <div className="mb-4">
           <label className="block text-sm font-semibold mb-2" style={{ color: '#18211D' }}>
-            Nombre del hogar (opcional)
+            Tên hộ gia đình (không bắt buộc)
           </label>
           <TextInput
             value={householdName}
             onChange={setHouseholdName}
-            placeholder="Ej: Lucas y Sofi 💚"
+            placeholder="Ví dụ: Lucas và Sofi 💚"
           />
         </div>
         <Btn onClick={createHousehold} disabled={loading}>
-          {loading ? 'Creando...' : 'Crear hogar'}
+          {loading ? 'Đang tạo...' : 'Tạo hộ gia đình'}
         </Btn>
       </Screen>
     );
   }
 
-  // ── JOIN ────────────────────────────────────────────────────────────────────
+// ── THAM GIA ────────────────────────────────────────────────────────────────────
   if (step === 'join') {
     return (
       <Screen>
         <BackBtn onClick={() => setStep('choose')} />
-        <h1 className="text-2xl font-black mb-2" style={{ color: '#18211D' }}>Unirme al hogar</h1>
+        <h1 className="text-2xl font-black mb-2" style={{ color: '#18211D' }}>Tham gia hộ gia đình</h1>
         <p className="text-sm mb-6" style={{ color: '#5B6660' }}>
-          Pedile el código de 6 letras a tu pareja desde la app.
+          Hãy xin mã gồm 6 ký tự từ người đồng hành trong ứng dụng.
         </p>
         <div className="mb-4">
           <input
@@ -140,40 +140,40 @@ export default function HouseholdPage() {
           />
         </div>
         <Btn onClick={joinHousehold} disabled={loading || joinCode.length < 6}>
-          {loading ? 'Verificando...' : 'Unirme'}
+          {loading ? 'Đang kiểm tra...' : 'Tham gia'}
         </Btn>
       </Screen>
     );
   }
 
-  // ── PROFILE ─────────────────────────────────────────────────────────────────
+// ── HỒ SƠ ─────────────────────────────────────────────────────────────────
   return (
     <Screen>
       <div className="text-center mb-8">
         <div className="text-5xl mb-3">✨</div>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>¿Cómo te llamamos?</h1>
-        <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Usamos tu apodo en la app.</p>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>¿Bạn muốn chúng tôi gọi bạn là gì?</h1>
+        <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Chúng tôi sẽ dùng biệt danh của bạn trong ứng dụng.</p>
       </div>
       <div className="mb-4">
         <TextInput
           value={nickname}
           onChange={setNickname}
-          placeholder="Ej: Morch, Lucas, Sofi..."
+          placeholder="Ví dụ: Morch, Lucas, Sofi..."
           center
         />
       </div>
 
-      {/* Invite code section — only shown if user just CREATED the household */}
+{/* Phần mã mời — chỉ hiển thị nếu người dùng vừa TẠO hộ gia đình */}
       {householdId && <InviteCodeSection householdId={householdId} />}
 
       <Btn onClick={saveProfile} disabled={loading}>
-        {loading ? 'Guardando...' : 'Listo, entremos ✓'}
+        {loading ? 'Đang lưu...' : 'Xong, vào ứng dụng ✓'}
       </Btn>
     </Screen>
   );
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────
+// ── Thành phần phụ ─────────────────────────────────────────────────────────
 
 function Screen({ children }: { children: React.ReactNode }) {
   return (
@@ -210,7 +210,7 @@ function Btn({
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
     <button onClick={onClick} className="mb-6 text-sm" style={{ color: '#5B6660' }}>
-      ← Volver
+      ← Quay lại
     </button>
   );
 }
@@ -249,17 +249,17 @@ function InviteCodeSection({ householdId }: { householdId: string }) {
     setLoading(true);
     const { data, error } = await supabase.rpc('generate_invite_code');
     if (!error && data) setCode(data as string);
-    else toast.error('No se pudo generar el código.');
+    else toast.error('Không thể tạo mã.');
     setLoading(false);
   }
 
-  // suppress unused warning — householdId used implicitly via RPC
+// tránh cảnh báo unused — householdId được dùng ngầm qua RPC
   void householdId;
 
   return (
     <div className="rounded-2xl p-4 mb-4" style={{ background: '#DDF0E8' }}>
       <p className="text-sm font-semibold mb-2" style={{ color: '#18211D' }}>
-        Invitá a tu pareja 💌
+        Mời người đồng hành của bạn 💌
       </p>
       {code ? (
         <div className="text-center">
@@ -267,7 +267,7 @@ function InviteCodeSection({ householdId }: { householdId: string }) {
             {code}
           </div>
           <p className="text-xs" style={{ color: '#5B6660' }}>
-            Que lo ingrese en &quot;Unirme con código&quot;. Expira en 7 días.
+            Hãy nhập mã trong mục “Tham gia bằng mã”. Mã có hiệu lực trong 7 ngày.
           </p>
         </div>
       ) : (
@@ -277,7 +277,7 @@ function InviteCodeSection({ householdId }: { householdId: string }) {
           className="text-sm font-bold underline disabled:opacity-50"
           style={{ color: '#1F8A68' }}
         >
-          {loading ? 'Generando...' : 'Generar código de invitación'}
+          {loading ? 'Đang tạo...' : 'Tạo mã mời'}
         </button>
       )}
     </div>

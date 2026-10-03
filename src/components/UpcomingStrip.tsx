@@ -10,9 +10,7 @@ import { toArs } from '@/lib/budgets';
 import { shortDayMonth } from '@/lib/date';
 import { daysUntil, whenLabel } from '@/lib/recurrence';
 
-// Read-only "Próximos vencimientos" strip for the movements register — a lighter
-// sibling of reglas' UpcomingBills (no edit/funding logic). Shows active
-// recurring rules due within the next HORIZON_DAYS; tapping a row jumps to /reglas.
+// Các nhãn và nội dung đã được bản địa hóa sang tiếng Việt.
 
 interface UpcomingRule {
   id: string;
@@ -46,7 +44,7 @@ export function UpcomingStrip({ householdId, profileId }: { householdId: string;
         .select('id, direction, label, amount, currency, next_run, is_variable, scope, profile_id')
         .eq('household_id', householdId)
         .eq('active', true);
-      // Cada uno ve sus reglas personales + las del hogar; las personales del otro quedan ocultas.
+// Mỗi người thấy quy tắc cá nhân của mình + quy tắc của hộ gia đình; quy tắc cá nhân của người kia bị ẩn.
       return ((data ?? []) as UpcomingRule[]).filter((r) => r.scope === 'household' || r.profile_id === profileId);
     },
   });
@@ -71,9 +69,9 @@ export function UpcomingStrip({ householdId, profileId }: { householdId: string;
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-base">📅</span>
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Próximos vencimientos</p>
+            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Các khoản sắp đến hạn</p>
             <p className="text-[11px]" style={{ color: '#8C968F' }}>
-              {upcoming.length} en {HORIZON_DAYS} días{totalExpense > 0 ? ` · ${formatARS(totalExpense)}` : ''}
+              {upcoming.length} trong {HORIZON_DAYS} ngày{totalExpense > 0 ? ` · ${formatARS(totalExpense)}` : ''}
             </p>
           </div>
         </div>
@@ -106,7 +104,7 @@ export function UpcomingStrip({ householdId, profileId }: { householdId: string;
                     <p className="text-sm font-bold truncate" style={{ color: '#18211D' }}>{r.label}</p>
                     {r.is_variable && (
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: '#FBF1D8', color: '#B8860B' }}>
-                        recordatorio
+                        nhắc nhở
                       </span>
                     )}
                   </div>
