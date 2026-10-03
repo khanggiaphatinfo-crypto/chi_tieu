@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { occurrencesInRange, computeProjection, monthsBetween, normalize } from "./math.ts";
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
 
 // "now" in Argentina (UTC-3, no DST) — the server clock is UTC and would
 // roll to tomorrow / next month after 21:00 local. Use with getUTC* getters.
@@ -17,7 +17,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
 
   const authHeader = req.headers.get('Authorization') ?? '';
   const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
@@ -72,39 +71,17 @@ Deno.serve(async (req: Request) => {
     return { id: c.id, name: c.name, icon: c.icon, target_amount: toArs(t.target_amount, t.currency), current_amount: current, deadline: t.target_date, target_currency: 'ARS' };
   }).filter(Boolean)) as { id:string; name:string; icon:string|null; target_amount:number; current_amount:number; deadline:string|null; target_currency:string }[];
 
-  // ── 2. Claude Sonnet — parse NL text ─────────────────────────────────────
-  const parseResp = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'prompt-caching-2024-07-31',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 256,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: 'Parseá el texto en español de un usuario argentino que describe una compra. Respondé SOLO con JSON: {"item":string, "amount":number (siempre positivo), "currency":"ARS"|"USD", "installments":number|null, "category_guess":string}. El campo currency indica si el monto mencionado es en ARS (pesos, $) o USD (dólares, US$). Si dice "cuotas" o "en X cuotas" o "en cuotas", ponelo en installments. category_guess: categoría del gasto en español (ej: Tecnología, Ropa, Alimentos, Viajes, etc).',
-            cache_control: { type: 'ephemeral' },
-          },
-          { type: 'text', text: `Texto: "${text}"` },
-        ],
-      }],
-    }),
+  // ── 2. Parse the natural-language purchase with the Responses provider ──
+  const parseResult = await responsesRequest({
+    maxOutputTokens: 256,
+    input: [
+      inputText('Parseá el texto en español de un usuario argentino que describe una compra. Respondé SOLO con JSON: {"item":string, "amount":number (siempre positivo), "currency":"ARS"|"USD", "installments":number|null, "category_guess":string}. El campo currency indica si el monto mencionado es en ARS (pesos, $) o USD (dólares, US$). Si dice "cuotas" o "en X cuotas" o "en cuotas", ponelo en installments. category_guess: categoría del gasto en español (ej: Tecnología, Ropa, Alimentos, Viajes, etc).'),
+      inputText(`Texto: "${text}"`),
+    ],
   });
 
   interface ParsedPurchase { item: string; amount: number; currency: 'ARS'|'USD'; installments: number|null; category_guess: string; }
-  let parsed: ParsedPurchase = { item: text, amount: 0, currency: 'ARS', installments: null, category_guess: '' };
-  if (parseResp.ok) {
-    const pd = await parseResp.json();
-    const raw = (pd.content?.[0]?.text ?? '{}').replace(/^```[\w]*\n?/,'').replace(/\n?```$/,'').trim();
-    try { parsed = { ...parsed, ...JSON.parse(raw) }; } catch { /* keep default */ }
-  }
+  const parsed = parseJson<ParsedPurchase>(parseResult.text, { item: text, amount: 0, currency: 'ARS', installments: null, category_guess: '' });
 
   // ── 3. Normalise amount to ARS ────────────────────────────────────────────
   const amount_ars = parsed.currency === 'USD'

@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Anthropic from "npm:@anthropic-ai/sdk";
+import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 /* ── web-push (VAPID / RFC 8291), unchanged ──────────────────────────────── */
@@ -259,18 +259,16 @@ function buildPrompt(aud:Aud,facts:Fact[],mode:string):string{
 
 const SYSTEM='Sos el coach financiero de Morchis, una app para una pareja argentina (Lucas y Sofi). Hablás en español rioplatense, cercano y motivador. Te paso HECHOS ya calculados (los montos son exactos). Elegí los más importantes y convertilos en cards breves y ACCIONABLES — cada una sugiere UNA cosa concreta para gastar menos, ahorrar más o evitar un problema. Reglas: (1) Usá SOLO números que aparezcan en los hechos, nunca inventes ni recalcules. (2) Priorizá ahorro y alertas por encima de lo descriptivo. (3) Si un hecho aclara que el mes está incompleto (ej: "al día N del mes"), presentalo como parcial — nunca como resultado final del mes ni como pérdida confirmada; una tasa de ahorro negativa a mitad de mes suele ser que faltan ingresar sueldos. (4) Respondé SOLO con un array JSON sin markdown. Cada item: {"title":string(≤7 palabras),"body":string(1-2 oraciones con el número del hecho + una acción concreta, ≤30 palabras),"severity":"info"|"positive"|"warning","kind":"saving"|"spike"|"anthill"|"duplicate"|"subscription"|"budget"|"goal"|"debt"|"summary"}.';
 
-async function generateFor(anthropic:Anthropic,admin:SupabaseClient,hid:string,aud:Aud,d:Data,mode:string,period:string,vPub:string,vPriv:string):Promise<number>{
+async function generateFor(admin:SupabaseClient,hid:string,aud:Aud,d:Data,mode:string,period:string,vPub:string,vPriv:string):Promise<number>{
   const {facts}=buildFacts(aud,d);
   if(!facts.length)return 0;
-  const resp=await anthropic.messages.create({
-    model:'claude-sonnet-4-6',
-    max_tokens:1200,
-    system:[{type:'text',text:SYSTEM,cache_control:{type:'ephemeral'}}],
-    messages:[{role:'user',content:buildPrompt(aud,facts,mode)}],
+  const response=await responsesRequest({
+    maxOutputTokens:1200,
+    instructions:SYSTEM,
+    input:inputText(buildPrompt(aud,facts,mode)),
   });
-  const raw=resp.content[0].type==='text'?resp.content[0].text.trim():'';
-  const cards=parseCards(raw);
-  if(!cards.length){console.error('No valid cards',aud.name,raw);return 0;}
+  const cards=parseCards(response.text);
+  if(!cards.length){console.error('No valid cards',aud.name,response.text);return 0;}
   // Insert fresh batch for this audience, then clear the previous one (scoped to
   // this period + audience, so each tab's insights are replaced independently).
   const{data:ins,error:insErr}=await admin.from('insights').insert(cards.map(c=>({household_id:hid,profile_id:aud.id,period,kind:c.kind,title:c.title,body:c.body,severity:['info','positive','warning'].includes(c.severity)?c.severity:'info',seen:false}))).select('id,severity,title,body');
@@ -293,16 +291,15 @@ async function generateFor(anthropic:Anthropic,admin:SupabaseClient,hid:string,a
   return cards.length;
 }
 
-async function processHousehold(admin:SupabaseClient,hid:string,mode:string,apiKey:string,vPub:string,vPriv:string):Promise<number>{
+async function processHousehold(admin:SupabaseClient,hid:string,mode:string,vPub:string,vPriv:string):Promise<number>{
   const d=await fetchAll(admin,hid);
   if(d.curr.length===0&&d.income.length===0){console.log('No data',hid);return 0;}
   const auds:Aud[]=[{id:null,name:'Hogar'},...d.profiles.map(p=>({id:p.id,name:p.nickname??p.display_name??'Usuario'}))];
   const now=artNow();
   const period=`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`;
-  const anthropic=new Anthropic({apiKey});
   let total=0;
   for(const aud of auds){
-    try{total+=await generateFor(anthropic,admin,hid,aud,d,mode,period,vPub,vPriv);}
+    try{total+=await generateFor(admin,hid,aud,d,mode,period,vPub,vPriv);}
     catch(e){console.error('Audience error',aud.name,e);}
   }
   return total;
@@ -314,7 +311,6 @@ Deno.serve(async(req:Request)=>{
   const supabaseUrl=Deno.env.get('SUPABASE_URL')!;
   const serviceKey=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const anonKey=Deno.env.get('SUPABASE_ANON_KEY')!;
-  const anthropicKey=Deno.env.get('ANTHROPIC_API_KEY')!;
   const vPub=Deno.env.get('VAPID_PUBLIC_KEY')??'';
   const vPriv=Deno.env.get('VAPID_PRIVATE_KEY')??'';
   const admin=createClient(supabaseUrl,serviceKey);
@@ -340,7 +336,7 @@ Deno.serve(async(req:Request)=>{
   const{data:households}=requestedHid?{data:[{id:requestedHid}]}:await admin.from('households').select('id');
   const results:{household_id:string;count?:number;error?:string}[]=[];
   for(const hh of(households??[])){
-    try{results.push({household_id:hh.id,count:await processHousehold(admin,hh.id,mode,anthropicKey,vPub,vPriv)});}
+    try{results.push({household_id:hh.id,count:await processHousehold(admin,hh.id,mode,vPub,vPriv)});}
     catch(err){console.error('Error',hh.id,err);results.push({household_id:hh.id,error:String(err)});}
   }
   const generated=results.reduce((s,r)=>s+(r.count??0),0);

@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Anthropic from "npm:@anthropic-ai/sdk";
+import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { fmt, iso, buildSuggestions } from "./math.ts";
 import type { Suggestion } from "./math.ts";
@@ -21,7 +21,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
   const admin = createClient(supabaseUrl, serviceKey);
 
   const auth = req.headers.get('Authorization') ?? '';
@@ -81,18 +80,12 @@ Deno.serve(async (req: Request) => {
   // Ask Claude for a one-line rationale per category (numbers come from us).
   try {
     const facts = suggestions.map((s, i) => `${i + 1}. ${s.name}: promedio 3 meses ${fmt(s.avg3m)}, mes pasado ${fmt(s.lastMonth)}, proyección de este mes ${fmt(s.projected)} → presupuesto sugerido ${fmt(s.suggested)}`).join('\n');
-    const anthropic = new Anthropic({ apiKey: anthropicKey });
-    const resp = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 700,
-      system: [{ type: 'text', text: 'Sos el coach de Morchis (pareja argentina, es-AR). Te paso categorías de gasto con su promedio, lo del mes pasado y un presupuesto sugerido ya calculado. Devolvé SOLO un array JSON: [{"name":string (igual al dado), "rationale":string (1 frase ≤18 palabras, cálida, que justifique el monto usando los números dados)}]. No inventes ni cambies montos.', cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: facts }],
+    const response = await responsesRequest({
+      maxOutputTokens: 700,
+      instructions: 'Sos el coach de Morchis (pareja argentina, es-AR). Te paso categorías de gasto con su promedio, lo del mes pasado y un presupuesto sugerido ya calculado. Devolvé SOLO un array JSON: [{"name":string (igual al dado), "rationale":string (1 frase ≤18 palabras, cálida, que justifique el monto usando los números dados)}]. No inventes ni cambies montos.',
+      input: inputText(facts),
     });
-    const raw = resp.content[0]?.type === 'text' ? resp.content[0].text : '';
-    let s = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-    const a = s.indexOf('['), b = s.lastIndexOf(']');
-    if (a !== -1 && b > a) s = s.slice(a, b + 1);
-    const arr = JSON.parse(s) as { name: string; rationale: string }[];
+    const arr = parseJson<{ name: string; rationale: string }[]>(response.text, []);
     const byName: Record<string, string> = {};
     for (const r of arr) if (r && typeof r.name === 'string' && typeof r.rationale === 'string') byName[r.name] = r.rationale.trim();
     for (const sg of suggestions) sg.rationale = byName[sg.name] ?? `Según tu gasto reciente (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), este tope te deja un margen cómodo.`;
