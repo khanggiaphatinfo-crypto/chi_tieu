@@ -1,10 +1,10 @@
 # Morchis 💚
 
-> **Our money, together.**
+> **Tiền của chúng ta, cùng nhau.**
 
-Morchis is a personal-finance app built for **couples and households**: a single shared space to track accounts, budgets, spending and debts in pesos and dollars, with an AI assistant that understands your money and answers in plain language.
+Morchis là ứng dụng tài chính cá nhân dành cho **các cặp đôi và hộ gia đình**: một không gian chung để theo dõi tài khoản, ngân sách, chi tiêu và khoản nợ bằng peso và đô la, cùng trợ lý AI hiểu tình hình tài chính của bạn và trả lời bằng ngôn ngữ dễ hiểu.
 
-It's a **mobile-first PWA** (installs on your phone like a native app) with real-time sync between both members of the household.
+Đây là **PWA ưu tiên thiết bị di động** (cài trên điện thoại như ứng dụng gốc), với khả năng đồng bộ theo thời gian thực giữa các thành viên trong hộ gia đình.
 
 <p align="center">
   <img src="public/icons/icon-512.png" width="96" alt="Morchis" />
@@ -12,179 +12,179 @@ It's a **mobile-first PWA** (installs on your phone like a native app) with real
 
 ---
 
-## ✨ Features
+## ✨ Tính năng
 
-### 💸 Everyday money
-- **Movimientos** (Transactions) — Ledger with search, filters, CSV export, swipe-to-edit/delete and per-item detail.
-- **Cuentas** (Accounts) — Checking, savings, cash and credit cards, with balances, reconciliation and interest tracking.
-- **Reglas** (Rules) — Recurring income and expenses (daily / weekly / biweekly / monthly) that generate themselves.
-- **Extractos** (Statements) — Bank statement uploads and transaction imports.
+### 💸 Tài chính hằng ngày
+- **Giao dịch** — Sổ giao dịch có tìm kiếm, bộ lọc, xuất CSV, vuốt để chỉnh sửa/xóa và xem chi tiết từng mục.
+- **Tài khoản** — Tài khoản thanh toán, tiết kiệm, tiền mặt và thẻ tín dụng, kèm số dư, đối soát và theo dõi lãi suất.
+- **Quy tắc** — Thu nhập và chi phí định kỳ (hằng ngày / hằng tuần / hai tuần một lần / hằng tháng) được tự động tạo.
+- **Sao kê** — Tải lên sao kê ngân hàng và nhập giao dịch.
 
-### 🎯 Budgeting & goals
-- **Presupuestos** (Budgets) — Envelope-style budgeting per category, with monthly targets, overspend alerts and household / personal split.
-- **Análisis** (Analytics) — Household dashboard: net worth, projected cash flow, *age of money* and spending breakdown in ARS/USD.
-- **Simulador** (Simulator) — "What if I buy this?": measure a purchase's impact on your savings rate and goals before you spend.
+### 🎯 Ngân sách & mục tiêu
+- **Ngân sách** — Lập ngân sách theo phong bì cho từng danh mục, với hạn mức theo tháng, cảnh báo chi vượt và phân chia hộ gia đình / cá nhân.
+- **Phân tích** — Bảng điều khiển hộ gia đình: tài sản ròng, dòng tiền dự kiến, *tuổi của tiền* và cơ cấu chi tiêu theo ARS/USD.
+- **Mô phỏng** — "Nếu tôi mua món này thì sao?": đo tác động của một khoản mua đến tỷ lệ tiết kiệm và mục tiêu trước khi bạn chi tiền.
 
-### 👫 Couple finances
-- **Pareja** (Couple) — Balance between the two of you: who owes whom, payment logging and settlement.
-- **Shared expenses** — Every expense can be *personal*, *shared* (tracking who paid and who owes) or *household*.
+### 👫 Tài chính cặp đôi
+- **Cặp đôi** — Cân đối giữa hai người: ai nợ ai, ghi nhận thanh toán và quyết toán.
+- **Chi tiêu chung** — Mỗi khoản chi có thể là *cá nhân*, *chia sẻ* (theo dõi ai đã trả và ai đang nợ) hoặc *hộ gia đình*.
 
 ### 🤖 AI (Claude)
-- **Pregúntale a Morchi** (Ask Morchi) — Conversational assistant that answers questions about your finances ("How much did we spend this month?", "Where could we cut back?"), with voice input.
-- **Ticket** — Snap a photo of a receipt and the AI extracts merchant, date, amount, currency and line items, then suggests a category (grocery receipts, transfers, delivery apps, etc.).
-- **Insights** — Auto-generated cards on your savings rate, unusual spending spikes and goal warnings.
-- **Budget suggestions** and **purchasing power** — Helpers to build and understand your budget against inflation.
+- **Hỏi Morchi** — Trợ lý hội thoại trả lời các câu hỏi về tài chính của bạn ("Tháng này chúng ta đã chi bao nhiêu?", "Có thể cắt giảm khoản nào?"), hỗ trợ nhập liệu bằng giọng nói.
+- **Hóa đơn** — Chụp ảnh hóa đơn để AI trích xuất nhà bán hàng, ngày, số tiền, đơn vị tiền tệ và các mặt hàng, sau đó gợi ý danh mục (hóa đơn tạp hóa, chuyển khoản, ứng dụng giao hàng, v.v.).
+- **Thông tin chi tiết** — Các thẻ tự động tạo về tỷ lệ tiết kiệm, những đợt chi tiêu tăng bất thường và cảnh báo mục tiêu.
+- **Gợi ý ngân sách** và **sức mua** — Công cụ hỗ trợ xây dựng và hiểu ngân sách trong bối cảnh lạm phát.
 
-### 📱 Experience
-- **Installable PWA** with service worker, basic offline mode and push notifications (Web Push / VAPID).
-- **App Lock** with a 4–6 digit PIN (SHA-256 hashed).
-- **Dual-currency** support (ARS / USD), light/dark mode, pull-to-refresh and haptic feedback.
+### 📱 Trải nghiệm
+- **PWA có thể cài đặt** với service worker, chế độ ngoại tuyến cơ bản và thông báo đẩy (Web Push / VAPID).
+- **Khóa ứng dụng** bằng mã PIN 4–6 chữ số (băm SHA-256).
+- Hỗ trợ **hai loại tiền tệ** (ARS / USD), chế độ sáng/tối, kéo để làm mới và phản hồi rung.
 
 ---
 
-## 🧱 Stack
+## 🧱 Công nghệ
 
-| Layer | Technology |
+| Tầng | Công nghệ |
 |-------|------------|
 | Framework | **Next.js 16** (App Router) · **React 19** · TypeScript 5 |
 | Backend | **Supabase** — Postgres, Auth, Row Level Security, Edge Functions (Deno) |
-| AI | **Claude** via the Anthropic SDK (chat, receipt OCR, insights, simulation) |
+| AI | **Claude** thông qua Anthropic SDK (trò chuyện, OCR hóa đơn, thông tin chi tiết, mô phỏng) |
 | State | **Zustand** (client) · **TanStack React Query** (server) |
 | UI | **Base UI** + **shadcn** · **Tailwind CSS 4** · **Lucide** · **Recharts** · **Sonner** |
 | PWA | **next-pwa** · service worker · Web Push · **next-themes** |
-| Tests | **Vitest** |
+| Kiểm thử | **Vitest** |
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Kiến trúc
 
 ```
 src/
-├── app/                      # Routes (App Router)
-│   ├── analisis/             # Household dashboard
-│   ├── cuentas/              # Accounts & cards
-│   ├── deudas/               # Debts to third parties
-│   ├── extractos/            # Bank statements
-│   ├── household/            # Create / join a household
-│   ├── insights/             # AI insights
-│   ├── mas/                  # Settings, categories, PIN, notifications
-│   ├── movimientos/          # Transaction ledger
-│   ├── onboarding/           # PWA install guide
-│   ├── pareja/               # Couple balance & settlement
-│   ├── preguntale/           # AI chat ("Ask Morchi")
-│   ├── presupuestos/         # Envelope budgeting
-│   ├── reglas/               # Recurring rules
-│   ├── simulador/            # Purchase simulator
-│   ├── super/                # Grocery spending detail
-│   └── ticket/               # Receipt OCR
-├── components/               # UI components (nav, sheets, charts…)
-├── hooks/                    # Hooks (envelope, couple, fx, push…)
-├── lib/                      # Business logic (budgets, accounts, recurrence, format…)
-└── store/                    # Zustand stores (pin, currency, privacy)
+├── app/                      # Các tuyến (App Router)
+│   ├── analisis/             # Bảng điều khiển hộ gia đình
+│   ├── cuentas/              # Tài khoản và thẻ
+│   ├── deudas/               # Khoản nợ với bên thứ ba
+│   ├── extractos/            # Sao kê ngân hàng
+│   ├── household/            # Tạo / tham gia hộ gia đình
+│   ├── insights/             # Thông tin chi tiết do AI tạo
+│   ├── mas/                  # Cài đặt, danh mục, PIN, thông báo
+│   ├── movimientos/          # Sổ giao dịch
+│   ├── onboarding/           # Hướng dẫn cài đặt PWA
+│   ├── pareja/               # Cân đối và quyết toán giữa cặp đôi
+│   ├── preguntale/           # Trò chuyện với AI ("Hỏi Morchi")
+│   ├── presupuestos/         # Lập ngân sách theo phong bì
+│   ├── reglas/               # Quy tắc định kỳ
+│   ├── simulador/            # Mô phỏng giao dịch mua
+│   ├── super/                # Chi tiết chi tiêu tạp hóa
+│   └── ticket/               # OCR hóa đơn
+├── components/               # Component giao diện (điều hướng, sheet, biểu đồ…)
+├── hooks/                    # Hook (phong bì, cặp đôi, tỷ giá, push…)
+├── lib/                      # Logic nghiệp vụ (ngân sách, tài khoản, định kỳ, định dạng…)
+└── store/                    # Store Zustand (PIN, tiền tệ, quyền riêng tư)
 
 supabase/
-├── migrations/               # ~28 SQL schema migrations
-└── functions/                # Edge Functions
-    ├── ask-morchis/          # Conversational assistant
-    ├── parse-receipt/        # Receipt OCR
-    ├── parse-statement/      # Statement parsing
-    ├── generate-insights/    # Insight generation
-    ├── simulate-purchase/    # Simulator
-    ├── suggest-budgets/      # Budget suggestions
+├── migrations/               # Khoảng 28 migration schema
+└── functions/                # Edge Function
+    ├── ask-morchis/          # Trợ lý hội thoại
+    ├── parse-receipt/        # OCR hóa đơn
+    ├── parse-statement/      # Phân tích sao kê
+    ├── generate-insights/    # Tạo thông tin chi tiết
+    ├── simulate-purchase/    # Mô phỏng giao dịch mua
+    ├── suggest-budgets/      # Gợi ý ngân sách
     ├── purchasing-power-insight/
     ├── budget-alert/ · card-due-alert/ · monthly-close/
     └── _shared/
 ```
 
-### Data model (overview)
-- **`households`** — the shared group; each **`profiles`** belongs to one household.
-- **`accounts`**, **`transactions`**, **`transaction_items`** — accounts and movements (with `scope`: personal / shared / household).
-- **`budget_months`**, **`category_targets`**, **`savings_goals`** — budgeting and goals.
-- **`splits`**, **`settlements`** — who paid / who owes, and couple settlements.
-- **`recurring_rules`** — recurrences.
-- **`insights`**, **`push_subscriptions`** — AI and notifications.
-- **`fx_rates`**, **`inflation_rates`**, **`categories`**, **`merchant_aliases`** — reference data.
+### Mô hình dữ liệu (tổng quan)
+- **`households`** — nhóm dùng chung; mỗi **`profiles`** thuộc về một hộ gia đình.
+- **`accounts`**, **`transactions`**, **`transaction_items`** — tài khoản và giao dịch (với `scope`: personal / shared / household).
+- **`budget_months`**, **`category_targets`**, **`savings_goals`** — ngân sách và mục tiêu.
+- **`splits`**, **`settlements`** — ai đã trả / ai đang nợ và các khoản quyết toán giữa cặp đôi.
+- **`recurring_rules`** — các khoản định kỳ.
+- **`insights`**, **`push_subscriptions`** — AI và thông báo.
+- **`fx_rates`**, **`inflation_rates`**, **`categories`**, **`merchant_aliases`** — dữ liệu tham chiếu.
 
-All data isolation between households is enforced with **Row Level Security** in Supabase.
+Mọi dữ liệu giữa các hộ gia đình đều được cô lập bằng **Row Level Security** trong Supabase.
 
 ---
 
-## 🚀 Getting started
+## 🚀 Bắt đầu
 
-### Requirements
+### Yêu cầu
 - Node.js 20+
-- A [Supabase](https://supabase.com) project
-- An [Anthropic](https://console.anthropic.com) API key (for the AI features)
+- Một dự án [Supabase](https://supabase.com)
+- API key [Anthropic](https://console.anthropic.com) (cho các tính năng AI)
 
-### 1. Install dependencies
+### 1. Cài đặt các gói phụ thuộc
 ```bash
 npm install
 ```
 
-### 2. Environment variables
-Create a `.env.local` file in the project root:
+### 2. Biến môi trường
+Tạo tệp `.env.local` ở thư mục gốc của dự án:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=<your-vapid-public-key>   # for Web Push
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<your-vapid-public-key>   # cho Web Push
 ```
 
-> Server-side keys don't go here: they're loaded as Edge Function *secrets* in Supabase (see below).
+> Không đặt các key phía máy chủ ở đây: chúng được nạp dưới dạng *secret* của Edge Function trong Supabase (xem bên dưới).
 
-### 3. Set up the schema and functions
-Using the [Supabase CLI](https://supabase.com/docs/guides/cli):
+### 3. Thiết lập schema và function
+Sử dụng [Supabase CLI](https://supabase.com/docs/guides/cli):
 
 ```bash
-# Apply migrations
+# Áp dụng migration
 supabase db push
 
-# Set Edge Function secrets
+# Thiết lập secret cho Edge Function
 supabase secrets set ANTHROPIC_API_KEY=<your-api-key>
 supabase secrets set VAPID_PRIVATE_KEY=<your-vapid-private-key>
 
-# Deploy functions
+# Triển khai function
 supabase functions deploy
 ```
 
-### 4. Run in development
+### 4. Chạy trong môi trường phát triển
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) (or whichever port the terminal prints).
+Mở [http://localhost:3000](http://localhost:3000) (hoặc cổng mà terminal hiển thị).
 
-> 💡 To experience it properly, install it as a PWA from your phone's browser (**Add to Home Screen**) — that's where notifications, app lock and standalone mode kick in.
+> 💡 Để có trải nghiệm đầy đủ, hãy cài ứng dụng PWA từ trình duyệt điện thoại (**Thêm vào màn hình chính**) — khi đó thông báo, khóa ứng dụng và chế độ độc lập mới hoạt động đầy đủ.
 
 ---
 
-## 📜 Scripts
+## 📜 Các script
 
 ```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm start            # Production server
+npm run dev          # Máy chủ phát triển
+npm run build        # Bản dựng production
+npm start            # Máy chủ production
 npm run lint         # ESLint
-npm test             # Tests (Vitest)
-npm run test:watch   # Tests in watch mode
+npm test             # Kiểm thử (Vitest)
+npm run test:watch   # Kiểm thử ở chế độ theo dõi
 ```
 
 ---
 
-## 🔐 How couples share data
+## 🔐 Cách các cặp đôi chia sẻ dữ liệu
 
-1. The first person **creates a household** and gets an **invite code**.
-2. Their partner **joins with the code** → both end up under the same `household_id`.
-3. From then on they both see the household's shared movements; personal expenses stay private to each person, and shared ones track who paid and who owes so the balance can be settled in `/pareja`.
-
----
-
-## 📦 Deployment
-
-Designed for [Vercel](https://vercel.com) (the Next.js frontend) + [Supabase](https://supabase.com) (data + edge functions). Remember to set the same `NEXT_PUBLIC_*` variables in your Vercel environment.
+1. Người đầu tiên **tạo một hộ gia đình** và nhận **mã mời**.
+2. Người đồng hành **tham gia bằng mã** → cả hai cùng thuộc một `household_id`.
+3. Từ đó, cả hai đều thấy các giao dịch dùng chung của hộ gia đình; chi tiêu cá nhân vẫn riêng tư với từng người, còn chi tiêu dùng chung sẽ theo dõi ai đã trả và ai đang nợ để có thể quyết toán tại `/pareja`.
 
 ---
 
-## 📝 License
+## 📦 Triển khai
 
-Private project. All rights reserved.
+Được thiết kế cho [Vercel](https://vercel.com) (frontend Next.js) + [Supabase](https://supabase.com) (dữ liệu và Edge Function). Hãy nhớ thiết lập cùng các biến `NEXT_PUBLIC_*` trong môi trường Vercel.
+
+---
+
+## 📝 Giấy phép
+
+Dự án riêng tư. Bảo lưu mọi quyền.
