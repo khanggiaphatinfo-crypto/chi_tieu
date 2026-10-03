@@ -121,7 +121,7 @@ export default function InsightDetailClient({
   const s = SEVERITY_STYLE[insight.severity] ?? SEVERITY_STYLE.info;
   const kind = (insight.kind && KIND_META[insight.kind]) || KIND_META.summary;
   const period = periodLabel(insight.period);
-  const created = new Date(insight.created_at).toLocaleDateString('es-AR', {
+  const created = new Date(insight.created_at).toLocaleDateString('vi-VN', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
 
@@ -333,7 +333,7 @@ function CategoryInsightSection({
   const projColor = overBudget ? '#E25749' : accent;
 
   function fmtDate(d: string) {
-    return new Date(d + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+    return new Date(d + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' });
   }
 
   return (
