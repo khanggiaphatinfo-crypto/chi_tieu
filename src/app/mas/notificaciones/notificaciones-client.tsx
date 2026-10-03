@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase';
+import type { Json } from '@/lib/database.types';
 
 // These keys mirror what the server-side push senders check before sending:
 // a key that's absent (or true) means enabled; an explicit false means muted.
@@ -40,7 +40,12 @@ const PREFERENCES = [
 ] as const;
 
 type PrefKey = (typeof PREFERENCES)[number]['key'];
-type NotificationPrefs = Partial<Record<PrefKey, boolean>>;
+type NotificationPrefs = Record<string, unknown> & Partial<Record<PrefKey, boolean>>;
+
+function asNotificationPrefs(value: Json | undefined): NotificationPrefs {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value as NotificationPrefs;
+}
 
 export default function NotificacionesClient() {
   const supabase = createClient();
@@ -56,7 +61,7 @@ export default function NotificacionesClient() {
         .select('notification_prefs')
         .eq('id', user.id)
         .single();
-      return (data?.notification_prefs as NotificationPrefs) ?? {};
+      return asNotificationPrefs(data?.notification_prefs);
     },
   });
 
@@ -64,13 +69,24 @@ export default function NotificacionesClient() {
     mutationFn: async (next: NotificationPrefs) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      await supabase.from('profiles').update({ notification_prefs: next }).eq('id', user.id);
+      const { data: current, error: readError } = await supabase
+        .from('profiles')
+        .select('notification_prefs')
+        .eq('id', user.id)
+        .single();
+      if (readError) throw readError;
+      const currentPrefs = asNotificationPrefs(current?.notification_prefs);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notification_prefs: { ...currentPrefs, ...next } })
+        .eq('id', user.id);
+      if (error) throw error;
     },
     // Flip the toggle right away, roll back if the update fails.
     onMutate: async (next) => {
       await qc.cancelQueries({ queryKey: ['notification_prefs'] });
       const previous = qc.getQueryData<NotificationPrefs>(['notification_prefs']);
-      qc.setQueryData(['notification_prefs'], next);
+      qc.setQueryData(['notification_prefs'], { ...(previous ?? {}), ...next });
       return { previous };
     },
     onError: (_err, _next, ctx) => {
@@ -84,7 +100,7 @@ export default function NotificacionesClient() {
 
   function toggle(key: PrefKey) {
     if (!prefs) return;
-    updateMutation.mutate({ ...prefs, [key]: !isEnabled(key) });
+    updateMutation.mutate({ [key]: !isEnabled(key) });
   }
 
   return (

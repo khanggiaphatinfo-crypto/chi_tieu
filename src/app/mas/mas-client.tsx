@@ -61,6 +61,7 @@ export default function MasClient({ profile }: { profile: Profile }) {
       { href: '/extractos', icon: '🧾', label: 'Sao kê thẻ' },
     ] },
     { title: 'Cài đặt', items: [
+      { href: '/mas/perfil', icon: '👤', label: 'Hồ sơ & hộ gia đình' },
       { href: '/mas/notificaciones', icon: '🔔', label: 'Thông báo' },
     ] },
   ];
