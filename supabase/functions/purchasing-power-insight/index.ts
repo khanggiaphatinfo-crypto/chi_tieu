@@ -8,7 +8,7 @@ Deno.serve(async (req: Request) => {
 
   // Resolve household from JWT
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return new Response('Unauthorized', { status: 401 });
+  if (!authHeader) return new Response('Không được phép', { status: 401 });
 
   const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -16,14 +16,14 @@ Deno.serve(async (req: Request) => {
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return new Response('Unauthorized', { status: 401 });
+  if (!user) return new Response('Không được phép', { status: 401 });
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('household_id')
     .eq('id', user.id)
     .maybeSingle();
-  if (!profile) return new Response('Profile not found', { status: 404 });
+  if (!profile) return new Response('Không tìm thấy hồ sơ', { status: 404 });
 
   const householdId = profile.household_id;
 
@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
   ]);
 
   if (!inflRow) {
-    return new Response(JSON.stringify({ ok: false, reason: 'no inflation data' }), {
+    return new Response(JSON.stringify({ ok: false, reason: 'không có dữ liệu lạm phát' }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -74,7 +74,7 @@ Deno.serve(async (req: Request) => {
   const baseTotal = sumArs(baseIncome as IncomeRow[] | null);
 
   if (baseTotal === 0) {
-    return new Response(JSON.stringify({ ok: false, reason: 'no base month income' }), {
+    return new Response(JSON.stringify({ ok: false, reason: 'không có thu nhập tháng cơ sở' }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }

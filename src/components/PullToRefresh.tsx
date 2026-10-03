@@ -60,9 +60,9 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
         setPull(THRESHOLD);
         try {
           await qc.refetchQueries({ type: 'active' });
-          toast.success('Datos actualizados');
+          toast.success('Đã cập nhật dữ liệu');
         } catch {
-          toast.error('No se pudo actualizar');
+          toast.error('Không thể cập nhật');
         } finally {
           refreshingRef.current = false;
           setRefreshing(false);

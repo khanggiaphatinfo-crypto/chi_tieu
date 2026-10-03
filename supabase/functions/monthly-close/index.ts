@@ -237,14 +237,14 @@ Deno.serve(async (req: Request) => {
 
   const auth = req.headers.get('Authorization') ?? '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (!token) return new Response('Unauthorized', { status: 401 });
+  if (!token) return new Response('Không được phép', { status: 401 });
   let requestedHid: string | null = null;
   if (jwtPayload(token)?.role !== 'service_role') {
     const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return new Response('Unauthorized', { status: 401 });
+    if (!user) return new Response('Không được phép', { status: 401 });
     const { data: prof } = await admin.from('profiles').select('household_id').eq('id', user.id).single();
-    if (!prof?.household_id) return new Response('No household', { status: 400 });
+    if (!prof?.household_id) return new Response('Chưa có hộ gia đình', { status: 400 });
     requestedHid = prof.household_id;
   }
 

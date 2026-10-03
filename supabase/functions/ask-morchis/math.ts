@@ -6,7 +6,7 @@ import { toArs, personalShareArs } from "../_shared/money.ts";
 
 export { toArs };
 
-export const iso = (y: number, m: number, d: number) => new Date(y, m, d).toISOString().slice(0, 10);
+export const iso = (y: number, m: number, d: number) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10);
 export const MONTHLY: Record<string, number> = { weekly: 4.345, biweekly: 2.17, monthly: 1 };
 export const norm = (s: string) => (s ?? '').toLowerCase();
 

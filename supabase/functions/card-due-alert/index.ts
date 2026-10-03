@@ -101,9 +101,9 @@ Deno.serve(async (req: Request) => {
   if (!token || jwtPayload(token)?.role !== 'service_role') {
     // Cron-only function: a user has nothing to gain from triggering it
     // manually (it would just re-push), so require the service role.
-    return new Response(JSON.stringify({ error: 'service role only' }), { status: 401, headers: cors });
+    return new Response(JSON.stringify({ error: 'chỉ dành cho khóa dịch vụ' }), { status: 401, headers: cors });
   }
-  if (!VAPID_PUBLIC || !VAPID_PRIVATE) return new Response(JSON.stringify({ error: 'VAPID not configured' }), { status: 200, headers: cors });
+  if (!VAPID_PUBLIC || !VAPID_PRIVATE) return new Response(JSON.stringify({ error: 'chưa cấu hình VAPID' }), { status: 200, headers: cors });
 
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
   const todayISO = isoOf(artNow());

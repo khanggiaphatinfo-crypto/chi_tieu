@@ -37,16 +37,16 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: authHeader } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return json({ error: "unauthorized" }, 401);
+    if (!user) return json({ error: "không được phép" }, 401);
 
-    if (!VAPID_PRIVATE || !VAPID_PUBLIC) return json({ error: "VAPID keys not configured" }, 200);
+    if (!VAPID_PRIVATE || !VAPID_PUBLIC) return json({ error: "chưa cấu hình khóa VAPID" }, 200);
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     const { data: me } = await admin.from("profiles").select("household_id").eq("id", user.id).single();
     const householdId = me?.household_id;
-    if (!householdId) return json({ error: "no household" }, 200);
+    if (!householdId) return json({ error: "chưa có hộ gia đình" }, 200);
 
     const now = artNow();
     const period = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;

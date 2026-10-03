@@ -86,7 +86,7 @@ export function SwipeAction({ children, onDelete, disabled }: SwipeActionProps) 
         className="absolute inset-0 flex items-center justify-end pr-5"
         style={{ background: '#FF6F61', opacity: dx < 0 ? 1 : 0, pointerEvents: 'none' }}
       >
-        <span className="text-white font-black text-sm">🗑️ Borrar</span>
+        <span className="text-white font-black text-sm">🗑️ Xóa</span>
       </div>
       <div
         style={{

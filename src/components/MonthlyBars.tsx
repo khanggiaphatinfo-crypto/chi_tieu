@@ -11,7 +11,7 @@ export interface MonthBar {
   rate?: number | null;
 }
 
-const MONTH_LABELS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+const MONTH_LABELS = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 
 /** Last 6 month keys (oldest → current), e.g. { key: '2026-01', label: 'Ene' } */
 export function lastSixMonths(today: Date): { key: string; label: string }[] {
@@ -33,7 +33,7 @@ export function MonthlyBars({ rows, showRate = true }: { rows: MonthBar[]; showR
         <div
           key={r.key}
           className="flex-1 flex flex-col items-center gap-1 h-full justify-end"
-          title={`${r.label} · Ingresos ${formatARS(r.income)} · Gastos ${formatARS(r.expense)}${r.rate != null ? ` · Ahorro ${Math.round(r.rate * 100)}%` : ''}`}
+          title={`${r.label} · Thu nhập ${formatARS(r.income)} · Chi tiêu ${formatARS(r.expense)}${r.rate != null ? ` · Tiết kiệm ${Math.round(r.rate * 100)}%` : ''}`}
         >
           <div className="flex items-end gap-1 w-full justify-center" style={{ height: 110 }}>
             <div
@@ -106,7 +106,7 @@ export function SingleBars({
             key={r.key}
             type="button"
             onClick={() => onSelect(r.key)}
-            aria-label={`Ver ${r.label}`}
+            aria-label={`Xem ${r.label}`}
             aria-pressed={selected}
             title={`${r.label}: ${formatARS(r.value)}`}
             className="flex-1 flex flex-col items-center gap-1 h-full justify-end"
