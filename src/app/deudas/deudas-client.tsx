@@ -81,7 +81,7 @@ function DebtForm({
   function handleSave() {
     const amount = parseMoney(amountStr);
     if (!counterparty.trim() || !amount || amount <= 0) {
-      toast.error('Completá la persona y el monto.');
+      toast.error('Hãy nhập người và số tiền.');
       return;
     }
     onSave({ direction, counterparty: counterparty.trim(), amount, currency, note: note.trim() || null, settled, transaction_id: transactionId || null });
@@ -104,7 +104,7 @@ function DebtForm({
               boxShadow: direction === d ? 'var(--shadow-soft)' : 'none',
             }}
           >
-            {d === 'owe' ? 'Yo debo' : 'Me deben'}
+            {d === 'owe' ? 'Tôi nợ' : 'Họ nợ tôi'}
           </button>
         ))}
       </div>
@@ -112,7 +112,7 @@ function DebtForm({
       {/* Counterparty */}
       <input
         type="text"
-        placeholder={direction === 'owe' ? '¿A quién le debés? (ej: Franco)' : '¿Quién te debe?'}
+        placeholder={direction === 'owe' ? 'Bạn nợ ai? (vd: Franco)' : 'Ai nợ bạn?'}
         value={counterparty}
         onChange={(e) => setCounterparty(e.target.value)}
         className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
@@ -121,7 +121,7 @@ function DebtForm({
 
       {/* Currency */}
       <div>
-        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Moneda</p>
+        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Tiền tệ</p>
         <div className="flex rounded-2xl overflow-hidden" style={{ background: '#E5EBE8' }}>
           {(['ARS', 'USD'] as const).map((c) => (
             <button
@@ -136,7 +136,7 @@ function DebtForm({
                 boxShadow: currency === c ? 'var(--shadow-soft)' : 'none',
               }}
             >
-              {c === 'ARS' ? 'ARS (Pesos)' : 'USD (Dólares)'}
+              {c === 'ARS' ? 'ARS (Peso)' : 'USD (Đô la)'}
             </button>
           ))}
         </div>
@@ -144,7 +144,7 @@ function DebtForm({
 
       {/* Amount */}
       <MoneyInput
-        placeholder={`Monto en ${currency}`}
+        placeholder={`Số tiền bằng ${currency}`}
         value={parseMoney(amountStr)}
         onChange={(n) => setAmountStr(n ? String(n) : '')}
         className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
@@ -154,19 +154,18 @@ function DebtForm({
       {/* Note */}
       <input
         type="text"
-        placeholder="Nota (opcional)"
+        placeholder="Ghi chú (tùy chọn)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
         style={{ borderColor: '#E5EBE8', color: '#18211D' }}
       />
 
-      {/* Link to an expense — only when someone repays you, so analytics can
-          net what they return out of that gasto's real cost. */}
+      {/* Liên kết với một khoản chi — chỉ khi ai đó hoàn tiền cho bạn, để phân tích trừ khoản hoàn trả khỏi chi phí thực tế. */}
       {direction === 'owed' && expenses.length > 0 && (
         <div>
           <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>
-            ¿Es la devolución de un gasto tuyo? (opcional)
+            Đây có phải là khoản hoàn trả cho một chi phí của bạn không? (tùy chọn)
           </p>
           <select
             value={transactionId}
@@ -174,14 +173,14 @@ function DebtForm({
             className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
             style={{ borderColor: transactionId ? '#2FA37C' : '#E5EBE8', color: '#18211D', background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}
           >
-            <option value="">Sin vincular</option>
+            <option value="">Không liên kết</option>
             {expenses.map((e) => (
               <option key={e.id} value={e.id}>{e.label}</option>
             ))}
           </select>
           {transactionId && (
             <p className="text-[11px] mt-1.5" style={{ color: '#1F8A68' }}>
-              ✓ El análisis va a descontar este monto de ese gasto.
+              ✓ Phân tích sẽ trừ số tiền này khỏi chi phí đó.
             </p>
           )}
         </div>
@@ -198,27 +197,26 @@ function DebtForm({
           color: settled ? '#1F8A68' : '#5B6660',
         }}
       >
-        {settled ? '✓ Saldada' : 'Pendiente'}
+        {settled ? '✓ Đã trả hết' : 'Đang chờ'}
       </button>
 
       <div className="flex gap-3">
         <SecondaryButton onClick={onCancel} className="flex-1 py-3 text-sm">
-          Cancelar
+          Hủy
         </SecondaryButton>
         <PrimaryButton
           onClick={handleSave}
           disabled={!counterparty.trim() || !(parseMoney(amountStr) > 0)}
           className="flex-1 py-3 text-sm"
         >
-          Guardar
+          Lưu
         </PrimaryButton>
       </div>
     </div>
   );
 }
 
-// Small inline form to register a partial payment on one of the viewer's own
-// debts. Lives at module level (like DebtForm) so the input keeps focus.
+  // Khoản thanh toán một phần cho một khoản nợ của người dùng. Đặt ở cấp module để ô nhập giữ được focus.
 function PartialPaymentForm({
   debt,
   onSave,
@@ -236,14 +234,14 @@ function PartialPaymentForm({
     <div className="flex flex-col gap-4 p-5 rounded-3xl" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
       <div>
         <p className="font-bold text-sm" style={{ color: '#18211D' }}>
-          Pago parcial · {debt.direction === 'owe' ? `Le debo a ${debt.counterparty}` : `${debt.counterparty} me debe`}
+          Thanh toán một phần · {debt.direction === 'owe' ? `Tôi nợ ${debt.counterparty}` : `${debt.counterparty} nợ tôi`}
         </p>
         <p className="text-xs mt-1" style={{ color: '#5B6660' }}>
-          Restan {fmtMoney(remaining, debt.currency)} de {fmtMoney(debt.amount, debt.currency)}
+          Còn lại {fmtMoney(remaining, debt.currency)}/tổng {fmtMoney(debt.amount, debt.currency)}
         </p>
       </div>
       <MoneyInput
-        placeholder={`Monto en ${debt.currency} (máx. ${fmtMoney(remaining, debt.currency)})`}
+        placeholder={`Số tiền bằng ${debt.currency} (tối đa ${fmtMoney(remaining, debt.currency)})`}
         value={payment}
         // Cap at the remaining so paid_amount can never exceed the debt.
         onChange={(n) => setPayStr(n ? String(Math.min(n, remaining)) : '')}
@@ -252,19 +250,19 @@ function PartialPaymentForm({
       />
       {payment > 0 && payment >= remaining && (
         <p className="text-[11px]" style={{ color: '#1F8A68' }}>
-          ✓ Con este pago la deuda queda saldada.
+          ✓ Khoản nợ sẽ được thanh toán hết sau lần này.
         </p>
       )}
       <div className="flex gap-3">
         <SecondaryButton onClick={onCancel} className="flex-1 py-3 text-sm">
-          Cancelar
+          Hủy
         </SecondaryButton>
         <PrimaryButton
           onClick={() => onSave(Math.min(payment, remaining))}
           disabled={!(payment > 0)}
           className="flex-1 py-3 text-sm"
         >
-          Registrar pago
+          Ghi nhận thanh toán
         </PrimaryButton>
       </div>
     </div>
@@ -272,8 +270,7 @@ function PartialPaymentForm({
 }
 
 function TotalsCard({ debts, viewerId, partnerName }: { debts: Debt[]; viewerId: string; partnerName: string }) {
-  // "Yo debo / Me deben" only sums the viewer's own debts; the partner's
-  // household debts get a separate muted line so the totals never mix people.
+  // “Tôi nợ / Họ nợ tôi” chỉ cộng các khoản nợ của người dùng; khoản của người đồng hành hiển thị riêng để không trộn lẫn.
   const mine = debts.filter((d) => d.profile_id === viewerId);
   const partners = debts.filter((d) => d.profile_id !== viewerId);
   const owe = totalsByCurrency(mine, 'owe');
@@ -296,18 +293,18 @@ function TotalsCard({ debts, viewerId, partnerName }: { debts: Debt[]; viewerId:
         <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
         <div className="relative flex items-center justify-between">
           <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>
-            Pendiente
+            Đang chờ
           </p>
         </div>
         <div className="relative flex gap-3 mt-3">
           <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.16)' }}>
-            <p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.82)' }}>Yo debo</p>
+            <p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.82)' }}>Tôi nợ</p>
             <p className="text-lg font-black leading-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>
               {amounts(owe)}
             </p>
           </div>
           <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: 'rgba(255,255,255,0.22)' }}>
-            <p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>Me deben</p>
+            <p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>Họ nợ tôi</p>
             <p className="text-lg font-black leading-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>
               {amounts(owed)}
             </p>
@@ -317,7 +314,7 @@ function TotalsCard({ debts, viewerId, partnerName }: { debts: Debt[]; viewerId:
       {hasPartner && (
         <div className="px-4 py-4">
           <p className="text-xs" style={{ color: '#5B6660' }}>
-            {partnerName}: debe {amounts(pOwe)} · le deben {amounts(pOwed)}
+            {partnerName}: nợ {amounts(pOwe)} · bị nợ {amounts(pOwed)}
           </p>
         </div>
       )}
@@ -351,8 +348,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
     },
   });
 
-  // Household profiles, to name the partner on debts that aren't the viewer's
-  // (the list is household-wide but each debt belongs to one person).
+  // Hồ sơ trong hộ gia đình, dùng để hiển thị tên người đồng hành cho các khoản nợ không thuộc người dùng.
   const { data: householdProfiles = [] } = useQuery({
     queryKey: ['household-profiles', profile.household_id],
     queryFn: async () => {
@@ -365,7 +361,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
   });
   const nameOf = (profileId: string) => {
     const p = householdProfiles.find((p) => p.id === profileId);
-    return p?.nickname || p?.display_name || 'Pareja';
+    return p?.nickname || p?.display_name || 'Bạn đời';
   };
   const partnerName = nameOf(householdProfiles.find((p) => p.id !== profile.id)?.id ?? '');
 
@@ -384,12 +380,11 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
     },
   });
 
-  // Recent expenses a "me deben" debt can be linked to (so analytics net the
-  // repayment out of that gasto's real cost).
+  // Các khoản chi gần đây mà một khoản nợ “họ nợ tôi” có thể liên kết để phân tích trừ khoản hoàn trả khỏi chi phí thực tế.
   const { data: linkableExpenses = [] } = useQuery<LinkableExpense[]>({
     queryKey: ['linkable-expenses', profile.household_id],
     queryFn: async () => {
-      // toLocalISO, not toISOString: the UTC date lands a day off in Argentina.
+      // Dùng toLocalISO thay vì toISOString: ngày UTC có thể bị lệch một ngày ở Argentina.
       const since = toLocalISO(new Date(Date.now() - 90 * 86400000));
       const { data } = await supabase
         .from('transactions')
@@ -410,11 +405,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['debts'] });
 
-  // A repayment on a "me deben" debt that's linked to one of your expenses nets
-  // out of that gasto's real cost: the linked transaction's amount drops by what
-  // was just repaid, and is restored if the debt is reopened. We drive it off the
-  // change in paid_amount (delta = oldPaid - newPaid) so settling, partial
-  // payments and reopening all stay consistent no matter the order they happen.
+  // Khi hoàn trả một khoản nợ “họ nợ tôi” đã liên kết với chi phí, giảm chi phí thực tế theo số tiền đã trả.
   async function applyRepaymentNetting(debt: Debt, newPaid: number) {
     if (debt.direction !== 'owed' || !debt.transaction_id) return;
     const delta = (debt.paid_amount ?? 0) - newPaid; // negative while paying down
@@ -436,8 +427,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
     if (upErr) throw upErr;
   }
 
-  // Netting a repayment moves money, so refresh the same queries the add-expense
-  // sheet does (balances, budgets, analytics) — not just the debts list.
+  // Việc ghi nhận hoàn trả làm thay đổi dòng tiền, nên làm mới các truy vấn giống như biểu mẫu thêm chi phí.
   const invalidateMoney = () =>
     Promise.all(
       ['transactions', 'account-tx', 'spent-by-category', 'category-month-totals', 'budget-expense-rows', 'summary', 'category-tx', 'couple-balance'].map(
@@ -454,25 +444,24 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
       });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success('Deuda guardada ✓'); setShowForm(false); invalidate(); },
-    onError: () => toast.error('No se pudo guardar la deuda.'),
+    onSuccess: () => { toast.success('Đã lưu khoản nợ ✓'); setShowForm(false); invalidate(); },
+    onError: () => toast.error('Không thể lưu khoản nợ.'),
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Omit<Debt, 'id' | 'profile_id' | 'paid_amount'> }) => {
-      // If the form marks it settled, sync paid_amount so the numbers stay coherent.
+      // Nếu biểu mẫu đánh dấu đã thanh toán, đồng bộ paid_amount để số liệu luôn nhất quán.
       const payload = data.settled ? { ...data, paid_amount: data.amount } : data;
       const { error } = await supabase.from('debts').update(payload).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success('Deuda actualizada ✓'); setEditDebt(null); invalidate(); },
-    onError: () => toast.error('No se pudo actualizar la deuda.'),
+    onSuccess: () => { toast.success('Đã cập nhật khoản nợ ✓'); setEditDebt(null); invalidate(); },
+    onError: () => toast.error('Không thể cập nhật khoản nợ.'),
   });
 
   const toggleSettled = useMutation({
     mutationFn: async (d: Debt) => {
-      // Settling pays the debt in full; reopening resets the paid amount so
-      // remaining and totals stay coherent either way.
+      // Thanh toán toàn bộ sẽ đặt lại số tiền đã trả khi mở lại, để số dư còn lại luôn chính xác.
       const newPaid = d.settled ? 0 : d.amount;
       // Net the repayment out of the linked gasto BEFORE flipping paid_amount —
       // the netting delta is read from the debt's current paid_amount.
@@ -482,18 +471,18 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
     },
     onSuccess: (_data, d) => {
-      toast.success(d.settled ? 'Marcada como pendiente' : 'Saldada ✓');
+      toast.success(d.settled ? 'Đã đánh dấu đang chờ' : 'Đã trả hết ✓');
       invalidate();
       invalidateMoney();
     },
-    onError: () => toast.error('No se pudo actualizar.'),
+    onError: () => toast.error('Không thể cập nhật.'),
   });
 
   const partialPayMutation = useMutation({
     mutationFn: async ({ debt, payment }: { debt: Debt; payment: number }) => {
-      // Cap so paid_amount never exceeds the original amount.
+      // Không vượt quá số tiền gốc để paid_amount không bao giờ lớn hơn khoản nợ.
       const newPaid = Math.min(debt.paid_amount + payment, debt.amount);
-      // Net the just-paid portion out of the linked gasto (delta off paid_amount).
+      // Trừ phần vừa thanh toán khỏi chi phí đã liên kết (dựa trên thay đổi của paid_amount).
       await applyRepaymentNetting(debt, newPaid);
       const { error } = await supabase
         .from('debts')
@@ -502,12 +491,12 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
     },
     onSuccess: (_data, { debt, payment }) => {
-      toast.success(debt.paid_amount + payment >= debt.amount ? 'Deuda saldada ✓' : 'Pago registrado ✓');
+      toast.success(debt.paid_amount + payment >= debt.amount ? 'Đã trả hết khoản nợ ✓' : 'Đã ghi nhận thanh toán ✓');
       setPartialDebt(null);
       invalidate();
       invalidateMoney();
     },
-    onError: () => toast.error('No se pudo registrar el pago.'),
+    onError: () => toast.error('Không thể ghi nhận thanh toán.'),
   });
 
   const deleteMutation = useMutation({
@@ -515,35 +504,33 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
       const { error } = await supabase.from('debts').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success('Deuda eliminada'); invalidate(); },
-    onError: () => toast.error('No se pudo eliminar la deuda.'),
+    onSuccess: () => { toast.success('Đã xóa khoản nợ'); invalidate(); },
+    onError: () => toast.error('Không thể xóa khoản nợ.'),
   });
 
   const pending = debts.filter((d) => !d.settled);
   const settled = debts.filter((d) => d.settled);
 
   function DebtCard({ debt }: { debt: Debt }) {
-    // Cards for the partner's debts are phrased in third person — "Le debo a
-    // Franco" would wrongly read as the viewer's debt.
+    // Thẻ của người đồng hành dùng ngôi thứ ba — không được hiểu là khoản nợ của người dùng.
     const isMine = debt.profile_id === profile.id;
     const ownerName = isMine ? null : nameOf(debt.profile_id);
     const title = isMine
       ? debt.direction === 'owe'
-        ? `Le debo a ${debt.counterparty}`
-        : `${debt.counterparty} me debe`
+        ? `Tôi nợ ${debt.counterparty}`
+        : `${debt.counterparty} nợ tôi`
       : debt.direction === 'owe'
-        ? `${ownerName} le debe a ${debt.counterparty}`
-        : `${debt.counterparty} le debe a ${ownerName}`;
+        ? `${ownerName} nợ ${debt.counterparty}`
+        : `${debt.counterparty} nợ ${ownerName}`;
     const remaining = remainingOf(debt);
     const partiallyPaid = !debt.settled && debt.paid_amount > 0 && remaining > 0;
-    // "pagaste" only when the viewer is the one paying down their own debt;
-    // otherwise it's the counterparty (or the partner) who paid.
-    const paidVerb = isMine && debt.direction === 'owe' ? 'pagaste' : 'pagó';
+    // Chỉ dùng “bạn đã trả” khi người dùng đang trả khoản nợ của chính mình; trường hợp khác dùng ngôi thứ ba.
+    const paidVerb = isMine && debt.direction === 'owe' ? 'bạn đã trả' : 'đã trả';
     const paidPct = debt.amount > 0 ? Math.min(100, Math.round((debt.paid_amount / debt.amount) * 100)) : 0;
     const accent = debt.direction === 'owe' ? '#FF6F61' : '#2FA37C';
     return (
       <div className="px-4 py-3.5" style={{ borderTop: '1px solid #E5EBE8', opacity: debt.settled ? 0.6 : 1 }}>
-        {/* Top: who/what + the prominent amount */}
+            {/* Phần đầu: người/khoản nợ và số tiền nổi bật */}
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
@@ -554,7 +541,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-sm truncate" style={{ color: '#18211D' }}>{title}</p>
             <p className="text-[11px] truncate" style={{ color: '#5B6660' }}>
-              {debt.settled ? 'Saldada' : 'Pendiente'}{debt.note ? ` · ${debt.note}` : ''}{debt.transaction_id ? ' · 🔗' : ''}
+              {debt.settled ? 'Đã trả hết' : 'Đang chờ'}{debt.note ? ` · ${debt.note}` : ''}{debt.transaction_id ? ' · 🔗' : ''}
             </p>
           </div>
           <div className="text-right shrink-0">
@@ -568,7 +555,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           </div>
         </div>
 
-        {/* Partial-payment progress */}
+            {/* Tiến độ thanh toán một phần */}
         {partiallyPaid && (
           <div className="mt-2 ml-12">
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#EAF0ED' }}>
@@ -580,14 +567,14 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           </div>
         )}
 
-        {/* Actions get their own row so nothing crowds the amount */}
+        {/* Các thao tác nằm ở hàng riêng để không chen lấn số tiền */}
         <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid #EAF0ED' }}>
           <button
             onClick={() => toggleSettled.mutate(debt)}
             className="flex-1 text-xs font-bold py-2 rounded-xl"
             style={{ background: debt.settled ? '#F1F5F3' : '#DDF0E8', color: debt.settled ? '#5B6660' : '#1F8A68' }}
           >
-            {debt.settled ? '↩️ Reabrir' : '✓ Saldar'}
+            {debt.settled ? '↩️ Mở lại' : '✓ Thanh toán hết'}
           </button>
           {!debt.settled && isMine && (
             <button
@@ -595,12 +582,12 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
               className="flex-1 text-xs font-bold py-2 rounded-xl"
               style={{ background: '#E9F1FD', color: '#4E84E0' }}
             >
-              💵 Pago
+              💵 Thanh toán
             </button>
           )}
           <button
             onClick={() => { setPartialDebt(null); setEditDebt(debt); }}
-            aria-label="Editar"
+            aria-label="Chỉnh sửa"
             className="px-3 py-2 text-xs rounded-xl border"
             style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
           >
@@ -608,7 +595,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           </button>
           <button
             onClick={() => setConfirmDelete(debt)}
-            aria-label="Eliminar"
+            aria-label="Xóa"
             className="px-3 py-2 text-xs rounded-xl border"
             style={{ borderColor: '#FFE5E0', color: '#FF6F61' }}
           >
@@ -623,7 +610,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/mas" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Deudas</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Khoản nợ</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
@@ -662,7 +649,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
             className="w-full py-4 rounded-3xl text-sm font-black text-white transition-all"
             style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
           >
-            + Nueva deuda
+            + Khoản nợ mới
           </button>
         )}
 
@@ -670,7 +657,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3" style={{ borderBottom: '1px solid #E5EBE8' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#FF6F61' }}>
-                Pendientes
+                Đang chờ
               </p>
             </div>
             {pending.map((d) => <DebtCard key={d.id} debt={d} />)}
@@ -681,7 +668,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3" style={{ borderBottom: '1px solid #E5EBE8' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#1F8A68' }}>
-                Saldadas
+                Đã trả hết
               </p>
             </div>
             {settled.map((d) => <DebtCard key={d.id} debt={d} />)}
@@ -691,17 +678,17 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
         {!isLoading && debts.length === 0 && !showForm && (
           <EmptyState
             icon="🤝"
-            title="Sin deudas"
-            subtitle="Registrá lo que debés o lo que te deben."
+            title="Không có khoản nợ"
+            subtitle="Ghi lại những gì bạn nợ hoặc người khác nợ bạn."
           />
         )}
       </div>
 
       <ConfirmDialog
         open={confirmDelete !== null}
-        title="¿Eliminar deuda?"
-        message={confirmDelete ? `Se eliminará la deuda con ${confirmDelete.counterparty}. Esta acción no se puede deshacer.` : undefined}
-        confirmLabel="Eliminar"
+        title="Xóa khoản nợ?"
+        message={confirmDelete ? `Khoản nợ với ${confirmDelete.counterparty} sẽ bị xóa. Hành động này không thể hoàn tác.` : undefined}
+        confirmLabel="Xóa"
         onConfirm={() => {
           if (confirmDelete) deleteMutation.mutate(confirmDelete.id);
           setConfirmDelete(null);

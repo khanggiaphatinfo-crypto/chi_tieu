@@ -30,10 +30,7 @@ function daysUntil(dateISO: string): number {
   return Math.round((d.getTime() - today.getTime()) / 86400000);
 }
 
-// Step a monthly anchor date by `delta` months, clamping to the target month's
-// last day. Plain `new Date(y, m+1, d)` overflows for d=29–31 (Jan 31 → Mar 3)
-// and the drifted day would be reused forever; keeping the original anchor day
-// lets a 31st come back on 31-day months after clamping to Feb 28.
+// Dịch chuyển ngày neo hàng tháng theo `delta` tháng, giới hạn ở ngày cuối tháng đích. Date JS tự tràn ngày 29–31 (31/1 → 3/3), nên giữ ngày neo gốc để ngày 31 quay lại vào các tháng có 31 ngày.
 function stepMonthly(dt: Date, delta: number, anchorDay: number): Date {
   const y = dt.getFullYear();
   const m = dt.getMonth() + delta;
@@ -41,9 +38,7 @@ function stepMonthly(dt: Date, delta: number, anchorDay: number): Date {
   return new Date(y, m, Math.min(anchorDay, last));
 }
 
-// Roll a stored monthly date (closing/due) forward one month at a time until it
-// is today or later, so a card whose due date already passed shows the *next*
-// due date instead of "vencido hace 40 días" forever.
+// Cuộn ngày hàng tháng đã lưu (ngày chốt/hạn thanh toán) đến tháng hiện tại hoặc tương lai, để thẻ luôn hiển thị ngày đến hạn tiếp theo.
 function rollMonthlyForward(dateISO: string): string {
   const [y, m, d] = dateISO.split('-').map(Number);
   let dt = new Date(y, m - 1, d);
@@ -59,10 +54,10 @@ function rollMonthlyForward(dateISO: string): string {
 
 function dueLabel(dueISO: string): string {
   const d = daysUntil(dueISO);
-  if (d < 0) return `Vencido hace ${Math.abs(d)} día${Math.abs(d) === 1 ? '' : 's'}`;
-  if (d === 0) return 'Vence hoy';
-  if (d === 1) return 'Vence mañana';
-  return `Vence en ${d} días`;
+  if (d < 0) return `Quá hạn ${Math.abs(d)} ngày`;
+  if (d === 0) return 'Đến hạn hôm nay';
+  if (d === 1) return 'Đến hạn ngày mai';
+  return `Đến hạn sau ${d} ngày`;
 }
 
 interface Profile {
@@ -107,8 +102,7 @@ function fmtMovementDate(iso: string): string {
   return new Date(iso + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' });
 }
 
-// Bottom sheet listing every movement of one account, mirroring the budget
-// drill-down on the Presupuestos screen. Tapping a row opens it for editing.
+// Bảng giao dịch của một tài khoản, tương tự phần xem chi tiết ngân sách. Chạm vào một dòng để chỉnh sửa.
 function AccountMovementsSheet({
   title,
   icon,
@@ -140,19 +134,19 @@ function AccountMovementsSheet({
           <h2 className="text-lg font-black truncate" style={{ color: '#18211D' }}>{title}</h2>
         </div>
         <p className="text-xs mb-3 shrink-0" style={{ color: '#5B6660' }}>
-          {rows.length} {rows.length === 1 ? 'movimiento' : 'movimientos'} · tocá para editar
+          {rows.length} {rows.length === 1 ? 'giao dịch' : 'giao dịch'} · chạm để chỉnh sửa
         </p>
         <Link
           href={`/movimientos?account=${accountId}`}
           className="shrink-0 mb-4 text-center text-xs font-bold py-2.5 rounded-xl"
           style={{ background: '#DDF0E8', color: '#1F8A68' }}
         >
-          📋 Register completo: saldo corriente + conciliar →
+          📋 Sổ giao dịch đầy đủ: số dư hiện tại + đối soát →
         </Link>
 
         {rows.length === 0 ? (
           <p className="text-sm py-8 text-center" style={{ color: '#5B6660' }}>
-            Esta cuenta todavía no tiene movimientos.
+            Tài khoản này chưa có giao dịch.
           </p>
         ) : (
           <div className="rounded-2xl overflow-y-auto" style={{ background: '#F1F5F3' }}>
@@ -231,10 +225,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
     },
   });
 
-  // All transactions with an account, to compute live balances / card spend
-  // and to list the movements behind each account when its card is tapped.
-  // Carries the full row (scope, splits, installments…) so tapping a movement
-  // can open the edit sheet directly.
+  // Toàn bộ giao dịch gắn với tài khoản, dùng để tính số dư trực tiếp/số tiền thẻ đã chi và liệt kê giao dịch khi chạm vào tài khoản.
   const { data: accountTx = [] } = useQuery<AccountTx[]>({
     queryKey: ['account-tx', profile.household_id],
     queryFn: async () => {
@@ -250,8 +241,8 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
   const todayStr = todayISO();
   const monthStart = todayStr.slice(0, 7) + '-01';
 
-  // Asset accounts: saldo = inicial + ingresos - gastos (hasta hoy).
-  // Tarjetas: gastado en el mes actual.
+  // Số dư tài khoản tài sản = số dư ban đầu + thu nhập - chi phí (đến hôm nay).
+  // Thẻ tín dụng: số tiền đã chi trong tháng hiện tại.
   function assetBalance(accountId: string, initial: number) {
     return accountTx.reduce((s, t) => {
       if (t.occurred_on > todayStr) return s;
@@ -305,11 +296,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
     return Math.max(0, charges - credits);
   }
 
-  // Movements tied to an account, newest first. Each row carries a signed amount
-  // in its own currency: money leaving the account is negative (expense, or a
-  // transfer out), money arriving is positive (income, or a transfer in). The
-  // label prefers the movement's own name (merchant, then description) and falls
-  // back to its category before a generic word.
+// Các giao dịch gắn với tài khoản, sắp xếp mới nhất trước. Số tiền âm là tiền ra, dương là tiền vào.
   function movementsForAccount(accountId: string): AccountMovement[] {
     return accountTx
       .filter((t) => t.account_id === accountId || (t.type === 'transfer' && t.transfer_account_id === accountId))
@@ -318,8 +305,8 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
         const sign = incoming || t.type === 'income' ? 1 : -1;
         const label = t.merchant
           || t.description
-          || (incoming ? 'Transferencia recibida' : t.type === 'transfer' ? 'Transferencia' : t.categories?.name)
-          || (t.type === 'income' ? 'Ingreso' : 'Gasto');
+          || (incoming ? 'Chuyển khoản nhận được' : t.type === 'transfer' ? 'Chuyển khoản' : t.categories?.name)
+          || (t.type === 'income' ? 'Thu nhập' : 'Chi phí');
         return {
           tx: t,
           label,
@@ -357,7 +344,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
   }
 
   async function handleSave() {
-    if (!name.trim()) { toast.error('Ingresá un nombre.'); return; }
+    if (!name.trim()) { toast.error('Hãy nhập tên.'); return; }
     setSaving(true);
     try {
       const initialBalanceNum = parseMoney(initialBalance);
@@ -390,10 +377,10 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
       }
       await qc.invalidateQueries({ queryKey: ['accounts'] });
       await qc.invalidateQueries({ queryKey: ['accounts-full'] });
-      toast.success(editId ? 'Cuenta actualizada ✓' : 'Cuenta creada ✓');
+      toast.success(editId ? 'Đã cập nhật tài khoản ✓' : 'Đã tạo tài khoản ✓');
       setShowForm(false);
     } catch (e) {
-      toast.error('No se pudo guardar.');
+      toast.error('Không thể lưu.');
       console.error(e);
     } finally {
       setSaving(false);
@@ -402,25 +389,24 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
 
   async function handleArchive(id: string, archived: boolean) {
     const { error } = await supabase.from('accounts').update({ archived: !archived }).eq('id', id);
-    if (error) { toast.error('Error al actualizar.'); return; }
+    if (error) { toast.error('Lỗi khi cập nhật.'); return; }
     await qc.invalidateQueries({ queryKey: ['accounts'] });
     await qc.invalidateQueries({ queryKey: ['accounts-full'] });
-    toast.success(!archived ? 'Cuenta archivada' : 'Cuenta restaurada');
+    toast.success(!archived ? 'Đã lưu trữ tài khoản' : 'Đã khôi phục tài khoản');
   }
 
-  // On-budget = its balance feeds "Para asignar". Off-budget = a tracking
-  // account (e.g. savings/investments) whose money isn't being budgeted.
+  // On-budget = số dư được đưa vào “Phân bổ”. Ngoài ngân sách = tài khoản theo dõi (ví dụ tiết kiệm/đầu tư), không được lập ngân sách.
   async function toggleBudget(id: string, onBudget: boolean) {
     const { error } = await supabase.from('accounts').update({ on_budget: !onBudget }).eq('id', id);
-    if (error) { toast.error('Error al actualizar.'); return; }
+    if (error) { toast.error('Lỗi khi cập nhật.'); return; }
     await qc.invalidateQueries({ queryKey: ['accounts'] });
     await qc.invalidateQueries({ queryKey: ['accounts-full'] });
     await qc.invalidateQueries({ queryKey: ['envelope-accounts'] });
-    toast.success(!onBudget ? 'En el presupuesto' : 'Fuera del presupuesto (seguimiento)');
+    toast.success(!onBudget ? 'Trong ngân sách' : 'Ngoài ngân sách (theo dõi)');
   }
 
-  // Cash split: on-budget (feeds "Para asignar") vs tracking (off-budget).
-  // Credit cards are excluded — their balance is a liability, not assignable cash.
+  // Phân bổ tiền mặt: trong ngân sách (đưa vào “Phân bổ”) hoặc theo dõi (ngoài ngân sách).
+  // Thẻ tín dụng bị loại trừ — số dư là khoản nợ, không phải tiền có thể phân bổ.
   let onBudgetTotal = 0;
   let trackingTotal = 0;
   for (const a of accounts) {
@@ -433,13 +419,13 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
   return (
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Cuentas</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Tài khoản</h1>
         <button
           onClick={openNew}
           className="text-sm font-bold px-4 py-2 rounded-2xl text-white"
           style={{ background: '#2FA37C' }}
         >
-          + Nueva
+          + Thêm mới
         </button>
       </header>
 
@@ -448,33 +434,33 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
         <div className="relative px-5 pt-5 pb-5 overflow-hidden" style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)' }}>
           <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
           <div className="relative flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>💵 En presupuesto</p>
+            <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>💵 Trong ngân sách</p>
           </div>
           <p className="relative text-[2.4rem] leading-none font-black mt-2 tracking-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>{formatARS(Math.round(onBudgetTotal))}</p>
-          <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>alimenta “Para asignar”</p>
+          <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>dùng cho “Phân bổ”</p>
         </div>
         <div className="px-4 py-4">
           <div className="rounded-2xl px-4 py-3" style={{ background: '#F1F5F3' }}>
-            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>👁️ Seguimiento</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>👁️ Theo dõi</p>
             <p className="text-xl font-black" style={{ color: '#18211D', fontVariantNumeric: 'tabular-nums' }}>{formatARS(Math.round(trackingTotal))}</p>
-            <p className="text-[10px]" style={{ color: '#5B6660' }}>fuera del presupuesto</p>
+            <p className="text-[10px]" style={{ color: '#5B6660' }}>ngoài ngân sách</p>
           </div>
         </div>
       </div>
       <p className="mx-4 -mt-1 mb-4 text-[11px] leading-snug" style={{ color: '#5B6660' }}>
-        <b>En presupuesto</b>: el saldo es plata que repartís en sobres y suma a “Para asignar” (banco, efectivo).{' '}
-        <b>Seguimiento</b>: ahorros o inversiones que no presupuestás (no suman a “Para asignar”). Cambialo con el chip de cada cuenta.
+        <b>Trong ngân sách</b>: số dư là tiền bạn phân bổ vào các phong bì và cộng vào “Phân bổ” (ngân hàng, tiền mặt).{' '}
+        <b>Theo dõi</b>: khoản tiết kiệm hoặc đầu tư không nằm trong ngân sách (không cộng vào “Phân bổ”). Thay đổi bằng nút trên từng tài khoản.
       </p>
 
       {showForm && (
         <div className="mx-4 mb-4 rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <p className="text-base font-black mb-4" style={{ color: '#18211D' }}>
-            {editId ? 'Editar cuenta' : 'Nueva cuenta'}
+            {editId ? 'Chỉnh sửa tài khoản' : 'Tài khoản mới'}
           </p>
           <div className="flex flex-col gap-3">
             <input
               type="text"
-              placeholder="Nombre (ej: Cuenta Galicia)"
+              placeholder="Tên (vd: tài khoản ngân hàng)"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="px-4 py-3 rounded-2xl border text-sm outline-none"
@@ -496,23 +482,23 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
               className="px-4 py-3 rounded-2xl border text-sm bg-white"
               style={{ borderColor: '#E5EBE8' }}
             >
-              <option value="ARS">ARS (Pesos)</option>
-              <option value="USD">USD (Dólares)</option>
+              <option value="ARS">ARS (Peso)</option>
+              <option value="USD">USD (Đô la)</option>
             </select>
             {type === 'credit' ? (
               <div className="flex flex-col gap-3">
                 <div>
-                  <p className="text-xs font-semibold mb-1.5 px-1" style={{ color: '#5B6660' }}>Total del resumen</p>
+                  <p className="text-xs font-semibold mb-1.5 px-1" style={{ color: '#5B6660' }}>Tổng sao kê</p>
                   <div className="flex gap-2">
                     <MoneyInput
-                      placeholder="Total ARS"
+                      placeholder="Tổng ARS"
                       value={parseMoney(statementArs)}
                       onChange={(n) => setStatementArs(n ? String(n) : '')}
                       className="flex-1 w-full px-4 py-3 rounded-2xl border text-sm outline-none"
                       style={{ borderColor: '#E5EBE8' }}
                     />
                     <MoneyInput
-                      placeholder="Total USD"
+                      placeholder="Tổng USD"
                       value={parseMoney(statementUsd)}
                       onChange={(n) => setStatementUsd(n ? String(n) : '')}
                       className="flex-1 w-full px-4 py-3 rounded-2xl border text-sm outline-none"
@@ -522,7 +508,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                 </div>
                 <div className="flex gap-2">
                   <label className="flex-1">
-                    <span className="text-xs font-semibold mb-1 px-1 block" style={{ color: '#5B6660' }}>Cierre</span>
+                    <span className="text-xs font-semibold mb-1 px-1 block" style={{ color: '#5B6660' }}>Ngày chốt</span>
                     <input
                       type="date"
                       value={closingDate}
@@ -532,7 +518,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                     />
                   </label>
                   <label className="flex-1">
-                    <span className="text-xs font-semibold mb-1 px-1 block" style={{ color: '#5B6660' }}>Vencimiento</span>
+                    <span className="text-xs font-semibold mb-1 px-1 block" style={{ color: '#5B6660' }}>Hạn thanh toán</span>
                     <input
                       type="date"
                       value={dueDate}
@@ -543,26 +529,26 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                   </label>
                 </div>
                 <p className="text-xs px-1" style={{ color: '#5B6660' }}>
-                  Guardamos el total y las fechas del resumen actual. Editá la tarjeta cada mes al nuevo cierre.
+                  Chúng tôi lưu tổng tiền và ngày tháng của sao kê hiện tại. Hãy cập nhật thẻ mỗi tháng khi có ngày chốt mới.
                 </p>
               </div>
             ) : (
               <div>
                 <MoneyInput
-                  placeholder="Saldo inicial (opcional)"
+                  placeholder="Số dư ban đầu (tùy chọn)"
                   value={parseMoney(initialBalance)}
                   onChange={(n) => setInitialBalance(n ? String(n) : '')}
                   className="w-full px-4 py-3 rounded-2xl border text-sm outline-none"
                   style={{ borderColor: '#E5EBE8' }}
                 />
                 <p className="text-xs mt-1.5 px-1" style={{ color: '#5B6660' }}>
-                  El saldo se actualiza solo con tus ingresos y gastos.
+                  Số dư tự động cập nhật theo thu nhập và chi phí của bạn.
                 </p>
               </div>
             )}
             <div className="flex gap-2">
               <SecondaryButton onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm">
-                Cancelar
+                Hủy
               </SecondaryButton>
               <PrimaryButton
                 onClick={handleSave}
@@ -570,7 +556,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                 loading={saving}
                 className="flex-1 py-3 text-sm"
               >
-                {saving ? 'Guardando…' : 'Guardar'}
+                {saving ? 'Đang lưu…' : 'Lưu'}
               </PrimaryButton>
             </div>
           </div>
@@ -581,9 +567,9 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
         {accounts.length === 0 && !showForm && (
           <EmptyState
             icon="🏦"
-            title="Sin cuentas"
-            subtitle="Agregá una cuenta para empezar."
-            action={{ label: '+ Nueva cuenta', onClick: openNew }}
+            title="Chưa có tài khoản"
+            subtitle="Thêm tài khoản để bắt đầu."
+            action={{ label: '+ Tài khoản mới', onClick: openNew }}
           />
         )}
         {accounts.map((a) => (
@@ -600,7 +586,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
               <p className="font-bold" style={{ color: '#18211D' }}>{a.name}</p>
               <p className="text-xs" style={{ color: '#5B6660' }}>
                 {ACCOUNT_TYPES.find((t) => t.value === a.type)?.label} · {a.currency}
-                {a.archived && ' · Archivada'}
+                {a.archived && ' · Đã lưu trữ'}
               </p>
               {!a.archived && (
                 <button
@@ -608,7 +594,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                   className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full"
                   style={a.on_budget ? { background: '#DDF0E8', color: '#1F8A68' } : { background: '#E5EBE8', color: '#5B6660' }}
                 >
-                  {a.on_budget ? '💵 En presupuesto' : '👁️ Seguimiento'}
+                  {a.on_budget ? '💵 Trong ngân sách' : '👁️ Theo dõi'}
                 </button>
               )}
               {a.type === 'credit' ? (
@@ -624,20 +610,20 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                             a.statement_ars ? formatARS(a.statement_ars) : null,
                             a.statement_usd ? formatUSD(a.statement_usd) : null,
                           ].filter(Boolean).join(' + ')}
-                          <span className="text-xs font-semibold" style={{ color: '#5B6660' }}> resumen</span>
+                          <span className="text-xs font-semibold" style={{ color: '#5B6660' }}> sao kê</span>
                         </p>
                       )}
                       {/* New charges accruing toward the next statement (net of payments). */}
                       <p className={hasStatement ? 'text-xs font-semibold' : 'text-sm font-black'} style={{ color: hasStatement ? '#5B6660' : '#FF6F61' }}>
                         {formatARS(cycleSpend)}
                         <span className="text-xs font-semibold" style={{ color: '#5B6660' }}>
-                          {a.closing_date ? ' del ciclo actual' : ' gastado este mes'}
+                          {a.closing_date ? ' trong chu kỳ hiện tại' : ' đã chi tháng này'}
                         </span>
                       </p>
                       {nextDue && (
                         <p className="text-xs font-bold mt-0.5" style={{ color: daysUntil(nextDue) <= 3 ? '#E25749' : '#5B6660' }}>
                           {dueLabel(nextDue)}
-                          {a.closing_date ? ` · cierre ${rollMonthlyForward(a.closing_date).slice(8, 10)}/${rollMonthlyForward(a.closing_date).slice(5, 7)}` : ''}
+                          {a.closing_date ? ` · chốt ngày ${rollMonthlyForward(a.closing_date).slice(8, 10)}/${rollMonthlyForward(a.closing_date).slice(5, 7)}` : ''}
                         </p>
                       )}
                     </div>
@@ -649,7 +635,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                   return (
                     <p className="text-sm font-black mt-1" style={{ color: bal < 0 ? '#FF6F61' : '#1F8A68' }}>
                       {a.currency === 'USD' ? formatUSD(bal) : formatARS(bal)}
-                      <span className="text-xs font-semibold" style={{ color: '#5B6660' }}> saldo actual</span>
+                      <span className="text-xs font-semibold" style={{ color: '#5B6660' }}> số dư hiện tại</span>
                     </p>
                   );
                 })()
@@ -662,7 +648,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                   className="text-xs font-bold px-3 py-1.5 rounded-xl border"
                   style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
                 >
-                  Editar
+                  Chỉnh sửa
                 </button>
               )}
               <button
@@ -670,7 +656,7 @@ export default function CuentasClient({ profile }: { profile: Profile }) {
                 className="text-xs font-bold px-3 py-1.5 rounded-xl border"
                 style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
               >
-                {a.archived ? 'Restaurar' : 'Archivar'}
+                {a.archived ? 'Khôi phục' : 'Lưu trữ'}
               </button>
             </div>
           </div>
