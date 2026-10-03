@@ -467,11 +467,11 @@ export function AddTransactionSheet({
       const { error } = await supabase.from('transactions').delete().eq('id', editTx.id);
       if (error) throw error;
       await invalidateMoneyQueries();
-      toast.success('Movimiento eliminado');
+      toast.success('Đã xóa giao dịch');
       setConfirmDelete(false);
       onClose();
     } catch (e) {
-      toast.error('No se pudo eliminar. Intentá de nuevo.');
+      toast.error('Không thể xóa. Hãy thử lại.');
       console.error(e);
     } finally {
       setDeleting(false);
@@ -692,7 +692,7 @@ export function AddTransactionSheet({
   async function handleCreateCategory() {
     const name = newCatName.trim();
     if (!name) {
-      toast.error('Ingresá un nombre.');
+      toast.error('Vui lòng nhập tên.');
       return;
     }
     setSavingCat(true);
@@ -709,16 +709,16 @@ export function AddTransactionSheet({
         })
         .select('id')
         .single();
-      if (error || !data) throw error ?? new Error('No se pudo crear');
+      if (error || !data) throw error ?? new Error('Không thể tạo');
       await qc.invalidateQueries({ queryKey: ['categories'] });
       // Auto-select the freshly created category for this movement.
       setCategoryId(data.id);
       setCreatingCat(false);
       setNewCatName('');
       setNewCatIcon('🏷️');
-      toast.success('Categoría creada ✓');
+      toast.success('Đã tạo danh mục ✓');
     } catch (e) {
-      toast.error('No se pudo crear la categoría.');
+      toast.error('Không thể tạo danh mục.');
       console.error(e);
     } finally {
       setSavingCat(false);
@@ -731,7 +731,7 @@ export function AddTransactionSheet({
     // would PATCH `id=eq.undefined` and fail with a confusing generic error.
     // Reopening the movement reloads it with a valid id.
     if (editTx && !editTx.id) {
-      toast.error('No se pudo identificar el movimiento. Cerralo y abrilo de nuevo.');
+      toast.error('Không thể xác định giao dịch. Hãy đóng và mở lại.');
       return;
     }
     haptic('success');
@@ -747,7 +747,7 @@ export function AddTransactionSheet({
         // moves the "Deuda con la pareja" balance) and, when asked, also record
         // the real money movement between their accounts. No transaction/category.
         if (!settlePayerId || !settleReceiverId) {
-          toast.error('Invitá a tu pareja al hogar primero.');
+          toast.error('Hãy mời bạn đời vào hộ gia đình trước.');
           return;
         }
         await recordSettlement({
@@ -761,7 +761,7 @@ export function AddTransactionSheet({
           toAccountId: settleWillMove ? settleToId : null,
         });
         await invalidateMoneyQueries();
-        toast.success('Pago a la pareja registrado ✓');
+        toast.success('Đã ghi nhận khoản trả cho bạn đời ✓');
         onClose();
         return;
       }
@@ -798,7 +798,7 @@ export function AddTransactionSheet({
         }
 
         await invalidateMoneyQueries();
-        toast.success(editTx ? 'Transferencia actualizada ✓' : 'Transferencia guardada ✓');
+        toast.success(editTx ? 'Đã cập nhật chuyển khoản ✓' : 'Đã lưu chuyển khoản ✓');
         onClose();
         return;
       }
@@ -981,14 +981,14 @@ export function AddTransactionSheet({
       if (txType === 'expense') triggerBudgetAlerts(supabase);
       toast.success(
         editTx
-          ? 'Movimiento actualizado ✓'
+          ? 'Đã cập nhật giao dịch ✓'
           : useInstallments
-            ? `${installments} cuotas guardadas ✓`
-            : 'Guardado ✓',
+            ? `Đã lưu ${installments} kỳ trả góp ✓`
+            : 'Đã lưu ✓',
       );
       onClose();
     } catch (e) {
-      toast.error('No se pudo guardar. Intentá de nuevo.');
+      toast.error('Không thể lưu. Hãy thử lại.');
       console.error(e);
     } finally {
       setSaving(false);
@@ -1054,7 +1054,7 @@ export function AddTransactionSheet({
                   className="text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1"
                   style={{ borderColor: '#FF6F61', color: '#FF6F61', background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}
                 >
-                  🗑️ Eliminar
+                  🗑️ Xóa
                 </button>
               )}
             </div>
@@ -1133,7 +1133,7 @@ export function AddTransactionSheet({
                 }}
               >
                 <span>＋</span>
-                <span>Crear categoría</span>
+                <span>+ Tạo danh mục</span>
               </button>
             </div>
 
@@ -1144,7 +1144,7 @@ export function AddTransactionSheet({
                   <input
                     type="text"
                     autoFocus
-                    placeholder={`Nueva categoría de ${txType === 'income' ? 'ingreso' : 'gasto'}`}
+                    placeholder={`Danh mục ${txType === 'income' ? 'thu nhập' : 'chi tiêu'} mới`}
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleCreateCategory(); }}
@@ -1157,7 +1157,7 @@ export function AddTransactionSheet({
                     className="flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-50"
                     style={{ background: '#2FA37C' }}
                   >
-                    {savingCat ? '…' : 'Crear'}
+                    {savingCat ? '…' : 'Tạo'}
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -1188,12 +1188,12 @@ export function AddTransactionSheet({
             <div className="px-4 mt-3">
               {transferAccounts.length < 2 ? (
                 <p className="text-[11px]" style={{ color: '#B8860B' }}>
-                  ⚠️ Necesitás al menos dos cuentas tuyas (no tarjetas) de la misma moneda para transferir.
+                  ⚠️ Cần ít nhất hai tài khoản không phải thẻ của bạn, cùng loại tiền, để chuyển khoản.
                 </p>
               ) : (
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Desde</p>
+                    <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Từ</p>
                     <select
                       value={effectiveFromId ?? ''}
                       onChange={(e) => setAccountId(e.target.value || null)}
@@ -1207,14 +1207,14 @@ export function AddTransactionSheet({
                   </div>
                   <span className="text-xl mt-4" style={{ color: '#4E84E0' }}>→</span>
                   <div className="flex-1">
-                    <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Hacia</p>
+                    <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Đến</p>
                     <select
                       value={effectiveToId ?? ''}
                       onChange={(e) => setToAccountId(e.target.value || null)}
                       className="w-full px-3 py-2.5 rounded-xl text-xs font-bold border bg-white"
                       style={{ borderColor: '#E5EBE8', color: '#18211D' }}
                     >
-                      {destAccounts.length === 0 && <option value="">Sin destino</option>}
+                      {destAccounts.length === 0 && <option value="">Chưa chọn đích đến</option>}
                       {destAccounts.map((a) => (
                         <option key={a.id} value={a.id}>{a.name}</option>
                       ))}
@@ -1238,7 +1238,7 @@ export function AddTransactionSheet({
               money between the partners' accounts. */}
           {isSettle && (
             <div className="px-4 mt-3">
-              <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿Quién le paga a quién?</p>
+              <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Ai trả cho ai?</p>
               <div className="flex rounded-2xl overflow-hidden p-1 gap-1 mb-3" style={{ background: '#E5EBE8' }}>
                 {([
                   { key: true, label: `👤 Yo → ${effectivePartnerName}` },
@@ -1287,7 +1287,7 @@ export function AddTransactionSheet({
                   settleWillMove && (
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex-1">
-                        <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Desde · {settlePayerName}</p>
+                        <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Từ · {settlePayerName}</p>
                         <select
                           value={settleFromId ?? ''}
                           onChange={(e) => setAccountId(e.target.value || null)}
@@ -1301,7 +1301,7 @@ export function AddTransactionSheet({
                       </div>
                       <span className="text-lg mt-4" style={{ color: '#1F8A68' }}>→</span>
                       <div className="flex-1">
-                        <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Hacia · {settleReceiverName}</p>
+                        <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Đến · {settleReceiverName}</p>
                         <select
                           value={settleToId ?? ''}
                           onChange={(e) => setToAccountId(e.target.value || null)}
@@ -1333,7 +1333,7 @@ export function AddTransactionSheet({
               movement is personal (solo mío) or del hogar (compartido). */}
           {!isTransfer && !isSettle && (
           <div className="px-4 mt-3">
-            <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿De quién es este movimiento?</p>
+            <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Giao dịch này của ai?</p>
             <div className="flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
               {([
                 { key: 'me' as const, label: '👤 Mío' },
@@ -1366,7 +1366,7 @@ export function AddTransactionSheet({
               have fronted the money. For "Mío"/partner it's implied. */}
           {owner === 'household' && effectivePartnerId && !isSettle && (
             <div className="px-4 mt-3">
-              <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿Quién pagó?</p>
+              <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Ai đã trả?</p>
               <div className="flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
                 {([
                   { key: 'me' as const, label: '👤 Yo' },
@@ -1447,7 +1447,7 @@ export function AddTransactionSheet({
                 className="px-3 py-2 rounded-xl text-xs font-bold border bg-white"
                 style={{ borderColor: '#E5EBE8', color: '#18211D' }}
               >
-                <option value="">Sin cuenta</option>
+                <option value="">Không chọn tài khoản</option>
                 {visibleAccounts.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name}
@@ -1467,7 +1467,7 @@ export function AddTransactionSheet({
 
             {/* Colour flag — discs stay small but each gets a ~36px tap target. */}
             <div className="flex items-center gap-0.5 px-1 rounded-xl border" style={{ borderColor: '#E5EBE8' }}>
-              <button type="button" onClick={() => setFlag(null)} title="Sin flag" aria-label="Sin flag" className="w-9 h-9 rounded-full flex items-center justify-center">
+              <button type="button" onClick={() => setFlag(null)} title="Không gắn cờ" aria-label="Không gắn cờ" className="w-9 h-9 rounded-full flex items-center justify-center">
                 <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px]" style={{ borderColor: flag === null ? '#18211D' : '#E5EBE8', color: '#5B6660' }}>○</span>
               </button>
               {FLAG_COLORS.map((f) => (
@@ -1499,7 +1499,7 @@ export function AddTransactionSheet({
               {effectivePartnerId ? (
                 <div className="rounded-2xl p-3 border" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', borderColor: '#E5EBE8' }}>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-bold" style={{ color: '#5B6660' }}>¿Cómo lo dividen?</p>
+                    <p className="text-xs font-bold" style={{ color: '#5B6660' }}>Chia như thế nào?</p>
                     <div className="flex gap-1">
                       {[
                         { label: '50/50', v: 50 },
@@ -1544,7 +1544,7 @@ export function AddTransactionSheet({
                 </div>
               ) : (
                 <p className="text-[11px]" style={{ color: '#B8860B' }}>
-                  ⚠️ Invitá a tu pareja al hogar para poder dividir el gasto.
+                  ⚠️ Hãy mời bạn đời vào hộ gia đình để chia khoản chi.
                 </p>
               )}
             </div>
@@ -1554,10 +1554,10 @@ export function AddTransactionSheet({
           {canInstallments && (
             <div className="px-4 mt-3">
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-xs font-bold" style={{ color: '#5B6660' }}>Cuotas</p>
+                <p className="text-xs font-bold" style={{ color: '#5B6660' }}>Kỳ trả góp</p>
                 {useInstallments && (
                   <p className="text-xs font-bold" style={{ color: '#FF6F61' }}>
-                    {installments} × {formatARS(perInstallment)} por mes
+                    {installments} × {formatARS(perInstallment)} mỗi tháng
                   </p>
                 )}
               </div>
@@ -1584,7 +1584,7 @@ export function AddTransactionSheet({
           <div className="px-4 mt-3">
             <input
               type="text"
-              placeholder={isSettle ? 'Nota (opcional)' : 'Descripción (opcional)'}
+              placeholder={isSettle ? 'Ghi chú (không bắt buộc)' : 'Mô tả (không bắt buộc)'}
               value={merchant}
               onChange={(e) => {
                 const v = e.target.value;
@@ -1614,7 +1614,7 @@ export function AddTransactionSheet({
                 className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
                 style={{ background: '#DDF0E8', color: '#1F8A68' }}
               >
-                <span>↩︎ Categoría sugerida: {suggestedCat.icon} {suggestedCat.name}</span>
+                <span>↩︎ Danh mục gợi ý: {suggestedCat.icon} {suggestedCat.name}</span>
                 <span style={{ color: '#5B6660' }}>✕</span>
               </button>
             )}
@@ -1636,7 +1636,7 @@ export function AddTransactionSheet({
         >
           {txType === 'expense' && !categoryId && nativeAmount > 0 && (
             <p className="text-[11px] mb-2 text-center" style={{ color: '#C79A2B' }}>
-              Elegí una categoría para que el gasto entre en un sobre.
+              Hãy chọn danh mục để khoản chi được tính vào phong bì.
             </p>
           )}
           <PrimaryButton
@@ -1645,19 +1645,19 @@ export function AddTransactionSheet({
             loading={saving}
             className="w-full py-4 text-lg"
           >
-            {saving ? 'Guardando…' : 'Guardar'}
+            {saving ? 'Đang lưu…' : 'Lưu'}
           </PrimaryButton>
         </div>
       </SheetContent>
       <ConfirmDialog
         open={confirmDelete}
-        title="¿Eliminar movimiento?"
+        title="Xóa giao dịch?"
         message={
           editTx?.installment_total && editTx.installment_total > 1
-            ? 'Se elimina solo esta cuota. Las demás cuotas quedan registradas.'
-            : 'Esta acción no se puede deshacer.'
+            ? 'Chỉ xóa kỳ trả góp này. Các kỳ còn lại vẫn được giữ.'
+            : 'Bạn không thể hoàn tác hành động này.'
         }
-        confirmLabel={deleting ? 'Eliminando…' : 'Eliminar'}
+        confirmLabel={deleting ? 'Đang xóa…' : 'Xóa'}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
       />

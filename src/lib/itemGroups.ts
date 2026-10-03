@@ -49,6 +49,33 @@ export const ITEM_GROUP_META: Record<string, { icon: string; color: string; labe
   otros: { icon: '🏷️', color: '#B0BAB4', label: 'Khác' },
 };
 
+// Stored item-group keys remain Spanish for parser/database compatibility; this
+// map keeps their user-facing labels localized without changing persisted data.
+export const ITEM_GROUP_LABELS: Record<string, string> = {
+  'frutas y verduras': 'Rau củ quả',
+  'carnes y fiambres': 'Thịt và thịt nguội',
+  'lácteos y huevos': 'Sữa và trứng',
+  almacén: 'Thực phẩm khô',
+  panadería: 'Bánh mì',
+  agua: 'Nước',
+  bebidas: 'Đồ uống',
+  snacks: 'Đồ ăn vặt',
+  limpieza: 'Đồ vệ sinh',
+  'cuidado personal': 'Chăm sóc cá nhân',
+  hogar: 'Đồ gia dụng',
+  mascotas: 'Thú cưng',
+  café: 'Cà phê',
+  'tostados y sándwiches': 'Bánh mì nướng và sandwich',
+  pastelería: 'Bánh ngọt',
+  'desayuno y bowls': 'Bữa sáng và bowl',
+  'jugos y licuados': 'Nước ép và sinh tố',
+  otros: 'Khác',
+};
+
+export function groupLabel(group: string): string {
+  return ITEM_GROUP_LABELS[group] ?? group;
+}
+
 // The cafetería/gastronomía subset of the taxonomy — used by the receipt parser
 // to classify café-ticket items and by /cafes to know which rubros are "café".
 export const CAFE_ITEM_GROUPS: readonly string[] = [

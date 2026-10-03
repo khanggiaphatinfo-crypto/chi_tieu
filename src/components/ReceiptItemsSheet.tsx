@@ -8,7 +8,7 @@ import { MoneyInput } from '@/components/MoneyInput';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { createClient } from '@/lib/supabase';
 import { formatARS, formatUSD } from '@/lib/format';
-import { ITEM_GROUPS, groupMeta } from '@/lib/itemGroups';
+import { ITEM_GROUPS, groupLabel, groupMeta } from '@/lib/itemGroups';
 import { toast } from 'sonner';
 
 interface ReceiptItemsSheetProps {
@@ -183,10 +183,10 @@ export function ReceiptItemsSheet({
       }
 
       await invalidateItemQueries();
-      toast.success('Productos actualizados ✓');
+      toast.success('Đã cập nhật sản phẩm ✓');
       setEditing(false);
     } catch (e) {
-      toast.error('No se pudo guardar. Intentá de nuevo.');
+      toast.error('Không thể lưu. Hãy thử lại.');
       console.error(e);
     } finally {
       setSaving(false);
@@ -221,9 +221,9 @@ export function ReceiptItemsSheet({
       });
       if (error) throw error;
       await invalidateItemQueries();
-      toast.success(`Asignado a ${group} ✓`);
+      toast.success(`Đã gán vào ${groupLabel(group)} ✓`);
     } catch (e) {
-      toast.error('No se pudo asignar. Intentá de nuevo.');
+      toast.error('Không thể gán. Hãy thử lại.');
       console.error(e);
     } finally {
       setSaving(false);
@@ -263,7 +263,7 @@ export function ReceiptItemsSheet({
             </p>
             {tip > 0 && (
               <p className="text-[11px] mt-0.5" style={{ color: '#8C968F' }}>
-                Incluye {fmt(tip)} de propina
+                Incluye {fmt(tip)} de tiền boa
               </p>
             )}
           </div>
@@ -272,21 +272,21 @@ export function ReceiptItemsSheet({
             {isLoading ? (
               <div className="rounded-3xl p-8 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                 <p className="text-3xl mb-2 animate-pulse">🧾</p>
-                <p className="text-sm" style={{ color: '#5B6660' }}>Cargando productos…</p>
+                <p className="text-sm" style={{ color: '#5B6660' }}>Đang tải sản phẩm…</p>
               </div>
             ) : items.length === 0 && !editing ? (
               <div className="rounded-3xl p-6" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                 <div className="text-center">
                   <p className="text-3xl mb-2">📭</p>
-                  <p className="font-bold mb-1" style={{ color: '#18211D' }}>Sin detalle de productos</p>
+                  <p className="font-bold mb-1" style={{ color: '#18211D' }}>Chưa có chi tiết sản phẩm</p>
                   <p className="text-sm" style={{ color: '#5B6660' }}>
-                    Este gasto no tiene ítems cargados. Asignalo entero a un rubro, o cargá los productos uno por uno.
+                    Khoản chi này chưa có sản phẩm. Gán toàn bộ vào một nhóm hoặc thêm từng sản phẩm.
                   </p>
                 </div>
 
                 {/* Quick: whole purchase as one rubro */}
                 <p className="text-[11px] font-bold uppercase tracking-wide mt-5 mb-2" style={{ color: '#8C968F' }}>
-                  Asignar toda la compra ({fmt(total)}) a un rubro
+                  Gán toàn bộ hóa đơn ({fmt(total)}) vào một nhóm
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {ITEM_GROUPS.map((g) => {
@@ -300,7 +300,7 @@ export function ReceiptItemsSheet({
                         style={{ borderColor: '#E5EBE8', color: '#18211D', background: '#F1F5F3' }}
                       >
                         <span>{meta.icon}</span>
-                        <span className="capitalize">{g}</span>
+                        <span className="capitalize">{groupLabel(g)}</span>
                       </button>
                     );
                   })}
@@ -308,7 +308,7 @@ export function ReceiptItemsSheet({
 
                 <div className="flex items-center gap-3 my-4">
                   <div className="flex-1 h-px" style={{ background: '#E5EBE8' }} />
-                  <span className="text-[11px]" style={{ color: '#8C968F' }}>o</span>
+                  <span className="text-[11px]" style={{ color: '#8C968F' }}>hoặc</span>
                   <div className="flex-1 h-px" style={{ background: '#E5EBE8' }} />
                 </div>
 
@@ -317,7 +317,7 @@ export function ReceiptItemsSheet({
                   className="w-full py-2.5 rounded-2xl text-sm font-bold"
                   style={{ background: '#DDF0E8', color: '#1F8A68' }}
                 >
-                  ＋ Cargar productos uno por uno
+                  ＋ Thêm từng sản phẩm
                 </button>
               </div>
             ) : (
@@ -326,7 +326,7 @@ export function ReceiptItemsSheet({
                 {groupTotals.length > 0 && (
                   <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                     <p className="text-xs font-bold uppercase tracking-wide mb-4" style={{ color: '#5B6660' }}>
-                      En qué se fue
+                      Chi tiêu vào
                     </p>
                     <div className="flex flex-col gap-3.5">
                       {groupTotals.map(({ g, total: gt }) => {
@@ -336,7 +336,7 @@ export function ReceiptItemsSheet({
                           <div key={g}>
                             <div className="flex items-center gap-2 mb-1.5">
                               <span className="text-sm">{meta.icon}</span>
-                              <span className="text-sm capitalize flex-1 truncate" style={{ color: '#18211D' }}>{g}</span>
+                              <span className="text-sm capitalize flex-1 truncate" style={{ color: '#18211D' }}>{groupLabel(g)}</span>
                               <span className="text-[11px] font-semibold tabular-nums" style={{ color: '#8C968F' }}>{pct}%</span>
                               <span className="text-sm font-bold tabular-nums" style={{ color: meta.color }}>{fmt(gt)}</span>
                             </div>
@@ -360,7 +360,7 @@ export function ReceiptItemsSheet({
                 <div className="rounded-3xl p-3" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
                   <div className="flex items-center justify-between mb-2 px-2">
                     <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>
-                      Productos ({items.length})
+                      Sản phẩm ({items.length})
                     </p>
                     {!editing && (
                       <button
@@ -384,7 +384,7 @@ export function ReceiptItemsSheet({
                             <input
                               value={it.name}
                               onChange={(e) => updateItem(it.key, { name: e.target.value })}
-                              placeholder="Producto"
+                              placeholder="Tên sản phẩm"
                               className="flex-1 min-w-0 text-sm outline-none bg-transparent"
                               style={{ color: '#18211D' }}
                             />
@@ -395,7 +395,7 @@ export function ReceiptItemsSheet({
                               style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
                             >
                               {ITEM_GROUPS.map((g) => (
-                                <option key={g} value={g}>{groupMeta(g).icon} {g}</option>
+                                <option key={g} value={g}>{groupMeta(g).icon} {groupLabel(g)}</option>
                               ))}
                             </select>
                             <MoneyInput
@@ -418,9 +418,9 @@ export function ReceiptItemsSheet({
                               <span className="text-base shrink-0">{meta.icon}</span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm truncate" style={{ color: '#18211D' }}>
-                                  {it.qty && it.qty > 1 ? `${it.qty}× ` : ''}{it.name || 'Sin nombre'}
+                                  {it.qty && it.qty > 1 ? `${it.qty}× ` : ''}{it.name || 'Không có tên'}
                                 </p>
-                                <p className="text-[11px] capitalize" style={{ color: '#8C968F' }}>{it.group}</p>
+                                <p className="text-[11px] capitalize" style={{ color: '#8C968F' }}>{groupLabel(it.group)}</p>
                               </div>
                               <span className="text-sm font-bold tabular-nums shrink-0" style={{ color: '#18211D' }}>
                                 {fmt(it.line_total)}
@@ -436,24 +436,24 @@ export function ReceiptItemsSheet({
                       className="w-full mt-2 py-2.5 rounded-2xl text-sm font-bold border border-dashed"
                       style={{ borderColor: '#2FA37C', color: '#1F8A68' }}
                     >
-                      ＋ Agregar producto
+                      ＋ Thêm sản phẩm
                     </button>
                   )}
                 </div>
 
                 {/* Items subtotal (+ separately-charged tip, when folded in) */}
                 <div className="flex items-center justify-between px-2">
-                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Suma de productos</span>
+                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Tổng sản phẩm</span>
                   <span className="text-sm font-black tabular-nums" style={{ color: '#18211D' }}>{fmt(itemsSum)}</span>
                 </div>
                 {tip > 0 && (
                   <>
                     <div className="flex items-center justify-between px-2 -mt-2">
-                      <span className="text-xs" style={{ color: '#8C968F' }}>Propina</span>
+                      <span className="text-xs" style={{ color: '#8C968F' }}>Tiền boa</span>
                       <span className="text-sm font-semibold tabular-nums" style={{ color: '#6F4E37' }}>{fmt(tip)}</span>
                     </div>
                     <div className="flex items-center justify-between px-2 -mt-2">
-                      <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Total visita</span>
+                      <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Tổng hóa đơn</span>
                       <span className="text-sm font-black tabular-nums" style={{ color: '#18211D' }}>{fmt(total + tip)}</span>
                     </div>
                   </>
@@ -462,14 +462,14 @@ export function ReceiptItemsSheet({
                 {editing && (
                   <div className="flex flex-col gap-2">
                     <PrimaryButton onClick={handleSave} loading={saving} className="w-full py-3.5 text-sm">
-                      {saving ? 'Guardando…' : 'Guardar cambios'}
+                      {saving ? 'Đang lưu…' : 'Lưu thay đổi'}
                     </PrimaryButton>
                     <button
                       onClick={() => setEditing(false)}
                       className="w-full py-2.5 rounded-2xl text-sm font-bold"
                       style={{ color: '#5B6660' }}
                     >
-                      Cancelar
+                      Hủy
                     </button>
                   </div>
                 )}
