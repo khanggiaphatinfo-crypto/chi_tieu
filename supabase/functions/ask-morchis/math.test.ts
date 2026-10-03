@@ -152,13 +152,13 @@ describe('buildPrimer', () => {
       blue: BLUE, pm: { [ME]: 'Lucas', [PARTNER]: 'Sofi' },
       askerId: ME, partnerId: PARTNER, catNames: 'Súper, Delivery',
     });
-    expect(primer).toContain('Quien te escribe es Lucas. Su pareja es Sofi.');
+    expect(primer).toContain('Người đang viết cho bạn là Lucas. Người yêu của họ là Sofi.');
     expect(primer).toContain('Súper, Delivery');
     expect(primer).toContain('ARS');
   });
   it('falls back gracefully with no partner / no categories', () => {
     const primer = buildPrimer({ blue: BLUE, pm: { [ME]: 'Lucas' }, askerId: ME, partnerId: null, catNames: '' });
-    expect(primer).toContain('su pareja');
-    expect(primer).toContain('n/d');
+    expect(primer).toContain('người yêu của họ');
+    expect(primer).toContain('không có dữ liệu');
   });
 });
