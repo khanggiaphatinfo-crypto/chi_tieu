@@ -16,10 +16,10 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { SecondaryButton } from '@/components/SecondaryButton';
 
 const ACCOUNT_TYPES = [
-  { value: 'checking', label: 'Cuenta corriente' },
-  { value: 'savings', label: 'Caja de ahorro' },
-  { value: 'cash', label: 'Efectivo' },
-  { value: 'credit', label: 'Tarjeta de crédito' },
+  { value: 'checking', label: 'Tài khoản thanh toán' },
+  { value: 'savings', label: 'Tài khoản tiết kiệm' },
+  { value: 'cash', label: 'Tiền mặt' },
+  { value: 'credit', label: 'Thẻ tín dụng' },
 ];
 
 // Whole days from today to an ISO date (negative = already past).

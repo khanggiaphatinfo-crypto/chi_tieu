@@ -237,7 +237,7 @@ function SettleUpSheet({
         {/* Amount — defaults to the current balance; type any amount you want. */}
         <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿Cuánto paga? (ARS)</p>
         <div className="flex items-center gap-2 mb-2">
-          {/* MoneyInput handles the es-AR convention ('.' thousands, ',' decimal),
+          {/* MoneyInput handles the Vietnamese convention ('.' thousands, ',' decimal),
               so typing "15.000" means fifteen thousand, not fifteen pesos. */}
           <MoneyInput
             value={amountVal}
