@@ -3,16 +3,15 @@
 import { useEffect, useState } from 'react';
 import { roundMoney, evalMoneyExpr, hasMoneyOperator } from '@/lib/format';
 
-// Text input that shows the amount with es-AR thousand separators
-// (e.g. 4.500.000) while storing a number with up to 2 decimals. Avoids
-// miscounting zeros on the large ARS amounts common in Argentina, and lets
-// the user type cents (e.g. 193,35) for USD.
+// Text input that shows the amount with vi-VN thousand separators
+// (e.g. 4.500.000) while storing a number with up to 2 decimals. Allows
+// users to type cents (e.g. 193,35) for decimal amounts.
 //
-// Convention (es-AR, unambiguous): ',' is the decimal separator; '.' is always
+// Convention (comma-decimal, unambiguous): ',' is the decimal separator; '.' is always
 // a thousands separator and is stripped. This is what keeps "1234" -> "1.234"
 // from being misread as 1,23 on the next keystroke.
 
-// es-AR formatted string -> number with up to 2 decimals.
+// Formatted string -> number with up to 2 decimals.
 function esARToNumber(formatted: string): number {
   const norm = formatted.replace(/\./g, '').replace(',', '.');
   const n = parseFloat(norm);
@@ -22,7 +21,7 @@ function esARToNumber(formatted: string): number {
 // Display an already-known numeric value for editing (no currency symbol).
 function formatValue(v: number): string {
   if (!v) return '';
-  return v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return v.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 // Re-group what the user is typing: thousands on the integer part, keep a
@@ -34,7 +33,7 @@ function formatTyping(raw: string): string {
   const intDigits = intRaw.replace(/\D/g, '');
   const decDigits = decRaw.replace(/\D/g, '').slice(0, 2);
   const intFmt = intDigits
-    ? parseInt(intDigits, 10).toLocaleString('es-AR')
+    ? parseInt(intDigits, 10).toLocaleString('vi-VN')
     : firstComma === -1
       ? ''
       : '0';
