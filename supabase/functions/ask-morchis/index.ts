@@ -295,10 +295,10 @@ const TOOLS = [
     input_schema: {
       type: 'object',
       properties: {
-        category: { type: 'string', description: 'nombre de la categoría de gasto' },
+        category: { type: 'string', description: 'tên danh mục chi tiêu' },
         amount: { type: 'number', description: 'monto del presupuesto, positivo' },
         currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (mặc định) hoặc USD' },
-        cadence: { type: 'string', enum: ['monthly', 'weekly'], description: 'mensual (default) o semanal' },
+        cadence: { type: 'string', enum: ['monthly', 'weekly'], description: 'hàng tháng (mặc định) hoặc hàng tuần' },
       },
       required: ['category', 'amount'],
     },
@@ -315,7 +315,7 @@ async function runTool(name: string, input: Record<string, unknown>, ctx: Ctx): 
     case 'get_recurring': return await getRecurring(ctx);
     case 'aggregate_items': return await aggregateItems(ctx, input as ItemAggInput);
     case 'project_month': return await projectMonth(ctx, input as ProjInput);
-    default: return { error: 'herramienta desconocida' };
+    default: return { error: 'Công cụ không xác định' };
   }
 }
 
@@ -345,7 +345,7 @@ async function buildAction(ctx: Ctx, kind: string, input: Record<string, unknown
   if (kind === 'record_transaction') {
     const type = input.type === 'income' ? 'income' : 'expense';
     const amount = Number(input.amount);
-    if (!amount || amount <= 0) return { error: 'El monto tiene que ser un número positivo.' };
+    if (!amount || amount <= 0) return { error: 'Số tiền phải là một số dương.' };
     const currency = input.currency === 'USD' ? 'USD' : 'ARS';
     const occurred_on = (typeof input.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.date)) ? input.date : todayISO();
     const cat = await resolveCategory(ctx, input.category, type);
@@ -362,27 +362,27 @@ async function buildAction(ctx: Ctx, kind: string, input: Record<string, unknown
   }
   if (kind === 'settle_debt') {
     const who = (input.counterparty ?? '').toString().trim();
-    if (!who) return { error: 'Decime con quién es la deuda.' };
+    if (!who) return { error: 'Hãy cho biết khoản nợ là với ai.' };
     const { data } = await ctx.admin.from('debts').select('id,counterparty,amount,currency').eq('household_id', ctx.hid).eq('settled', false);
     const debts = (data ?? []) as { id: string; counterparty: string; amount: number; currency: string }[];
     const matches = debts.filter(d => norm(d.counterparty).includes(norm(who)) || norm(who).includes(norm(d.counterparty)));
-    if (matches.length === 0) return { error: `No encontré deudas sin saldar con "${who}".` };
+    if (matches.length === 0) return { error: `Không tìm thấy khoản nợ chưa thanh toán với "${who}".` };
     const total = matches.reduce((s, d) => s + (d.currency === 'USD' ? d.amount * ctx.blue : d.amount), 0);
-    const summary = `Saldar ${matches.length} deuda${matches.length > 1 ? 's' : ''} con ${matches[0].counterparty} (≈ ${arsFmt(total)})`;
+    const summary = `Thanh toán ${matches.length} khoản nợ với ${matches[0].counterparty} (≈ ${arsFmt(total)})`;
     return { kind, payload: { ids: matches.map(d => d.id) }, summary };
   }
   if (kind === 'set_category_budget') {
     const cat = await resolveCategory(ctx, input.category, 'expense');
-    if (!cat.id) return { error: `No encontré la categoría "${(input.category ?? '').toString()}".` };
+    if (!cat.id) return { error: `Không tìm thấy danh mục "${(input.category ?? '').toString()}".` };
     const amount = Number(input.amount);
-    if (!amount || amount <= 0) return { error: 'El monto tiene que ser un número positivo.' };
+    if (!amount || amount <= 0) return { error: 'Số tiền phải là một số dương.' };
     const currency = input.currency === 'USD' ? 'USD' : 'ARS';
     const cadence = input.cadence === 'weekly' ? 'weekly' : 'monthly';
     const amountTxt = currency === 'USD' ? `US$${amount}` : arsFmt(amount);
     const summary = `Presupuesto ${cadence === 'weekly' ? 'semanal' : 'mensual'} de ${amountTxt} para ${cat.name}`;
     return { kind, payload: { category_id: cat.id, target_amount: amount, currency, cadence }, summary };
   }
-  return { error: 'Acción desconocida.' };
+  return { error: 'Hành động không xác định.' };
 }
 
 // Execute a confirmed action. Re-derives household/owner from ctx (never trusts
@@ -393,7 +393,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
     const p = { ...action.payload, household_id: ctx.hid, profile_id: ctx.askerId, scope: 'personal', is_shared: false, source: 'manual' };
     const { error } = await ctx.admin.from('transactions').insert(p);
     if (error) throw error;
-    return `Listo, lo anoté: ${action.summary}. ✅`;
+    return `Đã ghi nhận: ${action.summary}. ✅`;
   }
   if (action.kind === 'settle_debt') {
     const wanted = (action.payload.ids as string[]) ?? [];
@@ -402,7 +402,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
     if (ids.length === 0) throw new Error('no matching debts');
     const { error } = await ctx.admin.from('debts').update({ settled: true }).in('id', ids);
     if (error) throw error;
-    return `Listo, marqué como saldada${ids.length > 1 ? 's' : ''} ${ids.length} deuda${ids.length > 1 ? 's' : ''}. ✅`;
+    return `Đã đánh dấu ${ids.length} khoản nợ đã thanh toán. ✅`;
   }
   if (action.kind === 'set_category_budget') {
     const p = action.payload as { category_id: string; target_amount: number; currency: string; cadence: string };
@@ -416,7 +416,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
       const { error } = await ctx.admin.from('category_targets').insert({ household_id: ctx.hid, profile_id: ctx.askerId, category_id: p.category_id, target_amount: p.target_amount, currency: p.currency, cadence: p.cadence });
       if (error) throw error;
     }
-    return `Listo, ${action.summary.charAt(0).toLowerCase()}${action.summary.slice(1)}. ✅`;
+    return `Đã ghi nhận, ${action.summary.charAt(0).toLowerCase()}${action.summary.slice(1)}. ✅`;
   }
   if (action.kind === 'record_receipt') {
     // Confirmed from the photo flow: the client parsed a receipt (parse-receipt)
@@ -437,7 +437,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
     const rows = items.filter(it => it && it.name && Number(it.line_total) > 0)
       .map(it => ({ household_id: ctx.hid, transaction_id: (tx as { id: string }).id, name: String(it.name).slice(0, 200), qty: Number(it.qty) || 1, line_total: Number(it.line_total), item_group: it.group || 'otros' }));
     if (rows.length) await ctx.admin.from('transaction_items').insert(rows);
-    return `Listo, cargué el ticket: ${action.summary}. ✅`;
+    return `Đã ghi nhận hóa đơn: ${action.summary}. ✅`;
   }
   throw new Error('unknown action');
 }
@@ -464,19 +464,19 @@ Deno.serve(async (req: Request) => {
   } else {
     const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: cors });
+    if (!user) return new Response(JSON.stringify({ error: 'Không được phép' }), { status: 401, headers: cors });
     const { data: prof } = await admin.from('profiles').select('household_id').eq('id', user.id).single();
     hid = prof?.household_id ?? null;
     askerId = user.id;
   }
-  if (!hid) return new Response(JSON.stringify({ error: 'No household' }), { status: 400, headers: cors });
+  if (!hid) return new Response(JSON.stringify({ error: 'Chưa có hộ gia đình' }), { status: 400, headers: cors });
 
   let body: { question?: string; history?: { role: string; content: string }[]; as?: string; confirm?: PendingAction } = {};
   try { body = await req.json(); } catch { /* empty */ }
   const question = (body.question ?? '').trim();
   // A request carries EITHER a question (chat turn) or a confirm (execute a
   // previously-previewed action). Reject only when both are missing.
-  if (!question && !body.confirm) return new Response(JSON.stringify({ error: 'question requerida' }), { status: 400, headers: cors });
+  if (!question && !body.confirm) return new Response(JSON.stringify({ error: 'câu hỏi bắt buộc' }), { status: 400, headers: cors });
 
   const [{ data: fxRow }, { data: profs }, { data: debtRows }, { data: cats }] = await Promise.all([
     admin.from('fx_rates').select('ars_per_usd').eq('source', 'blue').order('date', { ascending: false }).limit(1).maybeSingle(),
@@ -510,7 +510,7 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ ok: true, answer }), { headers: cors });
     } catch (e) {
       console.error('executeAction failed', e);
-      return new Response(JSON.stringify({ ok: true, answer: 'Uy, no pude completar esa acción. Probá de nuevo en un ratito.' }), { headers: cors });
+      return new Response(JSON.stringify({ ok: true, answer: 'Rất tiếc, không thể hoàn tất hành động này. Hãy thử lại sau một lát.' }), { headers: cors });
     }
   }
 
@@ -570,7 +570,7 @@ Deno.serve(async (req: Request) => {
     suggestions = sm[1].split('|').map(s => s.trim()).filter(Boolean).slice(0, 3);
     answer = answer.replace(/\n?[ \t]*SUGERENCIAS:.*$/im, '').trim();
   }
-  if (!answer) answer = pending ? `Voy a registrar: ${pending.summary}. Confirmá abajo 👇` : 'Uy, no pude llegar a una respuesta. Probá reformulando la pregunta.';
+  if (!answer) answer = pending ? `Sẽ ghi nhận: ${pending.summary}. Hãy xác nhận bên dưới 👇` : 'Rất tiếc, chưa thể trả lời. Hãy thử diễn đạt lại câu hỏi.';
   if (pending) suggestions = [];
 
   return new Response(JSON.stringify({ ok: true, answer, pending_action: pending, suggestions }), { headers: cors });

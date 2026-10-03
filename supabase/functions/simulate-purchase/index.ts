@@ -23,14 +23,14 @@ Deno.serve(async (req: Request) => {
   const admin = createClient(supabaseUrl, serviceKey);
 
   const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return new Response('Unauthorized', { status: 401 });
+  if (!user) return new Response('Không được phép', { status: 401 });
 
   const { data: profile } = await admin.from('profiles').select('household_id').eq('id', user.id).single();
-  if (!profile?.household_id) return new Response('No household', { status: 400 });
+  if (!profile?.household_id) return new Response('Chưa có hộ gia đình', { status: 400 });
   const hid = profile.household_id;
 
   const { text } = await req.json();
-  if (!text?.trim()) return new Response(JSON.stringify({ error: 'text requerido' }), { status: 400 });
+  if (!text?.trim()) return new Response(JSON.stringify({ error: 'cần có nội dung' }), { status: 400 });
 
   // ── 1. Fetch all data in parallel ────────────────────────────────────────
   const today = artNow();
