@@ -55,14 +55,14 @@ export default function AnalisisClient({
   const [breakdownMonth, setBreakdownMonth] = useState<string | null>(null);
   // Category whose 6-month spend trend is being drilled into (null = closed).
   const [drillCat, setDrillCat] = useState<{ id: string; name: string; icon: string } | null>(null);
-  // scope: 'me' (Mío) | 'all' (Nuestro) | 'partner' — default to "Mío"
+  // scope: 'me' (Của tôi) | 'all' (Của chúng ta) | 'partner' — mặc định là "Của tôi"
   const [scope, setScope] = useState<'me' | 'all' | 'partner'>('me');
   const scopeProfileId =
     scope === 'me' ? profile.id : scope === 'partner' ? partnerProfileId : undefined;
   const scopeTabs = [
-    { key: 'me' as const, label: 'Mío' },
-    { key: 'all' as const, label: 'Nuestro' },
-    ...(partnerProfileId ? [{ key: 'partner' as const, label: partnerName || 'Pareja' }] : []),
+    { key: 'me' as const, label: 'Của tôi' },
+    { key: 'all' as const, label: 'Của chúng ta' },
+    ...(partnerProfileId ? [{ key: 'partner' as const, label: partnerName || 'Bạn đời' }] : []),
   ];
 
   // Computed once per mount so they stay referentially stable across renders
@@ -83,7 +83,7 @@ export default function AnalisisClient({
   const bIdx = months.findIndex((m) => m.key === bMonth);
   const bMonthLabel = (() => {
     const [y, m] = bMonth.split('-').map(Number);
-    const s = new Date(y, m - 1, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    const s = new Date(y, m - 1, 1).toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
     return s.charAt(0).toUpperCase() + s.slice(1);
   })();
 
@@ -275,7 +275,7 @@ export default function AnalisisClient({
     const topCats = catRows.slice(0, TOP);
     const restTotal = catRows.slice(TOP).reduce((s, r) => s + r.value, 0);
     const segments = topCats.map((r) => ({ label: r.cat!.name, value: r.value, color: r.color }));
-    if (restTotal > 0) segments.push({ label: 'Otras', value: restTotal, color: '#B0BAB4' });
+    if (restTotal > 0) segments.push({ label: 'Khác', value: restTotal, color: '#B0BAB4' });
 
     // Subscriptions radar — current-month spend in subscription-type categories.
     // Match by keyword (substring) so variants like "Suscripción" or "Streaming
@@ -464,7 +464,7 @@ export default function AnalisisClient({
       if (t.type !== 'expense' || !t.occurred_on.startsWith(bMonth) || t.occurred_on > todayStr) continue;
       const share = expenseShareArs(t, scopeProfileId);
       if (share <= 0) continue;
-      const name = t.merchant?.trim() || 'Sin comercio';
+      const name = t.merchant?.trim() || 'Không có cửa hàng';
       byMerchant.set(name, (byMerchant.get(name) ?? 0) + share);
     }
     const all = [...byMerchant.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
@@ -550,7 +550,7 @@ export default function AnalisisClient({
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error('Iniciá sesión de nuevo para actualizar.');
+        toast.error('Vui lòng đăng nhập lại để cập nhật.');
         return;
       }
       const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-insights`, {
@@ -563,15 +563,15 @@ export default function AnalisisClient({
       if (!res.ok || !data?.ok) {
         toast.error(
           data && data.generated === 0
-            ? 'No se generaron insights (faltan datos del mes o el análisis falló). Probá más tarde.'
-            : 'No se pudieron actualizar los insights. Probá de nuevo.',
+            ? 'Chưa tạo insight nào (thiếu dữ liệu tháng hoặc phân tích thất bại). Hãy thử lại sau.'
+            : 'Không thể cập nhật insight. Hãy thử lại.',
         );
         return;
       }
-      toast.success(`${data.generated} insight${data.generated === 1 ? '' : 's'} actualizado${data.generated === 1 ? '' : 's'} ✓`);
+      toast.success(`${data.generated} insight${data.generated === 1 ? '' : 's'} đã cập nhật${data.generated === 1 ? '' : ''} ✓`);
     } catch (e) {
       console.error(e);
-      toast.error('No se pudieron actualizar los insights. Probá de nuevo.');
+      toast.error('Không thể cập nhật insight. Hãy thử lại.');
     } finally {
       setRefreshing(false);
     }
@@ -580,7 +580,7 @@ export default function AnalisisClient({
   return (
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 sticky top-0 z-20 md:static" style={{ background: '#F1F5F3' }}>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Análisis 📊</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Phân tích 📊</h1>
       </header>
 
       {/* Scope toggle: Mío / Nuestro / pareja */}
@@ -610,7 +610,7 @@ export default function AnalisisClient({
           >
             <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
             <div className="relative flex items-center justify-between">
-              <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>💰 Patrimonio</p>
+              <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>💰 Tài sản</p>
               {nwDelta != null && (
                 <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.22)', color: '#FFFFFF' }}>
                   {nwDelta >= 0 ? '▲' : '▼'} {formatARS(Math.abs(nwDelta))}
@@ -620,7 +620,7 @@ export default function AnalisisClient({
             <p className="relative text-[2.4rem] leading-none font-black mt-2 tracking-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>
               {formatARS(currentNetWorth)}
             </p>
-            <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Evolución últimos meses</p>
+            <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Diễn biến các tháng gần đây</p>
           </div>
           <div className="px-5 py-4">
             <SingleBars rows={nwRows} color="#2FA37C" />
@@ -629,7 +629,7 @@ export default function AnalisisClient({
 
         {/* Composition: on-budget cash vs tracking vs card debt */}
         <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>🧩 Composición</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>🧩 Cơ cấu</p>
           {(() => {
             const total = Math.max(1, composition.onBudget + composition.tracking);
             return (
@@ -639,9 +639,9 @@ export default function AnalisisClient({
                   <div style={{ width: `${(composition.tracking / total) * 100}%`, background: '#7AA6E6' }} />
                 </div>
                 {[
-                  { label: '💵 En presupuesto', v: composition.onBudget, c: '#1F8A68' },
-                  { label: '👁️ Seguimiento', v: composition.tracking, c: '#4E84E0' },
-                  { label: '💳 Deuda tarjetas (ciclo)', v: -composition.cardDebt, c: '#E25749' },
+                  { label: '💵 Trong ngân sách', v: composition.onBudget, c: '#1F8A68' },
+                  { label: '👁️ Theo dõi', v: composition.tracking, c: '#4E84E0' },
+                  { label: '💳 Nợ thẻ (kỳ)', v: -composition.cardDebt, c: '#E25749' },
                 ].map((r) => (
                   <div key={r.label} className="flex items-center justify-between py-1">
                     <span className="text-sm" style={{ color: '#5B6660' }}>{r.label}</span>
@@ -659,17 +659,17 @@ export default function AnalisisClient({
         {/* Age of Money — YNAB Reflect signature metric */}
         {ageOfMoney != null && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: '#5B6660' }}>🕰️ Antigüedad del dinero</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: '#5B6660' }}>🕰️ Tuổi của tiền</p>
             <div className="flex items-end gap-2">
               <p className="text-3xl font-black leading-none" style={{ color: '#18211D', fontVariantNumeric: 'tabular-nums' }}>{ageOfMoney}</p>
-              <p className="text-sm font-bold mb-0.5" style={{ color: '#5B6660' }}>{ageOfMoney === 1 ? 'día' : 'días'}</p>
+              <p className="text-sm font-bold mb-0.5" style={{ color: '#5B6660' }}>{ageOfMoney === 1 ? 'ngày' : 'ngày'}</p>
             </div>
             <p className="text-[11px] mt-2" style={{ color: '#5B6660' }}>
               {ageOfMoney < 30
-                ? 'Gastás plata que entró hace poco — vivís bastante al día.'
+                ? 'Bạn đang tiêu tiền vừa nhận — dòng tiền khá sát ngày.'
                 : ageOfMoney < 60
-                  ? 'Buen colchón: gastás plata de hace más de un mes.'
-                  : 'Gran colchón: la plata que gastás tiene más de dos meses. 🎉'}
+                  ? 'Đệm tốt: bạn đang tiêu tiền từ hơn một tháng trước.'
+                  : 'Đệm lớn: số tiền bạn tiêu đã có từ hơn hai tháng trước. 🎉'}
             </p>
           </div>
         )}
@@ -678,16 +678,16 @@ export default function AnalisisClient({
         {savingsVsTarget.rate != null && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>🎯 Ahorro vs meta</p>
+              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>🎯 Tiết kiệm so với mục tiêu</p>
               <span className="text-xs font-bold" style={{ color: savingsVsTarget.rate >= savingsVsTarget.target ? '#1F8A68' : '#C79A2B' }}>
-                {Math.round(savingsVsTarget.rate * 100)}% / meta {Math.round(savingsVsTarget.target * 100)}%
+                {Math.round(savingsVsTarget.rate * 100)}% / mục tiêu {Math.round(savingsVsTarget.target * 100)}%
               </span>
             </div>
             <div className="h-3 rounded-full overflow-hidden" style={{ background: '#E5EBE8' }}>
               <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, savingsVsTarget.rate * 100))}%`, background: savingsVsTarget.rate >= savingsVsTarget.target ? '#2FA37C' : '#F5A623' }} />
             </div>
             <p className="text-[11px] mt-2" style={{ color: '#5B6660' }}>
-              {savingsVsTarget.rate >= savingsVsTarget.target ? '¡Vas por arriba de tu meta de ahorro! 🎉' : 'Estás por debajo de tu meta de ahorro de este mes.'}
+              {savingsVsTarget.rate >= savingsVsTarget.target ? 'Bạn đang vượt mục tiêu tiết kiệm! 🎉' : 'Bạn đang dưới mục tiêu tiết kiệm tháng này.'}
             </p>
           </div>
         )}
@@ -701,7 +701,7 @@ export default function AnalisisClient({
               disabled={bIdx <= 0}
               className="w-8 h-8 rounded-full text-lg flex items-center justify-center transition-all active:scale-95"
               style={{ background: '#FFFFFF', color: bIdx <= 0 ? '#B0BAB4' : '#5B6660', boxShadow: bIdx <= 0 ? 'none' : 'var(--shadow-soft)' }}
-              aria-label="Mes anterior"
+              aria-label="Tháng trước"
             >
               ‹
             </button>
@@ -711,20 +711,20 @@ export default function AnalisisClient({
               disabled={bIdx >= months.length - 1}
               className="w-8 h-8 rounded-full text-lg flex items-center justify-center transition-all active:scale-95"
               style={{ background: '#FFFFFF', color: bIdx >= months.length - 1 ? '#B0BAB4' : '#5B6660', boxShadow: bIdx >= months.length - 1 ? 'none' : 'var(--shadow-soft)' }}
-              aria-label="Mes siguiente"
+              aria-label="Tháng sau"
             >
               ›
             </button>
           </div>
 
           {/* Total */}
-          <p className="text-xs font-bold uppercase tracking-wide text-center" style={{ color: '#5B6660' }}>Gasto total</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-center" style={{ color: '#5B6660' }}>Giao dịch tổng</p>
           <p className="text-3xl font-black text-center mb-3" style={{ color: '#18211D', fontVariantNumeric: 'tabular-nums' }}>
             {formatARS(monthExpense)}
           </p>
 
           {catRows.length === 0 ? (
-            <p className="text-sm text-center py-6" style={{ color: '#5B6660' }}>Sin gastos este mes.</p>
+            <p className="text-sm text-center py-6" style={{ color: '#5B6660' }}>Không có khoản chi tháng này.</p>
           ) : (
             <>
               {/* Segmented bar */}
@@ -765,11 +765,11 @@ export default function AnalisisClient({
         {weeklySpend.total > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center justify-between mb-1 gap-2">
-              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📅 Gasto por semana · {bMonthLabel}</p>
-              <span className="text-xs font-bold" style={{ color: '#5B6660' }}>prom {formatARS(Math.round(weeklySpend.avg))}</span>
+              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📅 Chi tiêu theo tuần · {bMonthLabel}</p>
+              <span className="text-xs font-bold" style={{ color: '#5B6660' }}>trung bình {formatARS(Math.round(weeklySpend.avg))}</span>
             </div>
             <p className="text-[11px] mb-3" style={{ color: '#5B6660' }}>
-              La semana del {weeklySpend.weeks[weeklySpend.maxIdx].from}–{weeklySpend.weeks[weeklySpend.maxIdx].to} fue la de mayor gasto.
+              Tuần {weeklySpend.weeks[weeklySpend.maxIdx].from}–{weeklySpend.weeks[weeklySpend.maxIdx].to} là tuần chi tiêu nhiều nhất.
             </p>
             <div className="flex flex-col gap-2.5">
               {weeklySpend.weeks.map((w, i) => {
@@ -796,9 +796,9 @@ export default function AnalisisClient({
         {fixedSplit.total > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center justify-between mb-3 gap-2">
-              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📌 Fijos vs variables · {bMonthLabel}</p>
+              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📌 Cố định và biến đổi · {bMonthLabel}</p>
               <span className="text-xs font-black px-2.5 py-1 rounded-full" style={{ background: '#EAF0ED', color: '#4E84E0' }}>
-                {Math.round(fixedSplit.pct * 100)}% comprometido
+                {Math.round(fixedSplit.pct * 100)}% đã cam kết
               </span>
             </div>
             <div className="flex h-2.5 rounded-full overflow-hidden mb-3" style={{ background: '#EAF0ED' }}>
@@ -806,8 +806,8 @@ export default function AnalisisClient({
               <div style={{ width: `${(fixedSplit.variable / fixedSplit.total) * 100}%`, background: '#FF6F61' }} />
             </div>
             {[
-              { label: '📌 Fijos', v: fixedSplit.fixed, c: '#4E84E0' },
-              { label: '🛒 Variables', v: fixedSplit.variable, c: '#FF6F61' },
+              { label: '📌 Cố định', v: fixedSplit.fixed, c: '#4E84E0' },
+              { label: '🛒 Biến đổi', v: fixedSplit.variable, c: '#FF6F61' },
             ].map((r) => (
               <div key={r.label} className="flex items-center justify-between py-1">
                 <span className="text-sm" style={{ color: '#5B6660' }}>{r.label}</span>
@@ -820,7 +820,7 @@ export default function AnalisisClient({
         {/* Top merchants (Spending by Payee) */}
         {topMerchants.rows.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>🏪 Top comercios · {bMonthLabel}</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>🏪 Top cửa hàng · {bMonthLabel}</p>
             <div className="flex flex-col gap-2.5">
               {topMerchants.rows.map((r) => {
                 const pct = topMerchants.total > 0 ? Math.round((r.value / topMerchants.total) * 100) : 0;
@@ -843,13 +843,13 @@ export default function AnalisisClient({
         {/* Biggest single expenses */}
         {biggestExpenses.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>💸 Gastos más grandes · {bMonthLabel}</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>💸 Các khoản chi lớn · {bMonthLabel}</p>
             <div className="flex flex-col gap-2.5">
               {biggestExpenses.map((e) => (
                 <div key={e.id} className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0" style={{ background: '#FFE5E0', boxShadow: 'var(--shadow-soft)' }}>{e.cat?.icon || '🧾'}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{e.merchant || e.cat?.name || 'Gasto'}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{e.merchant || e.cat?.name || 'Khoản chi'}</p>
                     <p className="text-[11px]" style={{ color: '#5B6660' }}>{e.date.slice(8, 10)}/{e.date.slice(5, 7)}{e.cat ? ` · ${e.cat.name}` : ''}</p>
                   </div>
                   <span className="text-sm font-black tabular-nums shrink-0" style={{ color: '#FF6F61' }}>{formatARS(e.value)}</span>
@@ -868,7 +868,7 @@ export default function AnalisisClient({
           )}
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>
-              📈 Ingresos vs gastos · {trendRange === '12M' ? '12 meses' : '6 meses'}
+              📈 Thu nhập và chi tiêu · {trendRange === '12M' ? '12 tháng' : '6 tháng'}
             </p>
             <div className="flex rounded-full p-0.5 gap-0.5" style={{ background: '#E5EBE8' }}>
               {(['6M', '12M'] as const).map((r) => (
@@ -908,17 +908,17 @@ export default function AnalisisClient({
               ))}
             </div>
             {inflationActive && (
-              <span className="text-[10px]" style={{ color: '#B0BAB4' }}>ajustado por inflación (INDEC)</span>
+              <span className="text-[10px]" style={{ color: '#B0BAB4' }}>đã điều chỉnh theo lạm phát (INDEC)</span>
             )}
           </div>
           <div className="flex items-center gap-4 mb-3 text-[11px]">
-            <span className="flex items-center gap-1.5" style={{ color: '#1F8A68' }}>
-              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#2FA37C' }} /> Ingresos
+              <span className="flex items-center gap-1.5" style={{ color: '#1F8A68' }}>
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#2FA37C' }} /> Thu nhập
             </span>
             <span className="flex items-center gap-1.5" style={{ color: '#E25749' }}>
-              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#FF6F61' }} /> Gastos
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#FF6F61' }} /> Chi tiêu
             </span>
-            <span className="ml-auto" style={{ color: '#5B6660' }}>% = ahorro</span>
+            <span className="ml-auto" style={{ color: '#5B6660' }}>% = tiết kiệm</span>
           </div>
           {/* 12 columns don't fit a phone width with fixed-width bars — let the chart scroll. */}
           <div className={trendRange === '12M' ? 'overflow-x-auto -mx-1 px-1' : undefined}>
@@ -928,7 +928,7 @@ export default function AnalisisClient({
           </div>
           {yearTotals && (
             <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #E5EBE8' }}>
-              <span className="text-xs font-bold" style={{ color: '#5B6660' }}>Total del año</span>
+              <span className="text-xs font-bold" style={{ color: '#5B6660' }}>Tổng cả năm</span>
               <span className="text-xs font-black" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ color: '#1F8A68' }}>{formatARS(yearTotals.income)}</span>
                 <span style={{ color: '#B0BAB4' }}> · </span>
@@ -941,21 +941,21 @@ export default function AnalisisClient({
         {/* Income by source */}
         {incomeBySource.rows.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>💵 Ingresos por fuente · {bMonthLabel}</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>💵 Thu nhập theo nguồn · {bMonthLabel}</p>
             <div className="flex flex-col gap-2.5">
               {incomeBySource.rows.map((r, i) => {
                 const pct = incomeBySource.total > 0 ? Math.round((r.value / incomeBySource.total) * 100) : 0;
                 return (
                   <div key={r.cat?.id ?? `none-${i}`} className="flex items-center gap-3">
                     <span className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0" style={{ background: '#DDF0E8', boxShadow: 'var(--shadow-soft)' }}>{r.cat?.icon || '💰'}</span>
-                    <span className="flex-1 text-sm font-semibold truncate" style={{ color: '#18211D' }}>{r.cat?.name || 'Sin categoría'}</span>
+                    <span className="flex-1 text-sm font-semibold truncate" style={{ color: '#18211D' }}>{r.cat?.name || 'Chưa có danh mục'}</span>
                     <span className="text-xs font-bold tabular-nums" style={{ color: '#5B6660' }}>{pct}%</span>
                     <span className="text-sm font-black tabular-nums shrink-0 text-right" style={{ color: '#1F8A68', minWidth: '5.5rem' }}>{formatARS(r.value)}</span>
                   </div>
                 );
               })}
               <div className="flex items-center justify-between pt-2 mt-1" style={{ borderTop: '1px solid #E5EBE8' }}>
-                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Total</span>
+                <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Tổng</span>
                 <span className="text-sm font-black tabular-nums" style={{ color: '#1F8A68' }}>{formatARS(incomeBySource.total)}</span>
               </div>
             </div>
@@ -965,7 +965,7 @@ export default function AnalisisClient({
         {/* Per-person comparison */}
         {personRows.length > 1 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>👥 Quién gastó qué · este mes</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>👥 Ai đã chi gì · tháng này</p>
             <div className="flex flex-col gap-3">
               {personRows.map((p, i) => (
                 <div key={p.id}>
@@ -986,7 +986,7 @@ export default function AnalisisClient({
         {subRows.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📡 Suscripciones · este mes</p>
+              <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>📡 Đăng ký · tháng này</p>
               <span className="text-xs font-black" style={{ color: '#FF6F61' }}>{formatARS(subsTotal)}</span>
             </div>
             <div className="flex flex-col gap-2">
@@ -1012,11 +1012,11 @@ export default function AnalisisClient({
               className="text-xs font-black px-3.5 py-1.5 rounded-full transition-all active:scale-95"
               style={{ background: refreshing ? '#E5EBE8' : '#2FA37C', color: refreshing ? '#5B6660' : '#FFFFFF', boxShadow: refreshing ? 'none' : 'var(--shadow-soft)' }}
             >
-              {refreshing ? 'Analizando…' : 'Actualizar'}
+              {refreshing ? 'Đang phân tích…' : 'Cập nhật'}
             </button>
           </div>
           {insights.length === 0 ? (
-            <p className="text-sm text-center py-4" style={{ color: '#5B6660' }}>Tocá &quot;Actualizar&quot; para que la IA analice tus gastos.</p>
+            <p className="text-sm text-center py-4" style={{ color: '#5B6660' }}>Nhấn &quot;Cập nhật&quot; để AI phân tích chi tiêu của bạn.</p>
           ) : (
             <div className="flex flex-col gap-2">
               {insights.map((ins) => {
@@ -1033,7 +1033,7 @@ export default function AnalisisClient({
                 );
               })}
               <Link href="/insights" className="text-xs font-bold text-center pt-1" style={{ color: '#1F8A68' }}>
-                Ver todos los insights →
+                Xem tất cả insight →
               </Link>
             </div>
           )}
@@ -1048,16 +1048,16 @@ export default function AnalisisClient({
               <span className="text-2xl">{drillCat.icon}</span>
               <h2 className="text-lg font-black" style={{ color: '#18211D' }}>{drillCat.name}</h2>
             </div>
-            <p className="text-xs mb-4" style={{ color: '#5B6660' }}>Gasto de los últimos {trendMonths.length} meses (tu parte)</p>
+            <p className="text-xs mb-4" style={{ color: '#5B6660' }}>Chi tiêu trong {trendMonths.length} tháng gần đây (phần của bạn)</p>
             <SingleBars rows={categoryTrend(drillCat.id)} color="#FF6F61" />
             {drillTxns.length > 0 && (
               <div className="mt-5 pt-4" style={{ borderTop: '1px solid #E5EBE8' }}>
-                <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>En qué gastaste · {bMonthLabel}</p>
+                <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Bạn đã chi gì · {bMonthLabel}</p>
                 <div className="flex flex-col max-h-64 overflow-y-auto -mx-1 px-1">
                   {drillTxns.map((t) => (
                     <div key={t.id} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: '1px solid #F1F5F3' }}>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || 'Sin comercio'}</p>
+                        <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || 'Không có cửa hàng'}</p>
                         <p className="text-[11px]" style={{ color: '#5B6660' }}>{t.date.slice(8, 10)}/{t.date.slice(5, 7)}</p>
                       </div>
                       <span className="text-sm font-black tabular-nums shrink-0" style={{ color: '#FF6F61' }}>{formatARS(t.value)}</span>

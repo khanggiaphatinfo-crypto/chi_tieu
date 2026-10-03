@@ -321,13 +321,13 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   const [bankBal, setBankBal] = useState('');
   async function toggleCleared(tx: Tx) {
     const { error } = await supabase.from('transactions').update({ cleared: !tx.cleared }).eq('id', tx.id);
-    if (error) { toast.error('No se pudo actualizar'); return; }
+    if (error) { toast.error('Không thể cập nhật'); return; }
     qc.invalidateQueries({ queryKey: ['transactions'] });
   }
   async function doReconcile() {
     if (!selectedAccount || clearedBalance == null) return;
     const bank = Number(bankBal);
-    if (!Number.isFinite(bank) || bankBal.trim() === '') { toast.error('Ingresá el saldo del banco'); return; }
+    if (!Number.isFinite(bank) || bankBal.trim() === '') { toast.error('Nhập số dư ngân hàng'); return; }
     const diff = Math.round(bank - clearedBalance);
     if (diff !== 0) {
       const { error: e1 } = await supabase.from('transactions').insert({
@@ -338,15 +338,15 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
         amount: Math.abs(diff),
         currency: (selectedAccount as { currency?: string }).currency ?? 'ARS',
         occurred_on: todayISO(),
-        merchant: 'Ajuste de conciliación',
+        merchant: 'Điều chỉnh đối soát',
         cleared: true,
         scope: 'personal',
       });
-      if (e1) { toast.error('No se pudo crear el ajuste'); return; }
+      if (e1) { toast.error('Không thể tạo điều chỉnh'); return; }
     }
     const { error: e2 } = await supabase.from('accounts').update({ reconciled_balance: bank, last_reconciled_at: new Date().toISOString() }).eq('id', filterAccount);
-    if (e2) { toast.error('No se pudo conciliar'); return; }
-    toast.success(diff === 0 ? '¡Conciliado! Todo cuadra. ✓' : `Conciliado · ajuste de ${formatARS(Math.abs(diff))}`);
+    if (e2) { toast.error('Không thể đối soát'); return; }
+    toast.success(diff === 0 ? 'Đã đối soát! Mọi thứ khớp. ✓' : `Đã đối soát · điều chỉnh ${formatARS(Math.abs(diff))}`);
     setReconcileOpen(false);
     setBankBal('');
     qc.invalidateQueries({ queryKey: ['transactions'] });
@@ -375,7 +375,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   }, [filtered, sortBy, toArs, spendArs]);
 
   function fmtDate(d: string) {
-    return new Date(d + 'T00:00:00').toLocaleDateString('es-AR', {
+    return new Date(d + 'T00:00:00').toLocaleDateString('vi-VN', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -440,9 +440,9 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
     const catMap = Object.fromEntries(categories.map((c) => [c.id, c]));
 
     return sorted.map(([id, cur]) => ({
-      name: catMap[id]?.icon ? `${catMap[id].icon} ${catMap[id].name}` : 'Sin cat.',
-      'Este mes': cur,
-      'Mes anterior': prevMap.get(id) ?? 0,
+      name: catMap[id]?.icon ? `${catMap[id].icon} ${catMap[id].name}` : 'Không có danh mục',
+      'Tháng này': cur,
+      'Tháng trước': prevMap.get(id) ?? 0,
     }));
   }, [scopeFiltered, categories, toArs]);
 
@@ -464,19 +464,19 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   // CASCADE, so clear them before the parent row (same order as the sheet's own
   // delete). Only this row is removed — other cuotas of a plan stay.
   async function deleteTx(tx: Tx) {
-    if (!window.confirm('¿Borrar este movimiento? No se puede deshacer.')) return;
+    if (!window.confirm('Xóa giao dịch này? Không thể hoàn tác.')) return;
     haptic('warning');
     await supabase.from('splits').delete().eq('transaction_id', tx.id);
     const { error } = await supabase.from('transactions').delete().eq('id', tx.id);
-    if (error) { toast.error('No se pudo borrar'); return; }
-    toast.success('Movimiento borrado');
+    if (error) { toast.error('Không thể xóa'); return; }
+    toast.success('Đã xóa giao dịch');
     invalidateMoney();
   }
   async function bulkUpdate(patch: { category_id?: string; is_fixed?: boolean }, label: string) {
     const ids = [...selected];
     if (ids.length === 0) return;
     const { error } = await supabase.from('transactions').update(patch).in('id', ids);
-    if (error) { toast.error('No se pudo actualizar'); return; }
+    if (error) { toast.error('Không thể cập nhật'); return; }
     toast.success(`${ids.length} ${label}`);
     setSelected(new Set());
     setSelectMode(false);
@@ -486,10 +486,10 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   async function bulkDelete() {
     const ids = [...selected];
     if (ids.length === 0) return;
-    if (!window.confirm(`¿Borrar ${ids.length} movimiento(s)? No se puede deshacer.`)) return;
+    if (!window.confirm(`Xóa ${ids.length} giao dịch? Không thể hoàn tác.`)) return;
     const { error } = await supabase.from('transactions').delete().in('id', ids);
-    if (error) { toast.error('No se pudo borrar'); return; }
-    toast.success(`${ids.length} movimiento(s) borrados`);
+    if (error) { toast.error('Không thể xóa'); return; }
+    toast.success(`${ids.length} giao dịch đã xóa`);
     setSelected(new Set());
     setSelectMode(false);
     invalidateMoney();
@@ -500,10 +500,10 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   // Relative descriptor for the week navigator (0 = current week).
   const weekLabel =
     weekOffset === 0 ? 'Esta semana'
-    : weekOffset === -1 ? 'Semana pasada'
-    : weekOffset === 1 ? 'Próxima semana'
-    : weekOffset < 0 ? `Hace ${-weekOffset} semanas`
-    : `En ${weekOffset} semanas`;
+    : weekOffset === -1 ? 'Tuần trước'
+    : weekOffset === 1 ? 'Tuần sau'
+    : weekOffset < 0 ? `${-weekOffset} tuần trước`
+    : `${weekOffset} tuần tới`;
   // Total gastado en la semana mostrada (respeta la vista Total / Mi parte).
   const weekExpenses = useMemo(
     () => filtered.filter((t) => t.type === 'expense' && !t.exclude_from_stats).reduce((s, t) => s + spendArs(t), 0),
@@ -515,9 +515,9 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
       {/* Header */}
       <header className="px-5 pt-14 pb-4 flex items-center justify-between sticky top-0 z-20 md:static" style={{ background: '#F1F5F3' }}>
         <div>
-          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Movimientos</h1>
+          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Giao dịch</h1>
           <p className="text-xs mt-0.5" style={{ color: '#5B6660' }}>
-            {searchActive ? 'Buscando en todo el histórico' : filterRange === 'week' ? `${weekLabel} · ${shortDM(week.start)} – ${shortDM(week.end)}` : filterRange === 'month' ? 'Este mes' : 'Histórico'}
+            {searchActive ? 'Đang tìm trong toàn bộ lịch sử' : filterRange === 'week' ? `${weekLabel} · ${shortDM(week.start)} – ${shortDM(week.end)}` : filterRange === 'month' ? 'Tháng này' : 'Lịch sử'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -526,7 +526,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             className="text-xs font-bold px-3 py-1.5 rounded-full border"
             style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
           >
-            Exportar CSV
+            Export CSV
           </button>
           <button
             onClick={toggle}
@@ -545,7 +545,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0" style={{ background: '#FFE5E0' }}>💸</span>
-              <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>Gastos · mes{mineActive ? ' · mi parte' : ''}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>Giao dịch · tháng{mineActive ? ' · phần của tôi' : ''}</p>
             </div>
             <p className="text-xl font-black tabular-nums mt-2 truncate" style={{ color: '#FF6F61' }}>{format(monthSummary.expenses)}</p>
             <p className="text-[11px]" style={{ color: '#8C968F' }}>{secondary(monthSummary.expenses)}</p>
@@ -553,7 +553,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
           <div className="w-px mx-3 self-stretch" style={{ background: '#EAF0ED' }} />
           <div className="flex-1 min-w-0 text-right">
             <div className="flex items-center justify-end gap-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>Ingresos · mes</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>Thu nhập · tháng</p>
               <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0" style={{ background: '#DDF0E8' }}>💰</span>
             </div>
             <p className="text-xl font-black tabular-nums mt-2 truncate" style={{ color: '#2FA37C' }}>{format(monthSummary.income)}</p>
@@ -574,16 +574,16 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             boxShadow: 'var(--shadow-soft)',
           }}
         >
-          📊 Comparar meses
+          📊 So sánh các tháng
         </button>
       </div>
 
       {/* Chart section */}
       {showChart && (
         <div className="mx-4 mb-4 rounded-3xl p-4" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-          <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Top 5 categorías</p>
+          <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Top 5 danh mục</p>
           {chartData.length === 0 ? (
-            <p className="text-sm text-center py-4" style={{ color: '#5B6660' }}>Sin datos de gastos este mes.</p>
+            <p className="text-sm text-center py-4" style={{ color: '#5B6660' }}>Không có dữ liệu chi tiêu tháng này.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={chartData} margin={{ top: 4, right: 4, bottom: 4, left: 0 }}>
@@ -591,8 +591,8 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                 <YAxis tickFormatter={(v) => formatARS(v)} tick={{ fontSize: 9, fill: '#5B6660' }} width={70} />
                 <Tooltip content={<ChartTooltip formatter={formatARS} />} cursor={{ fill: 'rgba(47,163,124,0.06)' }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="Este mes" fill="#2FA37C" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Mes anterior" fill="#5B6660" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Tháng này" fill="#2FA37C" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Tháng trước" fill="#5B6660" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -603,7 +603,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
       <div className="px-4 mb-3 flex flex-col gap-2">
         <input
           type="search"
-          placeholder="🔍 Buscar comercio o descripción…"
+          placeholder="🔍 Tìm cửa hàng hoặc mô tả…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2.5 rounded-2xl text-sm border bg-white outline-none"
@@ -622,7 +622,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                 boxShadow: 'var(--shadow-soft)',
               }}
             >
-              {s === 'all' ? 'Todos' : s === 'personal' ? 'Personal' : 'Hogar'}
+              {s === 'all' ? 'Tất cả' : s === 'personal' ? 'Cá nhân' : 'Gia đình'}
             </button>
           ))}
           <button
@@ -635,7 +635,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               boxShadow: 'var(--shadow-soft)',
             }}
           >
-            🤝 Compartidos
+            🤝 Chia sẻ
           </button>
           {/* Date range */}
           {(['all', 'week', 'month'] as const).map((r) => (
@@ -650,7 +650,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                 boxShadow: 'var(--shadow-soft)',
               }}
             >
-              {r === 'all' ? 'Histórico' : r === 'week' ? '📆 Semana' : 'Mes'}
+              {r === 'all' ? 'Lịch sử' : r === 'week' ? '📆 Tuần' : 'Tháng'}
             </button>
           ))}
         </div>
@@ -660,7 +660,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
           <div className="flex items-center gap-2">
             <button
               onClick={() => { haptic('tap'); setWeekOffset((o) => o - 1); }}
-              aria-label="Semana anterior"
+              aria-label="Tuần trước"
               className="shrink-0 w-9 h-9 rounded-full border flex items-center justify-center text-base font-black transition-all active:scale-95"
               style={{ background: '#FFFFFF', borderColor: '#E5EBE8', color: '#18211D', boxShadow: 'var(--shadow-soft)' }}
             >
@@ -669,13 +669,13 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             <div className="flex-1 min-w-0 text-center">
               <p className="text-xs font-bold truncate" style={{ color: '#18211D' }}>{weekLabel}</p>
               <p className="text-[11px] tabular-nums" style={{ color: '#FF6F61' }}>
-                {format(weekExpenses)} <span style={{ color: '#8C968F' }}>en gastos</span>
+                {format(weekExpenses)} <span style={{ color: '#8C968F' }}>chi tiêu</span>
               </p>
             </div>
             <button
               onClick={() => { haptic('tap'); setWeekOffset((o) => Math.min(0, o + 1)); }}
               disabled={weekOffset >= 0}
-              aria-label="Semana siguiente"
+              aria-label="Tuần sau"
               className="shrink-0 w-9 h-9 rounded-full border flex items-center justify-center text-base font-black transition-all active:scale-95 disabled:opacity-30"
               style={{ background: '#FFFFFF', borderColor: '#E5EBE8', color: '#18211D', boxShadow: 'var(--shadow-soft)' }}
             >
@@ -687,7 +687,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                 className="shrink-0 px-3 h-9 rounded-full text-xs font-bold border transition-all"
                 style={{ background: '#FFFFFF', borderColor: '#E5EBE8', color: '#5B6660', boxShadow: 'var(--shadow-soft)' }}
               >
-                Hoy
+                Hôm nay
               </button>
             )}
           </div>
@@ -695,8 +695,8 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
 
         {/* Sort order: by day, or by amount (biggest first) */}
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold shrink-0" style={{ color: '#8C968F' }}>Ordenar por</span>
-          {([['date', '📅 Fecha'], ['amount', '💰 Monto']] as const).map(([k, label]) => (
+          <span className="text-[11px] font-bold shrink-0" style={{ color: '#8C968F' }}>Sắp xếp theo</span>
+          {([['date', '📅 Ngày'], ['amount', '💰 Số tiền']] as const).map(([k, label]) => (
             <button
               key={k}
               onClick={() => setSortBy(k)}
@@ -717,8 +717,8 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             Hidden in single-account mode, where balances need full charges. */}
         {filterAccount === 'all' && (
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold shrink-0" style={{ color: '#8C968F' }}>Gastos</span>
-            {([['total', 'Total'], ['mine', '💛 Mi parte']] as const).map(([k, label]) => (
+            <span className="text-[11px] font-bold shrink-0" style={{ color: '#8C968F' }}>Chi tiêu</span>
+            {([['total', 'Tổng'], ['mine', '💛 Phần của tôi']] as const).map(([k, label]) => (
               <button
                 key={k}
                 onClick={() => setShareView(k)}
@@ -744,7 +744,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             className="flex-1 px-3 py-2 rounded-2xl text-xs font-bold border bg-white outline-none"
             style={{ borderColor: filterCategory !== 'all' ? '#2FA37C' : '#E5EBE8', color: filterCategory !== 'all' ? '#1F8A68' : '#5B6660' }}
           >
-            <option value="all">Todas las categorías</option>
+            <option value="all">Tất cả danh mục</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
             ))}
@@ -768,7 +768,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               boxShadow: 'var(--shadow-soft)',
             }}
           >
-            ⚙️ Filtros{filterAccount !== 'all' || filterMinAmount > 0 || filterFixed === true || !!filterFlag ? ' •' : ''}
+            ⚙️ Bộ lọc{filterAccount !== 'all' || filterMinAmount > 0 || filterFixed === true || !!filterFlag ? ' •' : ''}
           </button>
           <button
             onClick={() => { setSelectMode((v) => !v); setSelected(new Set()); }}
@@ -780,7 +780,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               boxShadow: 'var(--shadow-soft)',
             }}
           >
-            {selectMode ? 'Cancelar' : '☑️ Seleccionar'}
+            {selectMode ? 'Hủy' : '☑️ Chọn'}
           </button>
         </div>
         {showAdvanced && (
@@ -791,7 +791,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               className="px-3 py-2 rounded-xl text-xs font-bold border bg-white outline-none"
               style={{ borderColor: filterAccount !== 'all' ? '#2FA37C' : '#E5EBE8', color: '#18211D' }}
             >
-              <option value="all">Todas las cuentas</option>
+              <option value="all">Tất cả tài khoản</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
@@ -800,7 +800,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               <input
                 type="number"
                 inputMode="numeric"
-                placeholder="Monto mínimo ($)"
+                placeholder="Số tiền tối thiểu ($)"
                 value={filterMinAmount || ''}
                 onChange={(e) => setFilterMinAmount(Number(e.target.value) || 0)}
                 className="flex-1 px-3 py-2 rounded-xl text-xs border bg-white outline-none"
@@ -815,7 +815,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                   color: filterFixed === true ? '#C79A2B' : '#5B6660',
                 }}
               >
-                📌 Solo fijos
+                📌 Chỉ giao dịch cố định
               </button>
             </div>
             <div className="flex items-center gap-2">
@@ -833,14 +833,14 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
       {selectedAccount && clearedBalance != null && (
         <div className="mx-4 mb-3 rounded-2xl p-4 flex items-center justify-between gap-3" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Saldo conciliado · {selectedAccount.name}</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Số dư đã đối soát · {selectedAccount.name}</p>
             <p className="text-lg font-black tabular-nums" style={{ color: '#18211D' }}>{formatARS(clearedBalance)}</p>
             {selectedAccount.last_reconciled_at && (
-              <p className="text-[10px]" style={{ color: '#8C968F' }}>Última conciliación: {new Date(selectedAccount.last_reconciled_at).toLocaleDateString('es-AR')}</p>
+              <p className="text-[10px]" style={{ color: '#8C968F' }}>Lần đối soát cuối:{new Date(selectedAccount.last_reconciled_at).toLocaleDateString('vi-VN')}</p>
             )}
           </div>
           <button onClick={() => { setBankBal(String(clearedBalance)); setReconcileOpen(true); }} className="shrink-0 px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#DDF0E8', color: '#1F8A68' }}>
-            Conciliar
+            Đối soát
           </button>
         </div>
       )}
@@ -853,14 +853,14 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
         {grouped.length === 0 && (
           <EmptyState
             icon="💸"
-            title="Sin movimientos"
-            subtitle="Registrá tu primer gasto o ingreso."
+            title="Không có giao dịch"
+            subtitle="Hãy ghi lại khoản chi hoặc thu nhập đầu tiên."
           />
         )}
         {grouped.map(([date, txs]) => (
           <div key={date}>
             <p className="text-xs font-bold mb-2 capitalize" style={{ color: '#5B6660' }}>
-              {date === '__amount__' ? '💰 Gastos · de mayor a menor' : fmtDate(date)}
+              {date === '__amount__' ? '💰 Chi tiêu · cao đến thấp' : fmtDate(date)}
             </p>
             <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               {txs.map((tx, i) => (
@@ -902,7 +902,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                   {filterAccount !== 'all' && !selectMode && (
                     <span
                       onClick={(e) => { e.stopPropagation(); if (!isLocked(tx)) void toggleCleared(tx); }}
-                      title={isLocked(tx) ? 'Conciliado (bloqueado)' : tx.cleared ? 'Conciliado' : 'Marcar como conciliado'}
+                      title={isLocked(tx) ? 'Đã đối soát (đã khóa)' : tx.cleared ? 'Đã đối soát' : 'Đánh dấu đã đối soát'}
                       className="shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-white text-[11px]"
                       style={{ borderColor: tx.cleared ? '#1F8A68' : '#CFD8D3', background: tx.cleared ? '#1F8A68' : '#FFFFFF', cursor: isLocked(tx) ? 'default' : 'pointer' }}
                     >
@@ -919,7 +919,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                     <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>
                       {tx.type === 'transfer'
                         ? `${acctName(tx.account_id)} → ${acctName(tx.transfer_account_id)}`
-                        : tx.merchant || tx.categories?.name || 'Sin categoría'}
+                        : tx.merchant || tx.categories?.name || 'Chưa có danh mục'}
                     </p>
                     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-0.5">
                       {tx.categories?.name && tx.merchant && (
@@ -927,17 +927,17 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                       )}
                       {tx.is_shared && (
                         <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold whitespace-nowrap shrink-0" style={{ background: '#FFE5E0', color: '#FF6F61' }}>
-                          Compartido
+                          Đã chia sẻ
                         </span>
                       )}
                       {tx.scope === 'household' && (
                         <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold whitespace-nowrap shrink-0" style={{ background: '#DDF0E8', color: '#1F8A68' }}>
-                          Hogar
+                          Gia đình
                         </span>
                       )}
                       {tx.installment_total && tx.installment_total > 1 && (
                         <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold whitespace-nowrap shrink-0" style={{ background: '#E5EBE8', color: '#5B6660' }}>
-                          Cuota {tx.installment_number}/{tx.installment_total}
+                          Cu kỳ {tx.installment_number}/{tx.installment_total}
                         </span>
                       )}
                       {!selectMode && itemTxIds.has(tx.id) && (
@@ -946,7 +946,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                           className="text-xs px-1.5 py-0.5 rounded-md font-semibold cursor-pointer whitespace-nowrap shrink-0"
                           style={{ background: '#FBF1D8', color: '#C79A2B' }}
                         >
-                          🧾 Productos
+                          🧾 Sản phẩm
                         </span>
                       )}
                     </div>
@@ -959,12 +959,12 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                       {tx.type === 'expense' ? '-' : tx.type === 'transfer' ? '' : '+'}{format(spendArs(tx))}
                     </p>
                     {mineActive && tx.is_shared ? (
-                      <p className="text-xs" style={{ color: '#8C968F' }}>de {format(toArs(tx.amount, tx.currency))}</p>
+                      <p className="text-xs" style={{ color: '#8C968F' }}>của {format(toArs(tx.amount, tx.currency))}</p>
                     ) : (
                       <p className="text-xs" style={{ color: '#5B6660' }}>{secondary(toArs(tx.amount, tx.currency))}</p>
                     )}
                     {runningBalance && (
-                      <p className="text-[10px] tabular-nums" style={{ color: '#8C968F' }}>saldo {formatARS(runningBalance.get(tx.id) ?? 0)}</p>
+                      <p className="text-[10px] tabular-nums" style={{ color: '#8C968F' }}>số dư {formatARS(runningBalance.get(tx.id) ?? 0)}</p>
                     )}
                   </div>
                 </button>
@@ -993,9 +993,9 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
       {selectMode && selected.size > 0 && (
         <div className="fixed left-0 right-0 z-40 px-4" style={{ bottom: 'calc(76px + env(safe-area-inset-bottom))' }}>
           <div className="rounded-2xl shadow-lg flex items-center gap-2 p-2" style={{ background: '#18211D' }}>
-            <span className="text-xs font-bold px-1.5 shrink-0" style={{ color: '#FFFFFF' }}>{selected.size} sel.</span>
-            <button onClick={() => setBulkCatOpen(true)} className="flex-1 px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#1F8A68', color: '#FFFFFF' }}>Categorizar</button>
-            <button onClick={() => bulkUpdate({ is_fixed: true }, 'marcados como fijos')} className="px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#F5A623', color: '#FFFFFF' }}>📌 Fijo</button>
+            <span className="text-xs font-bold px-1.5 shrink-0" style={{ color: '#FFFFFF' }}>{selected.size} đã chọn</span>
+            <button onClick={() => setBulkCatOpen(true)} className="flex-1 px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#1F8A68', color: '#FFFFFF' }}>Phân loại</button>
+            <button onClick={() => bulkUpdate({ is_fixed: true }, 'đã đánh dấu cố định')} className="px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#F5A623', color: '#FFFFFF' }}>📌 Cố định</button>
             <button onClick={bulkDelete} className="px-3 py-2 rounded-xl text-xs font-bold" style={{ background: '#FF6F61', color: '#FFFFFF' }}>🗑️</button>
           </div>
         </div>
@@ -1006,11 +1006,11 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
         <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={() => setBulkCatOpen(false)}>
           <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[70vh] overflow-y-auto" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }} onClick={(e) => e.stopPropagation()}>
             <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-            <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Asignar categoría</h2>
-            <p className="text-xs mb-4" style={{ color: '#5B6660' }}>A {selected.size} movimiento(s) seleccionados.</p>
+            <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Gán danh mục</h2>
+            <p className="text-xs mb-4" style={{ color: '#5B6660' }}>{selected.size} giao dịch đã chọn.</p>
             <div className="flex flex-col gap-1">
               {categories.filter((c) => c.kind === 'expense').map((c) => (
-                <button key={c.id} onClick={() => bulkUpdate({ category_id: c.id }, `movidos a ${c.name}`)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left" style={{ background: '#F1F5F3' }}>
+                <button key={c.id} onClick={() => bulkUpdate({ category_id: c.id }, `đã chuyển sang ${c.name}`)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-left" style={{ background: '#F1F5F3' }}>
                   <span className="text-xl">{c.icon}</span>
                   <span className="text-sm font-semibold" style={{ color: '#18211D' }}>{c.name}</span>
                 </button>
@@ -1027,11 +1027,11 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
             <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{categoryDetailCat?.icon ?? '🏷️'}</span>
-              <h2 className="text-lg font-black flex-1 truncate" style={{ color: '#18211D' }}>{categoryDetailCat?.name ?? 'Sin categoría'}</h2>
+              <h2 className="text-lg font-black flex-1 truncate" style={{ color: '#18211D' }}>{categoryDetailCat?.name ?? 'Chưa có danh mục'}</h2>
               <span className="text-base font-black tabular-nums shrink-0" style={{ color: '#FF6F61' }}>{format(categoryDetailRows.reduce((s, t) => s + spendArs(t), 0))}</span>
             </div>
             <p className="text-xs mb-4" style={{ color: '#5B6660' }}>
-              {categoryDetailRows.length} gasto{categoryDetailRows.length !== 1 ? 's' : ''} · este mes{mineActive ? ' · mi parte' : ''}
+              {categoryDetailRows.length} khoản chi · tháng này{mineActive ? ' · phần của tôi' : ''}
             </p>
             <div className="flex flex-col">
               {categoryDetailRows.map((tx, i) => (
@@ -1043,15 +1043,15 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
                 >
                   <span className="text-xl shrink-0">{tx.categories?.icon ?? categoryDetailCat?.icon ?? '🏷️'}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{tx.merchant || tx.categories?.name || 'Sin descripción'}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{tx.merchant || tx.categories?.name || 'Không có mô tả'}</p>
                     <p className="text-[11px]" style={{ color: '#8C968F' }}>
-                      {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}{tx.is_shared ? ' · compartido' : ''}
+                      {new Date(tx.occurred_on + 'T00:00:00').toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })}{tx.is_shared ? ' · đã chia sẻ' : ''}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm font-black tabular-nums" style={{ color: '#FF6F61' }}>{format(spendArs(tx))}</p>
                     {mineActive && tx.is_shared && (
-                      <p className="text-[10px]" style={{ color: '#8C968F' }}>de {format(toArs(tx.amount, tx.currency))}</p>
+                      <p className="text-[10px]" style={{ color: '#8C968F' }}>của {format(toArs(tx.amount, tx.currency))}</p>
                     )}
                   </div>
                 </button>
@@ -1066,11 +1066,11 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
         <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={() => setReconcileOpen(false)}>
           <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }} onClick={(e) => e.stopPropagation()}>
             <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-            <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Conciliar {selectedAccount.name}</h2>
+            <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Đối soát {selectedAccount.name}</h2>
             <p className="text-xs mb-4" style={{ color: '#5B6660' }}>
-              Saldo de los movimientos marcados ✓: <b>{formatARS(clearedBalance)}</b>. Ingresá el saldo real que muestra el banco hoy; si hay diferencia, creamos un ajuste.
+              Số dư các giao dịch đã đánh dấu ✓: <b>{formatARS(clearedBalance)}</b>. Nhập số dư thực tế ngân hàng hôm nay; nếu có chênh lệch, hệ thống sẽ tạo điều chỉnh.
             </p>
-            <label className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Saldo real del banco</label>
+            <label className="text-[11px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Số dư thực tế ngân hàng</label>
             <input
               type="number"
               inputMode="numeric"
@@ -1083,12 +1083,12 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               const diff = Math.round(Number(bankBal) - clearedBalance);
               return (
                 <p className="text-xs mb-3" style={{ color: diff === 0 ? '#1F8A68' : '#C79A2B' }}>
-                  {diff === 0 ? '✓ Coincide, no hace falta ajuste.' : `Se creará un ajuste de ${formatARS(Math.abs(diff))} (${diff > 0 ? 'ingreso' : 'gasto'}).`}
+                  {diff === 0 ? '✓ Khớp, không cần điều chỉnh.' : `Sẽ tạo điều chỉnh ${formatARS(Math.abs(diff))} (${diff > 0 ? 'thu nhập' : 'chi tiêu'}).`}
                 </p>
               );
             })()}
             <button onClick={doReconcile} className="w-full py-3 rounded-2xl text-sm font-bold text-white" style={{ background: '#1F8A68' }}>
-              Conciliar
+              Đối soát
             </button>
           </div>
         </div>
@@ -1154,7 +1154,7 @@ function CategorySummary({
 
   return (
     <div className="mx-4 mt-6 mb-2">
-      <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Por categoría (este mes)</p>
+      <p className="text-sm font-black mb-3" style={{ color: '#18211D' }}>Theo danh mục (tháng này)</p>
       <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
         {byCategory.map((row, i) => (
           <button
@@ -1167,7 +1167,7 @@ function CategorySummary({
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline mb-1">
                 <p className="text-sm font-semibold" style={{ color: '#18211D' }}>
-                  {row.cat?.name ?? 'Sin categoría'}
+                  {row.cat?.name ?? 'Chưa có danh mục'}
                 </p>
                 <p className="text-sm font-black" style={{ color: '#FF6F61' }}>{format(row.amount)}</p>
               </div>
