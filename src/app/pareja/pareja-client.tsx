@@ -242,7 +242,7 @@ function SettleUpSheet({
           <MoneyInput
             value={amountVal}
             onChange={setAmountVal}
-            placeholder={absNet.toLocaleString('es-AR')}
+            placeholder={absNet.toLocaleString('vi-VN')}
             className="flex-1 px-4 py-3 rounded-2xl text-sm border bg-white outline-none"
             style={{ borderColor: '#E5EBE8', color: '#18211D' }}
           />
@@ -637,7 +637,7 @@ export default function ParejaClient({
 
   const f = (n: number) =>
     showUSD && arsPerUsd > 0
-      ? `US$${Math.round(n / arsPerUsd).toLocaleString('es-AR')}`
+      ? `US$${Math.round(n / arsPerUsd).toLocaleString('vi-VN')}`
       : formatARS(n);
 
   return (
