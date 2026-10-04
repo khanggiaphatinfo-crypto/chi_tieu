@@ -21,8 +21,13 @@ begin
   if v_user_id is null then
     raise exception 'not_authenticated';
   end if;
+  if exists (select 1 from public.profiles where id = v_user_id and household_id is not null) then
+    raise exception 'already_in_household';
+  end if;
 
-  insert into households (name) values (household_name) returning id into v_household_id;
+  insert into households (name)
+  values (coalesce(nullif(trim(household_name), ''), 'Gia đình của chúng ta'))
+  returning id into v_household_id;
 
   -- 2. Assign the user to the household
   update profiles set household_id = v_household_id where id = v_user_id;

@@ -18,6 +18,7 @@ import { ChartTooltip } from '@/components/ChartTooltip';
 import { FLAG_COLORS, flagHex } from '@/lib/flags';
 import { todayISO, weekRange, shortDM } from '@/lib/date';
 import { normalizeText } from '@/lib/text';
+import { vietnameseWeekLabel } from '@/lib/locale';
 import {
   BarChart,
   Bar,
@@ -372,7 +373,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
       map.set(tx.occurred_on, arr);
     }
     return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
-  }, [filtered, sortBy, toArs, spendArs]);
+  }, [filtered, sortBy, spendArs]);
 
   function fmtDate(d: string) {
     return new Date(d + 'T00:00:00').toLocaleDateString('vi-VN', {
@@ -498,12 +499,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
   const catColorById = new Map(categories.map((c) => [c.id, (c.color as string | null) ?? null]));
 
   // Relative descriptor for the week navigator (0 = current week).
-  const weekLabel =
-    weekOffset === 0 ? 'Esta semana'
-    : weekOffset === -1 ? 'Tuần trước'
-    : weekOffset === 1 ? 'Tuần sau'
-    : weekOffset < 0 ? `${-weekOffset} tuần trước`
-    : `${weekOffset} tuần tới`;
+  const weekLabel = vietnameseWeekLabel(weekOffset);
   // Total gastado en la semana mostrada (respeta la vista Total / Mi parte).
   const weekExpenses = useMemo(
     () => filtered.filter((t) => t.type === 'expense' && !t.exclude_from_stats).reduce((s, t) => s + spendArs(t), 0),
@@ -819,7 +815,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold" style={{ color: '#5B6660' }}>Flag</span>
+              <span className="text-[11px] font-bold" style={{ color: '#5B6660' }}>Cờ</span>
               <button onClick={() => setFilterFlag(null)} className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px]" style={{ borderColor: filterFlag === null ? '#18211D' : '#E5EBE8', color: '#5B6660' }}>○</button>
               {FLAG_COLORS.map((f) => (
                 <button key={f.key} onClick={() => setFilterFlag(filterFlag === f.key ? null : f.key)} title={f.label} className="w-6 h-6 rounded-full" style={{ background: f.hex, outline: filterFlag === f.key ? '2px solid #18211D' : 'none', outlineOffset: '1px' }} />
@@ -845,7 +841,7 @@ export default function MovimientosClient({ profile, partnerProfileId }: Movimie
         </div>
       )}
 
-      {/* Próximos vencimientos (reglas recurrentes) — solo en la vista normal */}
+      {/* Các khoản sắp đến hạn (quy tắc định kỳ) — chỉ hiển thị ở chế độ xem thông thường */}
       {!searchActive && !selectMode && <UpcomingStrip householdId={profile.household_id} profileId={profile.id} />}
 
       {/* Transactions grouped by day */}

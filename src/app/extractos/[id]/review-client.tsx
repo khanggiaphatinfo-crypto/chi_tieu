@@ -25,12 +25,6 @@ interface Category {
   kind: string;
 }
 
-interface Account {
-  id: string;
-  name: string;
-  type: string;
-}
-
 interface Statement {
   id: string;
   status: string;
@@ -60,13 +54,11 @@ interface Draft {
 function EditDraftModal({
   draft,
   categories,
-  accounts,
   onSave,
   onClose,
 }: {
   draft: Draft;
   categories: Category[];
-  accounts: Account[];
   onSave: (d: Draft, merchantEdited: boolean) => void;
   onClose: () => void;
 }) {
@@ -179,7 +171,6 @@ function DraftCard({
   onReject: () => void;
   onEdit: () => void;
 }) {
-  const { format } = useFx();
   const touchStartX = useRef<number | null>(null);
   const [swipeX, setSwipeX] = useState(0);
   const [swiping, setSwiping] = useState(false);
@@ -306,12 +297,10 @@ export default function ReviewClient({
   profile,
   statement,
   categories,
-  accounts,
 }: {
   profile: Profile;
   statement: Statement;
   categories: Category[];
-  accounts: Account[];
 }) {
   const supabase = createClient();
   const qc = useQueryClient();
@@ -615,7 +604,6 @@ export default function ReviewClient({
         <EditDraftModal
           draft={editingDraft}
           categories={categories}
-          accounts={accounts}
           onSave={handleSaveEdit}
           onClose={() => setEditingDraft(null)}
         />

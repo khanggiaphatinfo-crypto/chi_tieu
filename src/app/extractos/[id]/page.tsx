@@ -39,19 +39,11 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     .eq('household_id', profile.household_id)
     .order('name');
 
-  const { data: accounts = [] } = await supabase
-    .from('accounts')
-    .select('id, name, type, owner_profile_id')
-    .eq('household_id', profile.household_id)
-    .eq('archived', false)
-    .order('name');
-
   return (
     <ReviewClient
       profile={profile as { id: string; household_id: string; nickname: string | null; display_name: string | null }}
       statement={statement}
       categories={categories ?? []}
-      accounts={accounts ?? []}
     />
   );
 }

@@ -190,20 +190,20 @@ function CategoryDetailSheet({
           <span className="text-2xl">{category.icon}</span>
           <h2 className="text-lg font-black flex-1 min-w-0 truncate" style={{ color: '#18211D' }}>{category.name}</h2>
           {editable && (
-            <button onClick={() => { setCName(category.name); setCIcon(category.icon); setEditingName((v) => !v); }} className="text-xs font-bold px-2 py-1 rounded-lg shrink-0" style={{ background: '#F1F5F3', color: '#5B6660' }}>✏️ Editar</button>
+            <button onClick={() => { setCName(category.name); setCIcon(category.icon); setEditingName((v) => !v); }} className="text-xs font-bold px-2 py-1 rounded-lg shrink-0" style={{ background: '#F1F5F3', color: '#5B6660' }}>Chỉnh sửa</button>
           )}
         </div>
         {editingName && editable && (
           <div className="flex gap-2 mb-4">
             <input value={cIcon} onChange={(e) => setCIcon(e.target.value)} maxLength={2} className="w-12 text-center rounded-xl border-2 outline-none py-2 text-lg" style={{ borderColor: '#E5EBE8', background: '#F1F5F3' }} />
-            <input value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Nombre" className="flex-1 rounded-xl border-2 outline-none px-3 text-sm font-bold" style={{ borderColor: '#E5EBE8', background: '#F1F5F3', color: '#18211D' }} />
+            <input value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Tên danh mục" className="flex-1 rounded-xl border-2 outline-none px-3 text-sm font-bold" style={{ borderColor: '#E5EBE8', background: '#F1F5F3', color: '#18211D' }} />
             <button onClick={() => { if (cName.trim()) { onRenameCategory(cName.trim(), cIcon || category.icon); setEditingName(false); } }} className="px-4 rounded-xl text-sm font-bold text-white" style={{ background: '#2FA37C' }}>OK</button>
           </div>
         )}
         {editable && (
           <div className="mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold shrink-0" style={{ color: '#5B6660' }}>Grupo</span>
+              <span className="text-xs font-bold shrink-0" style={{ color: '#5B6660' }}>Nhóm</span>
               <select
                 value={creatingGroup ? '__new__' : (category.parent_id ?? '')}
                 onChange={(e) => {
@@ -214,11 +214,11 @@ function CategoryDetailSheet({
                 className="flex-1 rounded-xl border-2 outline-none px-3 py-2 text-sm font-bold bg-white"
                 style={{ borderColor: '#E5EBE8', color: '#18211D' }}
               >
-                <option value="">Sin grupo</option>
+                <option value="">Không có nhóm</option>
                 {groups.map((g) => (
                   <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
                 ))}
-                <option value="__new__">➕ Nuevo grupo…</option>
+                <option value="__new__">➕ Nhóm mới…</option>
               </select>
             </div>
             {creatingGroup && (
@@ -226,7 +226,7 @@ function CategoryDetailSheet({
                 <input
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
-                  placeholder="Nombre del grupo nuevo"
+                  placeholder="Tên nhóm mới"
                   autoFocus
                   className="flex-1 min-w-0 rounded-xl border-2 outline-none px-3 py-2 text-sm font-bold"
                   style={{ borderColor: '#E5EBE8', background: '#F1F5F3', color: '#18211D' }}
@@ -238,7 +238,7 @@ function CategoryDetailSheet({
                   className="shrink-0 px-4 rounded-xl text-sm font-bold text-white"
                   style={{ background: newGroupName.trim() ? '#2FA37C' : '#B0BAB4' }}
                 >
-                  Crear
+                  Tạo
                 </button>
               </div>
             )}
@@ -246,12 +246,12 @@ function CategoryDetailSheet({
         )}
 
         {/* Balance breakdown (YNAB style) */}
-        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Balance</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Số dư</p>
         <div className="rounded-2xl overflow-hidden mb-4" style={{ background: '#F1F5F3' }}>
           {[
-            { l: `Desde ${prevLabel}`, v: format(carryover) },
-            { l: `Asignado en ${curLabel}`, v: format(row.assigned) },
-            { l: `Actividad en ${curLabel}`, v: format(-row.activity) },
+            { l: `Từ ${prevLabel}`, v: format(carryover) },
+            { l: `Đã phân bổ trong ${curLabel}`, v: format(row.assigned) },
+            { l: `Hoạt động trong ${curLabel}`, v: format(-row.activity) },
           ].map((r, i) => (
             <div key={i} className="flex items-center justify-between px-4 py-3" style={{ borderTop: i > 0 ? '1px solid #E5EBE8' : 'none' }}>
               <span className="text-sm" style={{ color: '#5B6660' }}>{r.l}</span>
@@ -259,7 +259,7 @@ function CategoryDetailSheet({
             </div>
           ))}
           <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid #E5EBE8' }}>
-            <span className="text-sm font-bold" style={{ color: '#18211D' }}>Disponible</span>
+            <span className="text-sm font-bold" style={{ color: '#18211D' }}>Còn lại</span>
             <span className="text-sm font-black px-2.5 py-1 rounded-full tabular-nums" style={{ background: availPill(row.available, needed).bg, color: availPill(row.available, needed).fg }}>{format(row.available)}</span>
           </div>
         </div>
@@ -269,20 +269,20 @@ function CategoryDetailSheet({
           <div className="rounded-2xl p-4 mb-4 text-center" style={{ background: targetInfo.neededThisMonth <= 0 ? '#DDF0E8' : '#F1F5F3' }}>
             {targetInfo.cadence === 'by_date' ? (
               row.available >= targetInfo.totalArs && targetInfo.totalArs > 0 ? (
-                <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>✓ ¡Meta cumplida!</p>
+                <p className="text-sm font-bold" style={{ color: '#1F8A68' }}>✓ Đã đạt mục tiêu!</p>
               ) : (
                 <p className="text-sm" style={{ color: '#5B6660' }}>
-                  Faltan <b>{format(targetInfo.totalArs - row.available)}</b>{targetInfo.targetDate ? ` para ${fmtGoalDate(targetInfo.targetDate)}` : ''} · necesitás <b style={{ color: '#C79A2B' }}>{format(targetInfo.neededThisMonth)}</b> este mes
+                  Còn thiếu <b>{format(targetInfo.totalArs - row.available)}</b>{targetInfo.targetDate ? ` đến ${fmtGoalDate(targetInfo.targetDate)}` : ''} · bạn cần phân bổ <b style={{ color: '#C79A2B' }}>{format(targetInfo.neededThisMonth)}</b> trong tháng này
                 </p>
               )
             ) : (
               <p className="text-sm" style={{ color: '#5B6660' }}>
                 {targetInfo.targetType === 'set_aside'
-                  ? (targetInfo.cadence === 'weekly' ? 'Presupuesto semanal ' : 'Presupuesto mensual ')
-                  : (targetInfo.cadence === 'weekly' ? 'Saldo fijo semanal ' : 'Saldo fijo mensual ')}{format(targetInfo.totalArs)}
+                  ? (targetInfo.cadence === 'weekly' ? 'Ngân sách hàng tuần ' : 'Ngân sách hàng tháng ')
+                  : (targetInfo.cadence === 'weekly' ? 'Số dư cố định hàng tuần ' : 'Số dư cố định hàng tháng ')}{format(targetInfo.totalArs)}
                 {targetInfo.neededThisMonth > 0
-                  ? <> · {targetInfo.targetType === 'set_aside' ? 'falta asignar' : 'faltan'} <b style={{ color: '#C79A2B' }}>{format(targetInfo.neededThisMonth)}</b> este mes</>
-                  : <span style={{ color: '#1F8A68' }}> · al día este mes ✓</span>}
+                  ? <> · {targetInfo.targetType === 'set_aside' ? 'còn thiếu phân bổ' : 'còn thiếu'} <b style={{ color: '#C79A2B' }}>{format(targetInfo.neededThisMonth)}</b> trong tháng này</>
+                  : <span style={{ color: '#1F8A68' }}> · đã đủ cho tháng này ✓</span>}
               </p>
             )}
           </div>
@@ -291,7 +291,7 @@ function CategoryDetailSheet({
         {editable && (
           <>
             {/* Assigned editor */}
-            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Asignado este mes</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Đã phân bổ tháng này</p>
             <MoneyField
               key={`a-${row.assigned}`}
               value={row.assigned}
@@ -309,7 +309,7 @@ function CategoryDetailSheet({
                   className="text-xs font-bold px-3 py-2 rounded-xl"
                   style={{ background: '#FFE5E0', color: '#E25749' }}
                 >
-                  Cubrir sobregiro (+{format(-row.available)})
+                  Bù phần chi vượt ngân sách (+{format(-row.available)})
                 </button>
               )}
               {target > 0 && toTarget > 0 && (
@@ -318,7 +318,7 @@ function CategoryDetailSheet({
                   className="text-xs font-bold px-3 py-2 rounded-xl"
                   style={{ background: '#FDF1D8', color: '#B8860B' }}
                 >
-                  Asignar para la meta (+{format(toTarget)})
+                  Phân bổ cho mục tiêu (+{format(toTarget)})
                 </button>
               )}
               {lastMonth.assigned > 0 && (
@@ -327,7 +327,7 @@ function CategoryDetailSheet({
                   className="text-xs font-bold px-3 py-2 rounded-xl"
                   style={{ background: '#EAF6F1', color: '#1F8A68' }}
                 >
-                  Asignaste el mes pasado {format(lastMonth.assigned)}
+                  Bạn đã phân bổ tháng trước {format(lastMonth.assigned)}
                 </button>
               )}
               {lastMonth.activity > 0 && (
@@ -336,35 +336,35 @@ function CategoryDetailSheet({
                   className="text-xs font-bold px-3 py-2 rounded-xl"
                   style={{ background: '#F1F5F3', color: '#5B6660' }}
                 >
-                  Gastaste el mes pasado {format(lastMonth.activity)}
+                  Bạn đã chi tháng trước {format(lastMonth.activity)}
                 </button>
               )}
             </div>
 
             {/* Target — monthly amount or a by-date savings goal */}
-            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Meta</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Mục tiêu</p>
             <div className="flex rounded-xl overflow-hidden mb-2 p-1 gap-1" style={{ background: '#E5EBE8' }}>
-              {([{ k: 'monthly', l: 'Mensual' }, { k: 'weekly', l: 'Semanal' }, { k: 'by_date', l: 'Por fecha' }] as const).map((o) => (
+              {([{ k: 'monthly', l: 'Hàng tháng' }, { k: 'weekly', l: 'Hàng tuần' }, { k: 'by_date', l: 'Theo ngày' }] as const).map((o) => (
                 <button key={o.k} onClick={() => setTMode(o.k)} className="flex-1 py-1.5 text-xs font-bold rounded-lg" style={{ background: tMode === o.k ? '#FFFFFF' : 'transparent', color: tMode === o.k ? '#18211D' : '#5B6660' }}>{o.l}</button>
               ))}
             </div>
             {tMode !== 'by_date' && (
               <div className="flex rounded-xl overflow-hidden mb-2 p-1 gap-1" style={{ background: '#E5EBE8' }}>
-                {([{ k: 'set_aside', l: 'Presupuesto del mes' }, { k: 'refill', l: 'Saldo fijo' }] as const).map((o) => (
+                {([{ k: 'set_aside', l: 'Ngân sách tháng' }, { k: 'refill', l: 'Số dư cố định' }] as const).map((o) => (
                   <button key={o.k} onClick={() => setTType(o.k)} className="flex-1 py-1.5 text-[11px] font-bold rounded-lg" style={{ background: tType === o.k ? '#FFFFFF' : 'transparent', color: tType === o.k ? '#18211D' : '#5B6660' }}>{o.l}</button>
                 ))}
               </div>
             )}
             <p className="text-[11px] mb-1.5" style={{ color: '#5B6660' }}>
               {tMode === 'by_date'
-                ? 'Total a juntar para una fecha (meta de ahorro).'
+                ? 'Tổng số tiền cần tích lũy đến một ngày nhất định (mục tiêu tiết kiệm).'
                 : tType === 'set_aside'
-                  ? `Cuánto querés gastar por ${tMode === 'weekly' ? 'semana' : 'mes'} acá. Cada ${tMode === 'weekly' ? 'semana' : 'mes'} arranca de nuevo con este monto fresco; lo que no gastes se suma al siguiente. Ideal para comer afuera, super, nafta.`
-                  : `Mantené siempre este monto disponible. Cuando gastás, lo reponés hasta volver a este monto (no se suma cada ${tMode === 'weekly' ? 'semana' : 'mes'}). Ideal para un colchón fijo.`}
+                  ? `Bạn muốn chi bao nhiêu cho danh mục này mỗi ${tMode === 'weekly' ? 'tuần' : 'tháng'}? Mỗi ${tMode === 'weekly' ? 'tuần' : 'tháng'} sẽ bắt đầu lại với số tiền mới; phần chưa chi sẽ được cộng sang kỳ sau. Phù hợp cho ăn ngoài, siêu thị, xăng xe.`
+                  : `Luôn giữ sẵn số tiền này. Khi chi tiêu, bạn phân bổ bù để quay về mức này (không cộng thêm mỗi ${tMode === 'weekly' ? 'tuần' : 'tháng'}). Phù hợp cho một khoản dự phòng cố định.`}
             </p>
             {suggested > 0 && tMode === 'monthly' && (
               <button onClick={() => setTAmt(suggested)} className="text-xs font-bold px-3 py-2 rounded-xl mb-2" style={{ background: '#E9F1FD', color: '#4E84E0' }}>
-                ✨ Sugerido {format(suggested)} (según tu gasto)
+                ✨ Đề xuất {format(suggested)} (dựa trên chi tiêu của bạn)
               </button>
             )}
             <MoneyInput
@@ -384,21 +384,21 @@ function CategoryDetailSheet({
               />
             )}
             <button onClick={() => onSetTarget(tAmt, tMode, tMode === 'by_date' ? (tDate || null) : null, tType)} className="w-full py-2.5 rounded-xl text-sm font-bold text-white mb-4" style={{ background: '#2FA37C' }}>
-              Guardar meta
+              Lưu mục tiêu
             </button>
 
             {/* Feature this category as the Home goal */}
             <button onClick={onToggleFeatured} className="w-full py-2.5 rounded-xl text-sm font-bold mb-3" style={{ background: isFeatured ? '#DDF0E8' : '#F1F5F3', color: isFeatured ? '#1F8A68' : '#5B6660' }}>
-              {isFeatured ? '📌 Destacada en Home' : '📌 Destacar en Home'}
+              {isFeatured ? '📌 Đã ghim trên Trang chủ' : '📌 Ghim trên Trang chủ'}
             </button>
 
             {/* Hide this category from the list (one you won't assign to) */}
             <button onClick={onToggleHidden} className="w-full py-2.5 rounded-xl text-sm font-bold mb-4" style={{ background: isHidden ? '#FCEBE8' : '#F1F5F3', color: isHidden ? '#E25749' : '#5B6660' }}>
-              {isHidden ? '👁 Mostrar esta categoría' : '🙈 Ocultar esta categoría'}
+              {isHidden ? '👁 Hiện danh mục này' : '🙈 Ẩn danh mục này'}
             </button>
 
             {/* Move money to another category */}
-            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Mover plata a otra categoría</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Chuyển tiền sang danh mục khác</p>
             <div className="flex flex-col gap-2 mb-5">
               <select
                 value={moveTo}
@@ -406,7 +406,7 @@ function CategoryDetailSheet({
                 className="w-full min-w-0 rounded-xl px-3 py-2 text-sm outline-none border"
                 style={{ background: '#F1F5F3', color: '#18211D', borderColor: '#E5EBE8' }}
               >
-                <option value="">Elegí una categoría…</option>
+                <option value="">Chọn một danh mục…</option>
                 {otherCategories.map((c) => (
                   <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                 ))}
@@ -415,7 +415,7 @@ function CategoryDetailSheet({
                 <MoneyInput
                   value={moveAmt}
                   onChange={setMoveAmt}
-                  placeholder="Monto"
+                  placeholder="Số tiền"
                   className="flex-1 min-w-0 rounded-xl px-3 py-2 text-sm font-bold outline-none border text-right"
                   style={{ background: '#F1F5F3', color: '#18211D', borderColor: '#E5EBE8' }}
                 />
@@ -425,7 +425,7 @@ function CategoryDetailSheet({
                   className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold text-white"
                   style={{ background: !moveTo || moveAmt <= 0 ? '#B0BAB4' : '#2FA37C' }}
                 >
-                  Mover
+                  Chuyển
                 </button>
               </div>
             </div>
@@ -434,12 +434,12 @@ function CategoryDetailSheet({
 
         {/* This month's transactions */}
         <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>
-          Movimientos del mes · {transactions.length}
+          Giao dịch trong tháng · {transactions.length}
         </p>
         {transactions.length === 0 ? (
           <div className="py-6 text-center">
             <p className="text-2xl mb-1">🧾</p>
-            <p className="text-sm" style={{ color: '#8C968F' }}>Sin gastos este mes.</p>
+            <p className="text-sm" style={{ color: '#8C968F' }}>Tháng này chưa có khoản chi nào.</p>
           </div>
         ) : (
           <div className="rounded-2xl overflow-hidden" style={{ background: '#F1F5F3' }}>
@@ -448,7 +448,7 @@ function CategoryDetailSheet({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || category.name}</p>
                   <p className="text-xs" style={{ color: '#5B6660' }}>
-                    {fmtDate(t.occurred_on)}{t.shared ? ' · compartido' : ''}{t.fixed ? ' · 📌 fijo' : ''}
+                    {fmtDate(t.occurred_on)}{t.shared ? ' · chung' : ''}{t.fixed ? ' · 📌 cố định' : ''}
                   </p>
                 </div>
                 <p className="text-base font-black" style={{ color: '#FF6F61', fontVariantNumeric: 'tabular-nums' }}>-{format(t.amountArs)}</p>
@@ -480,20 +480,20 @@ function NewCategorySheet({ groups, onClose, onCreate }: { groups: EnvelopeCateg
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-        <h2 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Nueva categoría</h2>
+        <h2 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Danh mục mới</h2>
 
-        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Nombre</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Tên</p>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ej: Gimnasio"
+          placeholder="Ví dụ: Phòng gym"
           autoFocus
           className="w-full rounded-2xl px-4 py-3 text-base font-bold mb-4 outline-none border-2"
           style={{ background: '#F1F5F3', color: '#18211D', borderColor: name ? '#2FA37C' : '#E5EBE8' }}
         />
 
         <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>
-          Ícono <span className="font-normal normal-case" style={{ color: '#8C968F' }}>· elegiste {icon}</span>
+          Biểu tượng <span className="font-normal normal-case" style={{ color: '#8C968F' }}>· bạn đã chọn {icon}</span>
         </p>
         <div className="flex flex-wrap gap-2 mb-5">
           {CATEGORY_ICONS.map((ic) => {
@@ -523,21 +523,21 @@ function NewCategorySheet({ groups, onClose, onCreate }: { groups: EnvelopeCateg
           className="w-full flex items-center justify-between px-4 py-3 rounded-2xl mb-4 border-2"
           style={{ background: isGroup ? '#DDF0E8' : '#F1F5F3', borderColor: isGroup ? '#2FA37C' : '#E5EBE8' }}
         >
-          <span className="text-sm font-bold" style={{ color: '#18211D' }}>📂 Es un grupo (encabezado)</span>
-          <span className="text-xs font-bold" style={{ color: isGroup ? '#1F8A68' : '#5B6660' }}>{isGroup ? 'Sí' : 'No'}</span>
+          <span className="text-sm font-bold" style={{ color: '#18211D' }}>📂 Đây là nhóm (tiêu đề)</span>
+          <span className="text-xs font-bold" style={{ color: isGroup ? '#1F8A68' : '#5B6660' }}>{isGroup ? 'Có' : 'Không'}</span>
         </button>
-        <p className="text-[11px] mb-4 -mt-2" style={{ color: '#5B6660' }}>Un grupo agrupa categorías (no se le asigna plata).</p>
+        <p className="text-[11px] mb-4 -mt-2" style={{ color: '#5B6660' }}>Một nhóm có thể gom nhiều danh mục (không thể phân bổ tiền trực tiếp).</p>
 
         {!isGroup && groups.length > 0 && (
           <>
-            <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Grupo</p>
+            <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Nhóm</p>
             <select
               value={parentId}
               onChange={(e) => setParentId(e.target.value)}
               className="w-full rounded-2xl border-2 outline-none px-4 py-3 text-sm font-bold bg-white mb-5"
               style={{ borderColor: '#E5EBE8', color: '#18211D' }}
             >
-              <option value="">Sin grupo</option>
+              <option value="">Không có nhóm</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>{g.icon} {g.name}</option>
               ))}
@@ -551,7 +551,7 @@ function NewCategorySheet({ groups, onClose, onCreate }: { groups: EnvelopeCateg
           className="w-full py-4 rounded-2xl font-bold text-white"
           style={{ background: name.trim() ? '#2FA37C' : '#B0BAB4' }}
         >
-          {isGroup ? 'Crear grupo' : 'Crear categoría'}
+          {isGroup ? 'Tạo nhóm' : 'Tạo danh mục'}
         </button>
       </div>
     </div>
@@ -574,29 +574,29 @@ function NewViewSheet({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center animate-in fade-in duration-200" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={onClose}>
       <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-pop)', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }} onClick={(e) => e.stopPropagation()}>
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-        <h2 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Vistas guardadas</h2>
+        <h2 className="text-lg font-black mb-4" style={{ color: '#18211D' }}>Chế độ xem đã lưu</h2>
 
         {savedViews.length > 0 && (
           <div className="rounded-2xl overflow-hidden mb-5" style={{ background: '#F1F5F3' }}>
             {savedViews.map((v, i) => (
               <div key={v.id} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i > 0 ? '1px solid #E5EBE8' : 'none' }}>
                 <span className="flex-1 text-sm font-semibold" style={{ color: '#18211D' }}>⭐ {v.name}</span>
-                <span className="text-[11px]" style={{ color: '#5B6660' }}>{v.category_ids.length} cat.</span>
-                <button onClick={() => onDelete(v.id)} className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: '#FFE5E0', color: '#E25749' }}>Borrar</button>
+                <span className="text-[11px]" style={{ color: '#5B6660' }}>{v.category_ids.length} danh mục</span>
+                <button onClick={() => onDelete(v.id)} className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: '#FFE5E0', color: '#E25749' }}>Xóa</button>
               </div>
             ))}
           </div>
         )}
 
-        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Nueva vista</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Chế độ xem mới</p>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Ej: Comida, Compartido con pareja…"
+          placeholder="Ví dụ: Ăn uống, Chi chung với người bạn đời…"
           className="w-full rounded-2xl px-4 py-3 text-base font-bold mb-4 outline-none border-2"
           style={{ background: '#F1F5F3', color: '#18211D', borderColor: name ? '#2FA37C' : '#E5EBE8' }}
         />
-        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Categorías ({picked.size})</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#5B6660' }}>Danh mục ({picked.size})</p>
         <div className="flex flex-col gap-1 mb-5 max-h-64 overflow-y-auto">
           {categories.map((c) => (
             <button key={c.id} onClick={() => toggle(c.id)} className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: picked.has(c.id) ? '#DDF0E8' : '#F1F5F3' }}>
@@ -612,7 +612,7 @@ function NewViewSheet({
           className="w-full py-4 rounded-2xl font-bold text-white"
           style={{ background: name.trim() && picked.size ? '#2FA37C' : '#B0BAB4' }}
         >
-          Crear vista
+          Tạo chế độ xem
         </button>
       </div>
     </div>
@@ -633,8 +633,8 @@ function PrioritiesSheet({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center animate-in fade-in duration-200" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={onClose}>
       <div className="w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl p-6 max-h-[88vh] overflow-y-auto animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-pop)', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }} onClick={(e) => e.stopPropagation()}>
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E5EBE8' }} />
-        <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Prioridades del mes</h2>
-        <p className="text-sm mb-4" style={{ color: '#5B6660' }}>¿Qué es lo importante este mes? Fijalo arriba para tenerlo a mano.</p>
+        <h2 className="text-lg font-black mb-1" style={{ color: '#18211D' }}>Ưu tiên trong tháng</h2>
+        <p className="text-sm mb-4" style={{ color: '#5B6660' }}>Điều gì quan trọng trong tháng này? Ghim lên đầu để dễ theo dõi.</p>
         <div className="flex flex-col gap-1 mb-5">
           {categories.map((c) => (
             <button key={c.id} onClick={() => toggle(c.id)} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: picked.has(c.id) ? '#DDF0E8' : '#F1F5F3' }}>
@@ -644,7 +644,7 @@ function PrioritiesSheet({
             </button>
           ))}
         </div>
-        <button onClick={() => { onSave([...picked]); onClose(); }} className="w-full py-4 rounded-2xl font-bold text-white" style={{ background: '#2FA37C' }}>Listo</button>
+        <button onClick={() => { onSave([...picked]); onClose(); }} className="w-full py-4 rounded-2xl font-bold text-white" style={{ background: '#2FA37C' }}>Xong</button>
       </div>
     </div>
   );
@@ -708,28 +708,28 @@ function SpotlightView({
       {/* Top Priorities */}
       <section>
         <div className="flex items-center justify-between mb-2 px-1">
-          <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Prioridades</p>
-          {editable && <button onClick={onAdjustPriorities} className="text-xs font-bold" style={{ color: '#4E84E0' }}>Ajustar</button>}
+          <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Ưu tiên</p>
+          {editable && <button onClick={onAdjustPriorities} className="text-xs font-bold" style={{ color: '#4E84E0' }}>Điều chỉnh</button>}
         </div>
         {priorities.length > 0 ? (
           <div className="flex flex-col gap-2">{priorities.map((c) => <PriorityRow key={c.id} cat={c} />)}</div>
         ) : (
           <button onClick={editable ? onAdjustPriorities : undefined} className="w-full rounded-2xl p-4 text-center text-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }}>
-            Fijá tus categorías importantes para tenerlas a mano.
+            Ghim các danh mục quan trọng để dễ theo dõi.
           </button>
         )}
       </section>
 
       {/* Cost to Be Me */}
       <section className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
-        <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Lo que cuesta un mes de vos</p>
+        <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Chi phí cần cho một tháng</p>
         <p className="text-3xl font-black mt-0.5" style={{ color: '#18211D', fontVariantNumeric: 'tabular-nums' }}>{format(costToBeMe)}</p>
-        <p className="text-[11px] mb-3" style={{ color: '#5B6660' }}>Suma de todas tus metas del mes.</p>
+        <p className="text-[11px] mb-3" style={{ color: '#5B6660' }}>Tổng tất cả mục tiêu trong tháng của bạn.</p>
         <div className="h-2.5 rounded-full overflow-hidden mb-1" style={{ background: '#E5EBE8' }}>
           <div className="h-full rounded-full" style={{ width: `${incomePct * 100}%`, background: incomePct >= 1 ? '#E25749' : '#2FA37C' }} />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[11px]" style={{ color: '#5B6660' }}>Ingreso esperado</span>
+          <span className="text-[11px]" style={{ color: '#5B6660' }}>Thu nhập dự kiến</span>
           {editable ? (
             <MoneyField
               key={`inc-${expectedIncome}`}
@@ -750,14 +750,14 @@ function SpotlightView({
         <section className="rounded-3xl p-5 flex items-center gap-4" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <span className="text-3xl shrink-0">🕰️</span>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Antigüedad del dinero</p>
-            <p className="text-2xl font-black leading-tight" style={{ color: '#18211D' }}>{env.ageOfMoney} días</p>
+            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Tuổi của tiền</p>
+            <p className="text-2xl font-black leading-tight" style={{ color: '#18211D' }}>{env.ageOfMoney} ngày</p>
             <p className="text-[11px]" style={{ color: '#5B6660' }}>
               {env.ageOfMoney < 30
-                ? 'Vivís bastante al día — apuntá a 30+ días de colchón.'
+                ? 'Bạn đang chi khá sát ngày nhận tiền — hãy hướng đến khoản dự phòng 30 ngày trở lên.'
                 : env.ageOfMoney < 60
-                  ? 'Buen colchón: gastás plata que entró hace semanas.'
-                  : 'Gran colchón: gastás plata de hace más de un mes. 🎉'}
+                  ? 'Khoản dự phòng tốt: bạn đang chi tiền đã nhận từ vài tuần trước.'
+                  : 'Khoản dự phòng rất tốt: bạn đang chi tiền đã nhận từ hơn một tháng trước. 🎉'}
             </p>
           </div>
         </section>
@@ -766,7 +766,7 @@ function SpotlightView({
       {/* Savings goals (is_goal categories) with progress rings */}
       {savingsGoals.length > 0 && (
         <section>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Metas de ahorro</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Mục tiêu tiết kiệm</p>
           <div className="flex flex-col gap-2">
             {savingsGoals.map((g) => {
               const pct = g.info.pctComplete;
@@ -792,13 +792,13 @@ function SpotlightView({
 
       {/* Monthly Summary */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Resumen del mes</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Tóm tắt tháng</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'Metas totales', value: s.totalTargets, color: '#18211D' },
-            { label: 'Sin financiar', value: s.underfunded, color: s.underfunded > 0 ? '#C79A2B' : '#1F8A68' },
-            { label: 'Asignado', value: s.assigned, color: '#18211D' },
-            { label: 'Gastado', value: s.spent, color: '#FF6F61' },
+            { label: 'Tổng mục tiêu', value: s.totalTargets, color: '#18211D' },
+            { label: 'Chưa đủ tiền', value: s.underfunded, color: s.underfunded > 0 ? '#C79A2B' : '#1F8A68' },
+            { label: 'Đã phân bổ', value: s.assigned, color: '#18211D' },
+            { label: 'Đã chi', value: s.spent, color: '#FF6F61' },
           ].map((c) => (
             <div key={c.label} className="rounded-2xl p-4" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>{c.label}</p>
@@ -810,7 +810,7 @@ function SpotlightView({
 
       {/* Assigned in Future Months */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Asignado en meses futuros</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Đã phân bổ cho các tháng sau</p>
         <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center gap-3 mb-3">
             <div className="relative w-14 h-14 shrink-0">
@@ -820,10 +820,10 @@ function SpotlightView({
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black" style={{ color: '#18211D' }}>{Math.round(nextFundedPct * 100)}%</span>
             </div>
-            <p className="text-xs" style={{ color: '#5B6660' }}>El mes que viene está financiado al <b>{Math.round(nextFundedPct * 100)}%</b> de tus metas. Asigná hacia adelante para adelantarte un mes.</p>
+            <p className="text-xs" style={{ color: '#5B6660' }}>Tháng sau đã được cấp {Math.round(nextFundedPct * 100)}% cho các mục tiêu. Hãy phân bổ trước để chuẩn bị cho tháng kế tiếp.</p>
           </div>
           {env.assignedFutureByMonth.length === 0 ? (
-            <p className="text-sm text-center py-2" style={{ color: '#5B6660' }}>Todavía no asignaste a meses futuros.</p>
+            <p className="text-sm text-center py-2" style={{ color: '#5B6660' }}>Bạn chưa phân bổ cho các tháng sau.</p>
           ) : (
             <div className="flex flex-col">
               {env.assignedFutureByMonth.map((m, i) => (
@@ -837,14 +837,14 @@ function SpotlightView({
         </div>
       </section>
 
-      {/* Compromisos futuros — cuotas y cargos ya agendados para meses próximos */}
+      {/* Cam kết tương lai — các khoản trả góp và chi phí đã lên lịch cho những tháng tới */}
       {env.futureCommitmentsByMonth.length > 0 && (
         <section>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Compromisos futuros</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Cam kết trong tương lai</p>
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-3xl font-black" style={{ color: '#18211D', fontVariantNumeric: 'tabular-nums' }}>{format(env.futureCommitmentsTotal)}</p>
             <p className="text-[11px] mb-3" style={{ color: '#5B6660' }}>
-              Tu parte de cuotas y gastos fijos ya agendados para meses que vienen. No te bajan este mes, pero ya están prometidos.
+              Phần của bạn trong các khoản trả góp và chi phí cố định đã lên lịch cho những tháng tới. Chúng chưa trừ vào tháng này nhưng đã là khoản cam kết.
             </p>
             <div className="flex flex-col">
               {env.futureCommitmentsByMonth.map((m, i) => {
@@ -853,11 +853,11 @@ function SpotlightView({
                   <button key={m.month} onClick={() => onGotoMonth(m.month)} className="flex items-center justify-between gap-3 py-2.5 text-left" style={{ borderTop: i > 0 ? '1px solid #EAF0ED' : 'none' }}>
                     <div className="min-w-0">
                       <span className="text-sm font-semibold" style={{ color: '#18211D' }}>{monthLabel(m.month)}</span>
-                      <span className="text-[11px] ml-2" style={{ color: '#8C968F' }}>{m.count} {m.count === 1 ? 'movimiento' : 'movimientos'}</span>
+                      <span className="text-[11px] ml-2" style={{ color: '#8C968F' }}>{m.count} {m.count === 1 ? 'giao dịch' : 'giao dịch'}</span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={covered ? { background: '#DDF0E8', color: '#1F8A68' } : { background: '#FBF0D6', color: '#C79A2B' }}>
-                        {covered ? 'Cubierto' : 'A financiar'}
+                        {covered ? 'Đã cấp đủ' : 'Cần cấp tiền'}
                       </span>
                       <span className="text-sm font-black tabular-nums" style={{ color: '#18211D' }}>{format(m.amountArs)} ›</span>
                     </div>
@@ -872,14 +872,14 @@ function SpotlightView({
       {/* Prioritized alerts */}
       {alerts.length > 0 && (
         <section>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Qué atacar primero</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-2 px-1" style={{ color: '#5B6660' }}>Nên xử lý trước</p>
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             {alerts.map((a, i) => (
               <div key={a.cat.id} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i > 0 ? '1px solid #EAF0ED' : 'none' }}>
                 <span className="text-lg">{a.cat.icon}</span>
                 <span className="flex-1 min-w-0 text-sm font-semibold truncate" style={{ color: '#18211D' }}>{a.cat.name}</span>
                 <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={a.over ? { background: '#FFE5E0', color: '#E25749' } : { background: '#FBF0D6', color: '#C79A2B' }}>
-                  {a.over ? `Sobregiraste ${format(a.amount)}` : `Faltan ${format(a.amount)}`}
+                  {a.over ? `Đã chi vượt ${format(a.amount)}` : `Còn thiếu ${format(a.amount)}`}
                 </span>
               </div>
             ))}
@@ -969,7 +969,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
   const groups = useMemo(() => {
     // Group headers (is_group) are the YNAB-style master categories; leaf
     // categories nest under them via parent_id. Card-payment envelopes get their
-    // own "Tarjetas" group; leaves with no group fall under "Sin grupo".
+    // nhóm “Thẻ” riêng; các danh mục không có nhóm sẽ nằm trong “Không có nhóm”.
     const headerById = new Map<string, EnvelopeCategory>();
     for (const c of env.categories) if (c.is_group) headerById.set(c.id, c);
     const byGroup = new Map<string, EnvelopeCategory[]>();
@@ -1000,8 +1000,8 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
       const cats = (byGroup.get(h.id) ?? []).sort(byName);
       if (cats.length) result.push({ key: h.id, title: `${h.icon} ${h.name}`, cats });
     }
-    if (cards.length) result.push({ key: 'cards', title: '💳 Tarjetas', cats: cards.sort(byName) });
-    if (ungrouped.length) result.push({ key: 'ungrouped', title: 'Sin grupo', cats: ungrouped.sort(byName) });
+    if (cards.length) result.push({ key: 'cards', title: '💳 Thẻ', cats: cards.sort(byName) });
+    if (ungrouped.length) result.push({ key: 'ungrouped', title: 'Không có nhóm', cats: ungrouped.sort(byName) });
     return result;
   }, [env.categories, paymentCatOwner, targetProfileId]);
 
@@ -1132,9 +1132,9 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
       qc.invalidateQueries({ queryKey: ['envelope-categories', profile.household_id] });
       // An empty group doesn't show in the list yet (it appears once it has a
       // category), so confirm explicitly and hint how to fill it.
-      toast.success(res.isGroup ? `Grupo "${res.name}" creado — asignale categorías desde cada una` : `Categoría "${res.name}" creada`);
+      toast.success(res.isGroup ? `Đã tạo nhóm "${res.name}" — bạn có thể gán các danh mục từ từng danh mục` : `Đã tạo danh mục "${res.name}"`);
     },
-    onError: () => toast.error('No se pudo crear. Probá de nuevo.'),
+    onError: () => toast.error('Không thể tạo. Hãy thử lại.'),
   });
 
   const renameCategory = useMutation({
@@ -1153,9 +1153,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories', profile.household_id] }); qc.invalidateQueries({ queryKey: ['envelope-categories', profile.household_id] }); },
   });
 
-  // Create a new group (is_group header) and drop the category into it in one go,
-  // so you can group categories on the fly from the detail sheet without going to
-  // "Nueva categoría". Returns the new group's id to set as the category's parent.
+            {/* “Danh mục mới”. Trả về id nhóm mới để đặt làm nhóm của danh mục. */}
   const createGroupForCategory = useMutation({
     mutationFn: async ({ categoryId, name }: { categoryId: string; name: string }) => {
       const { data, error } = await supabase
@@ -1171,9 +1169,9 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['categories', profile.household_id] });
       qc.invalidateQueries({ queryKey: ['envelope-categories', profile.household_id] });
-      toast.success(`Grupo "${res.name}" creado y categoría movida ✓`);
+      toast.success(`Đã tạo nhóm "${res.name}" và chuyển danh mục vào nhóm ✓`);
     },
-    onError: () => toast.error('No se pudo crear el grupo. Probá de nuevo.'),
+    onError: () => toast.error('Không thể tạo nhóm. Hãy thử lại.'),
   });
 
   const saveTarget = useMutation({
@@ -1246,8 +1244,8 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
   }, [expenseCats, env.rowByCategory, env.targetByCategory, env.neededByCategory]);
 
   const rta = env.readyToAssign;
-  // "Para asignar" = tu efectivo on-budget − lo ya guardado en categorías (el
-  // disponible positivo de tus sobres). Lo derivamos al revés para el desglose.
+  // “Cần phân bổ” = tiền mặt trong ngân sách − số tiền đã giữ trong các danh mục
+  // (số dư dương của các phong bì). Phần chi tiết được suy ra theo chiều ngược lại.
   const funded = env.cash - rta;
 
   function toggleGroup(key: string) {
@@ -1266,19 +1264,19 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
 
   const detailRow = detailCat ? env.rowByCategory.get(detailCat.id) : undefined;
 
-  // "Deuda con la pareja" — a synthetic category row at the top of the list that
-  // shows the couple balance both ways. net > 0 = the partner owes me (count on
-  // it), net < 0 = I owe (set it aside, don't budget it). Tapping it opens /pareja
-  // for the full per-category breakdown. Only in my view and when there's a partner.
+  // Hàng “Khoản nợ với người bạn đời” là danh mục tổng hợp ở đầu danh sách,
+  // hiển thị số dư theo cả hai chiều. net > 0 = người bạn đời còn nợ tôi, net < 0 = tôi còn nợ
+  // (để riêng khoản đó, không lập ngân sách). Chạm vào hàng này để mở /pareja
+  // xem đầy đủ theo từng danh mục. Chỉ hiển thị trong chế độ xem của tôi khi có người bạn đời.
   const coupleDebt = editable && partner
     ? (() => {
         const net = Math.round(coupleNet);
-        const partnerName = partner.nickname || 'tu pareja';
+        const partnerName = partner.nickname || 'người bạn đời của bạn';
         if (Math.abs(net) < 1)
-          return { label: 'Están a mano 🤝', color: '#1F8A68', pillBg: '#DDF0E8', pillFg: '#1F8A68', amount: format(0) };
+          return { label: 'Hai người đã cân bằng 🤝', color: '#1F8A68', pillBg: '#DDF0E8', pillFg: '#1F8A68', amount: format(0) };
         if (net > 0)
-          return { label: `${partnerName} te debe · contá con esa plata`, color: '#1F8A68', pillBg: '#1F8A68', pillFg: '#FFFFFF', amount: `+${format(net)}` };
-        return { label: `Le debés a ${partnerName} · apartala, no la presupuestes`, color: '#E25749', pillBg: '#FFE5E0', pillFg: '#E25749', amount: format(net) };
+        return { label: `${partnerName} còn nợ bạn · hãy tính đến khoản này`, color: '#1F8A68', pillBg: '#1F8A68', pillFg: '#FFFFFF', amount: `+${format(net)}` };
+        return { label: `Bạn nợ ${partnerName} · hãy để riêng khoản này, đừng phân bổ`, color: '#E25749', pillBg: '#FFE5E0', pillFg: '#E25749', amount: format(net) };
       })()
     : null;
 
@@ -1286,24 +1284,24 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Presupuesto</h1>
+          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Ngân sách</h1>
           <div className="flex items-center gap-1">
-            <button onClick={() => setMonth((m) => shiftMonth(m, -1))} className="w-8 h-8 rounded-full text-lg flex items-center justify-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }} aria-label="Mes anterior">‹</button>
+            <button onClick={() => setMonth((m) => shiftMonth(m, -1))} className="w-8 h-8 rounded-full text-lg flex items-center justify-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }} aria-label="Tháng trước">‹</button>
             <span className="text-sm font-bold min-w-[7.5rem] text-center" style={{ color: '#18211D' }}>{monthLabel(month)}</span>
-            <button onClick={() => setMonth((m) => shiftMonth(m, 1))} className="w-8 h-8 rounded-full text-lg flex items-center justify-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }} aria-label="Mes siguiente">›</button>
+            <button onClick={() => setMonth((m) => shiftMonth(m, 1))} className="w-8 h-8 rounded-full text-lg flex items-center justify-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }} aria-label="Tháng sau">›</button>
           </div>
         </div>
       </header>
 
       {partner && (
         <div className="mx-4 mb-3 flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
-          {([{ k: 'mine', label: 'Mío' }, { k: 'partner', label: partner.nickname || 'Pareja' }] as const).map((t) => (
+          {([{ k: 'mine', label: 'Của tôi' }, { k: 'partner', label: partner.nickname || 'Người bạn đời' }] as const).map((t) => (
             <button key={t.k} onClick={() => setView(t.k)} className="flex-1 py-2 text-xs font-black rounded-xl transition-all" style={{ background: view === t.k ? '#FFFFFF' : 'transparent', color: view === t.k ? '#18211D' : '#5B6660', boxShadow: view === t.k ? 'var(--shadow-soft)' : 'none' }}>{t.label}</button>
           ))}
         </div>
       )}
 
-      {/* "Para asignar" — premium two-zone hero: gradient headline + white details */}
+      {/* “Cần phân bổ” — phần tiêu đề nổi bật và phần chi tiết màu trắng */}
       <div className="mx-4 mb-4 rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-pop)' }}>
         <div
           className="relative px-5 pt-5 pb-5 overflow-hidden"
@@ -1317,13 +1315,13 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
           <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
           <div className="relative flex items-center justify-between">
             <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>
-              {editable ? 'Para asignar' : `Para asignar · ${partner?.nickname || 'Pareja'}`}
+              {editable ? 'Cần phân bổ' : `Cần phân bổ · ${partner?.nickname || 'Người bạn đời'}`}
             </p>
             <span className="text-base leading-none">{rta < 0 ? '⚠️' : rta > 0 ? '💸' : '🎉'}</span>
           </div>
           <p className="relative text-[2.6rem] leading-none font-black mt-2 tracking-tight" style={{ color: '#FFFFFF', fontVariantNumeric: 'tabular-nums' }}>{format(rta)}</p>
           <p className="relative text-[11px] mt-2.5 leading-snug" style={{ color: 'rgba(255,255,255,0.9)' }}>
-            {rta > 0 ? 'Plata en cuentas todavía sin un trabajo. Asignala a una categoría.' : rta < 0 ? 'Asignaste (o fronteaste) más de lo que tenés. Sacá de alguna categoría.' : 'Cada peso tiene un trabajo. 🎉'}
+            {rta > 0 ? 'Tiền trong tài khoản chưa được giao nhiệm vụ. Hãy phân bổ cho một danh mục.' : rta < 0 ? 'Bạn đã phân bổ (hoặc ứng trước) nhiều hơn số tiền hiện có. Hãy rút bớt từ một danh mục.' : 'Mỗi đồng tiền đều có một nhiệm vụ. 🎉'}
           </p>
         </div>
 
@@ -1331,30 +1329,29 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
           {/* breakdown: cash − funded = rta */}
           <div className="flex items-stretch rounded-2xl overflow-hidden" style={{ background: '#F1F5F3' }}>
             <div className="flex-1 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>{editable ? 'Tus cuentas' : 'Sus cuentas'}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>{editable ? 'Tài khoản của bạn' : 'Tài khoản của họ'}</p>
               <p className="text-sm font-black tabular-nums" style={{ color: '#18211D' }}>{format(env.cash)}</p>
             </div>
             <div className="w-px my-2" style={{ background: '#E5EBE8' }} />
             <div className="flex-1 px-3 py-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>En categorías</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8C968F' }}>Trong danh mục</p>
               <p className="text-sm font-black tabular-nums" style={{ color: '#18211D' }}>{format(funded)}</p>
             </div>
           </div>
           <p className="text-[10px] mt-1.5 px-1" style={{ color: '#8C968F' }}>
-            Solo {editable ? 'tus' : 'sus'} cuentas on-budget · asignado este mes {format(env.assignedTotal)}
+            Chỉ tính {editable ? 'tài khoản của bạn' : 'tài khoản của họ'} trong ngân sách · đã phân bổ tháng này {format(env.assignedTotal)}
           </p>
         {receivable > 0 && (
           <div className="mt-3 flex items-center gap-2 rounded-2xl px-3 py-2" style={{ background: '#DDF0E8' }}>
             <span className="text-base">💸</span>
             <p className="text-[11px] leading-snug flex-1" style={{ color: '#5B6660' }}>
-              <b style={{ color: '#1F8A68' }}>{partner?.nickname || 'Tu pareja'} te debe {format(receivable)}</b> — plata que fronteaste. Te baja “Para asignar” hasta que te la devuelva.
+              <b style={{ color: '#1F8A68' }}>{partner?.nickname || 'Người bạn đời của bạn'} còn nợ bạn {format(receivable)}</b> — khoản bạn đã ứng trước. Số tiền này làm giảm “Cần phân bổ” cho đến khi được hoàn lại.
             </p>
           </div>
         )}
         {editable && overspentCount >= 4 && (
           <p className="text-[11px] mt-3 leading-snug" style={{ color: '#5B6660' }}>
-            Empezaste a presupuestar a mitad de mes. Tocá <b>Cubrir lo ya gastado</b> para asignar
-            retroactivamente lo que ya saliste gastando y partir en cero (no te baja “Para asignar”).
+            Bạn bắt đầu lập ngân sách giữa tháng. Chạm vào <b>Bù các khoản đã chi</b> để phân bổ ngược cho những khoản đã chi và đưa số dư về 0 (không làm giảm “Cần phân bổ”).
           </p>
         )}
         {editable && (
@@ -1362,25 +1359,25 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
             <div className="flex flex-wrap gap-2">
               {overspentCount > 0 && (
                 <button onClick={coverOverspent} className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: '#FFE5E0', color: '#E25749' }}>
-                  Cubrir lo ya gastado ({overspentCount})
+                  Bù các khoản đã chi ({overspentCount})
                 </button>
               )}
               {underfundedCount > 0 && (
                 <button onClick={autoAssignTargets} className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: '#FDF1D8', color: '#B8860B' }}>
-                  Asignar a metas ({underfundedCount})
+                  Phân bổ cho mục tiêu ({underfundedCount})
                 </button>
               )}
               <button onClick={() => setAutoMenuOpen((v) => !v)} className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: '#DDF0E8', color: '#1F8A68' }}>
-                ⚡ Auto-asignar {autoMenuOpen ? '▴' : '▾'}
+                ⚡ Tự động phân bổ {autoMenuOpen ? '▴' : '▾'}
               </button>
             </div>
             {autoMenuOpen && (
               <div className="mt-2 flex flex-col gap-1 rounded-2xl p-2" style={{ background: '#F1F5F3' }}>
                 {([
-                  { k: 'last_assigned', label: 'Igual que el mes pasado (asignado)' },
-                  { k: 'last_spent', label: 'Gastado el mes pasado' },
-                  { k: 'avg3_spent', label: 'Promedio de gasto (3 meses)' },
-                  { k: 'reset_available', label: 'Resetear disponible a 0' },
+                  { k: 'last_assigned', label: 'Giống tháng trước (đã phân bổ)' },
+                  { k: 'last_spent', label: 'Đã chi tháng trước' },
+                  { k: 'avg3_spent', label: 'Chi tiêu trung bình (3 tháng)' },
+                  { k: 'reset_available', label: 'Đặt số dư còn lại về 0' },
                 ] as const).map((o) => (
                   <button key={o.k} onClick={() => applyAutoAssign(o.k)} className="text-left text-xs font-semibold px-3 py-2 rounded-xl" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#18211D' }}>
                     {o.label}
@@ -1393,9 +1390,9 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
         </div>
       </div>
 
-      {/* Categorías | Spotlight toggle */}
+      {/* Danh mục | Chế độ xem tổng quan */}
       <div className="mx-4 mb-3 flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
-        {([{ k: 'categories', label: 'Categorías' }, { k: 'spotlight', label: '✨ Spotlight' }] as const).map((t) => (
+        {([{ k: 'categories', label: 'Danh mục' }, { k: 'spotlight', label: '✨ Tổng quan' }] as const).map((t) => (
           <button key={t.k} onClick={() => setTab(t.k)} className="flex-1 py-2 text-xs font-black rounded-xl transition-all" style={{ background: tab === t.k ? '#FFFFFF' : 'transparent', color: tab === t.k ? '#18211D' : '#5B6660', boxShadow: tab === t.k ? 'var(--shadow-soft)' : 'none' }}>{t.label}</button>
         ))}
       </div>
@@ -1416,11 +1413,11 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
       {/* Focused views — filter chips */}
       <div className="flex gap-2 overflow-x-auto px-4 mb-3 pb-1" style={{ scrollbarWidth: 'none' }}>
         {([
-          { k: 'all', label: 'Todos', n: null as number | null },
-          { k: 'overspent', label: 'Sobregirados', n: chipCounts.overspent },
-          { k: 'underfunded', label: 'Bajo la meta', n: chipCounts.underfunded },
-          { k: 'overfunded', label: 'Sobre-financiados', n: chipCounts.overfunded },
-          { k: 'available', label: 'Con disponible', n: chipCounts.available },
+          { k: 'all', label: 'Tất cả', n: null as number | null },
+          { k: 'overspent', label: 'Chi vượt ngân sách', n: chipCounts.overspent },
+          { k: 'underfunded', label: 'Chưa đạt mục tiêu', n: chipCounts.underfunded },
+          { k: 'overfunded', label: 'Cấp dư ngân sách', n: chipCounts.overfunded },
+          { k: 'available', label: 'Còn tiền', n: chipCounts.available },
         ] as const).map((chip) => (
           <button
             key={chip.k}
@@ -1447,7 +1444,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
             className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap"
             style={{ background: showHidden ? '#5B6660' : '#FFFFFF', color: showHidden ? '#FFFFFF' : '#5B6660' }}
           >
-            {showHidden ? '🙈 Ocultar ocultas' : `👁 Ocultas ${hiddenIds.size}`}
+            {showHidden ? '🙈 Hiện danh mục đã ẩn' : `👁 Đã ẩn ${hiddenIds.size}`}
           </button>
         )}
         {editable && (
@@ -1456,7 +1453,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
             className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap border-2 border-dashed"
             style={{ borderColor: '#CFD8D3', color: '#5B6660', background: 'transparent' }}
           >
-            + Vista
+            + Chế độ xem
           </button>
         )}
       </div>
@@ -1466,14 +1463,14 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
         {coupleDebt && (
           <div>
             <div className="flex items-center gap-2 px-3 mb-1.5">
-              <p className="flex-1 text-left text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>🤝 Pareja</p>
+              <p className="flex-1 text-left text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>🤝 Người bạn đời</p>
             </div>
             <Link href="/pareja" className="block rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
               <div className="px-4 py-3 transition-colors hover:bg-[#F4F8F6] active:bg-[#EEF3F1]">
                 <div className="flex items-center gap-2">
                   <span className="shrink-0 text-lg">🤝</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>Deuda con la pareja</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: '#18211D' }}>Khoản nợ với người bạn đời</p>
                     <p className="text-[10px] font-semibold" style={{ color: coupleDebt.color }}>{coupleDebt.label}</p>
                   </div>
                   <span className="shrink-0 inline-block px-2.5 py-1 rounded-full text-sm font-black tabular-nums" style={{ background: coupleDebt.pillBg, color: coupleDebt.pillFg }}>
@@ -1485,7 +1482,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
           </div>
         )}
         {env.isLoading ? (
-          <div className="rounded-3xl p-8 text-center text-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }}>Cargando…</div>
+          <div className="rounded-3xl p-8 text-center text-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660' }}>Đang tải…</div>
         ) : (
           groups.map((g) => {
             const cats = g.cats
@@ -1540,7 +1537,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
                       //  - Savings goals fill as you FUND them (progress toward the goal).
                       //  - Regular envelopes fill as you SPEND them (gasto vs what's in
                       //    the envelope), so $180k de $200k se ve casi lleno, no casi
-                      //    vacío. Overspent = barra llena.
+                      //    trống. Chi vượt ngân sách = thanh tiến trình đầy.
                       const barPct = c.is_goal && target > 0
                         ? Math.max(0, Math.min(1, available / target)) * 100
                         : available < 0
@@ -1549,21 +1546,21 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
                       // YNAB-style status text under the name.
                       let statusText = '';
                       let statusColor = '#5B6660';
-                      if (available < 0) { statusText = `Sobregiraste ${fmtCell(-available)}`; statusColor = '#E25749'; }
-                      else if (needed > 0) { statusText = `${isMonthlyBudget ? 'Falta asignar' : 'Faltan'} ${fmtCell(needed)}`; statusColor = '#C79A2B'; }
+                      if (available < 0) { statusText = `Đã chi vượt ${fmtCell(-available)}`; statusColor = '#E25749'; }
+                      else if (needed > 0) { statusText = `${isMonthlyBudget ? 'Còn thiếu phân bổ' : 'Còn thiếu'} ${fmtCell(needed)}`; statusColor = '#C79A2B'; }
                       else if (isMonthlyBudget) {
                         // Funded monthly budget → spend against the budget amount.
-                        statusText = activity > 0 ? `Gastaste ${fmtCell(activity)} de ${fmtCell(target)}${available <= 0 ? ' · todo' : ''}` : 'Financiado';
+                        statusText = activity > 0 ? `Đã chi ${fmtCell(activity)} trên tổng ${fmtCell(target)}${available <= 0 ? ' · hết ngân sách' : ''}` : 'Đã cấp đủ';
                         statusColor = activity > 0 ? '#5B6660' : '#1F8A68';
                       }
-                      else if (target > 0) { statusText = '✓ Meta cumplida'; statusColor = '#1F8A68'; }
+                      else if (target > 0) { statusText = '✓ Đã đạt mục tiêu'; statusColor = '#1F8A68'; }
                       else if (assigned <= 0 && activity <= 0) { statusText = ''; }
-                      else if (activity <= 0) { statusText = 'Financiado'; statusColor = '#1F8A68'; }
+                      else if (activity <= 0) { statusText = 'Đã cấp đủ'; statusColor = '#1F8A68'; }
                       else {
                         // YNAB "spent X of Y": Y is what was in the envelope this
                         // month (assignment + carry-over = `pool`). A fully-drained
                         // envelope reads "· todo".
-                        statusText = `Gastaste ${fmtCell(activity)} de ${fmtCell(pool)}${available <= 0 ? ' · todo' : ''}`;
+                        statusText = `Đã chi ${fmtCell(activity)} trên tổng ${fmtCell(pool)}${available <= 0 ? ' · hết ngân sách' : ''}`;
                         statusColor = '#5B6660';
                       }
                       return (
@@ -1616,7 +1613,7 @@ export default function PresupuestosClient({ profile }: { profile: Profile }) {
             className="rounded-2xl py-3 text-sm font-bold border-2 border-dashed"
             style={{ borderColor: '#CFD8D3', color: '#5B6660', background: 'transparent' }}
           >
-            ➕ Nueva categoría
+            ➕ Danh mục mới
           </button>
         )}
       </div>

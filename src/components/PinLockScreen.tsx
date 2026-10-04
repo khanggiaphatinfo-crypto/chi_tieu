@@ -49,13 +49,13 @@ export function PinLockScreen() {
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8"
       style={{ background: '#F1F5F3' }}
     >
-// Tiêu đề
+      {/* Tiêu đề */}
       <div className="text-center">
         <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#5B6660' }}>Morchis</p>
         <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Nhập PIN</h1>
       </div>
 
-// Các dấu chấm
+      {/* Các dấu chấm */}
       <div className="flex gap-4">
         {Array.from({ length: MAX_DIGITS }).map((_, i) => (
           <div
@@ -66,12 +66,12 @@ export function PinLockScreen() {
         ))}
       </div>
 
-// Lỗi
+      {/* Lỗi */}
       {error && (
         <p className="text-sm font-semibold text-center px-8" style={{ color: '#FF6F61' }}>{error}</p>
       )}
 
-// Bàn phím
+      {/* Bàn phím */}
       {!blocked && (
         <div className="w-full max-w-xs">
           <NumberKeypad onDigit={handleDigit} onBackspace={handleBackspace} onConfirm={handleConfirm} />

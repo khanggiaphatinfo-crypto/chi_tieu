@@ -7,6 +7,12 @@ import { toast } from 'sonner';
 
 type Mode = 'login' | 'signup' | 'reset';
 
+function authErrorMessage(mode: Mode): string {
+  if (mode === 'reset') return 'Không thể gửi liên kết đổi mật khẩu. Hãy kiểm tra email và thử lại.';
+  if (mode === 'signup') return 'Không thể tạo tài khoản. Hãy kiểm tra email và thử lại.';
+  return 'Email hoặc mật khẩu không đúng.';
+}
+
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
@@ -21,9 +27,9 @@ export default function AuthPage() {
     try {
       if (mode === 'reset') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
         });
-        if (error) { toast.error(error.message); return; }
+        if (error) { toast.error(authErrorMessage(mode)); return; }
         toast.success('Đã gửi liên kết đổi mật khẩu. Hãy kiểm tra email của bạn.');
         setMode('login');
         return;
@@ -37,14 +43,14 @@ export default function AuthPage() {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          toast.error('Email hoặc mật khẩu không đúng.');
+          toast.error(authErrorMessage(mode));
           return;
         }
         router.push('/presupuestos');
         router.refresh();
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
-        if (error) { toast.error(error.message); return; }
+        if (error) { toast.error(authErrorMessage(mode)); return; }
         // Auto-login (works when email confirmation is disabled in Supabase)
         const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password });
         if (!loginErr) {

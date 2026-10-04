@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { roundMoney, evalMoneyExpr, hasMoneyOperator } from '@/lib/format';
 
 // Text input that shows the amount with vi-VN thousand separators
@@ -61,30 +61,24 @@ export function MoneyInput({
   // expression collapses to its result on blur.
   const [focused, setFocused] = useState(false);
 
-  // Keep in sync when the value is changed from outside (reset after submit,
-  // loading an existing row to edit) without clobbering an in-progress decimal
-  // or expression.
-  useEffect(() => {
-    if (!focused && esARToNumber(text) !== roundMoney(value)) {
-      setText(formatValue(value));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  const displayValue = focused ? text : formatValue(value);
 
   return (
     <input
       type="text"
       inputMode="decimal"
-      value={text}
+      value={displayValue}
       placeholder={placeholder}
       className={className}
       style={style}
       autoFocus={autoFocus}
-      onFocus={() => setFocused(true)}
+      onFocus={() => {
+        setFocused(true);
+        setText(formatValue(value));
+      }}
       onBlur={() => {
         setFocused(false);
-        // Collapse a finished expression ("1200+350") into its formatted result.
-        if (hasMoneyOperator(text)) setText(formatValue(evalMoneyExpr(text)));
+        setText(formatValue(hasMoneyOperator(text) ? evalMoneyExpr(text) : value));
       }}
       onChange={(e) => {
         const next = e.target.value;

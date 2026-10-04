@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -12,21 +12,16 @@ export function InvitePartnerModal({
   onClose: () => void;
 }) {
   const supabase = createClient();
-  const [code, setCode] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function generateCode() {
-    setLoading(true);
-    const { data, error } = await supabase.rpc('generate_invite_code');
-    if (!error && data) setCode(data as string);
-    else toast.error('Không thể tạo mã.');
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    if (open && !code && !loading) generateCode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const { data: code = null, isLoading: loading } = useQuery({
+    queryKey: ['invite-code'],
+    enabled: open,
+    staleTime: 1000 * 60 * 60,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('generate_invite_code');
+      if (error || !data) throw error ?? new Error('Không thể tạo mã.');
+      return data as string;
+    },
+  });
 
   async function copy() {
     if (!code) return;
@@ -48,7 +43,7 @@ export function InvitePartnerModal({
         /* user cancelled */
       }
     } else {
-      copy();
+      await copy();
     }
   }
 

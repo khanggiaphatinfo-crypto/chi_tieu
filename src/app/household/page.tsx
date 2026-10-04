@@ -22,14 +22,18 @@ export default function HouseholdPage() {
     try {
 // Dùng RPC SECURITY DEFINER để tránh vòng lặp phụ thuộc RLS trên households
       const { data, error } = await supabase.rpc('create_household', {
-        household_name: householdName || 'Nuestro hogar',
+        household_name: householdName || 'Gia đình chúng ta',
       });
       if (error) throw error;
       setHouseholdId(data as string);
       setStep('profile');
     } catch (err: unknown) {
-      console.error(err);
-      toast.error('Không thể tạo hộ gia đình. Vui lòng thử lại.');
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes('create_household') || message.includes('PGRST202')) {
+        toast.error('Hệ thống chưa sẵn sàng tạo hộ gia đình. Cần áp dụng schema Supabase trước.');
+      } else {
+        toast.error('Không thể tạo hộ gia đình. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -85,7 +89,7 @@ export default function HouseholdPage() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-3">🏡</div>
           <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>
-            ¿Chúng ta bắt đầu thế nào?
+            Chúng ta bắt đầu thế nào?
           </h1>
         </div>
         <div className="flex flex-col gap-3">
@@ -151,7 +155,7 @@ export default function HouseholdPage() {
     <Screen>
       <div className="text-center mb-8">
         <div className="text-5xl mb-3">✨</div>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>¿Bạn muốn chúng tôi gọi bạn là gì?</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Bạn muốn chúng tôi gọi bạn là gì?</h1>
         <p className="text-sm mt-1" style={{ color: '#5B6660' }}>Chúng tôi sẽ dùng biệt danh của bạn trong ứng dụng.</p>
       </div>
       <div className="mb-4">

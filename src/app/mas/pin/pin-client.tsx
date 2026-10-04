@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { NumberKeypad } from '@/components/NumberKeypad';
-import { usePinStore, sha256Hex } from '@/store/pinStore';
+import { usePinStore } from '@/store/pinStore';
 
 const MAX_DIGITS = 6;
 

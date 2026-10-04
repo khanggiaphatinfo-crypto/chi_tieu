@@ -72,11 +72,6 @@ export const ITEM_GROUP_LABELS: Record<string, string> = {
   otros: 'Khác',
 };
 
-export function groupLabel(group: string): string {
-  return ITEM_GROUP_LABELS[group] ?? group;
-}
-
-// The cafetería/gastronomía subset of the taxonomy — used by the receipt parser
 // to classify café-ticket items and by /cafes to know which rubros are "café".
 export const CAFE_ITEM_GROUPS: readonly string[] = [
   'café',

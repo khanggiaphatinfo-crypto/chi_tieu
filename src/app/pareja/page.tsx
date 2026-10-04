@@ -29,7 +29,7 @@ export default async function ParejaPage() {
       profile={profile as { id: string; household_id: string; nickname: string | null; display_name: string | null }}
       partner={partner ? {
         id: partner.id,
-        name: partner.nickname || partner.display_name || 'Pareja',
+        name: partner.nickname || partner.display_name || 'người bạn đời của bạn',
       } : undefined}
     />
   );

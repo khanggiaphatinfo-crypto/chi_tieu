@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase';
 import { BottomNav } from '@/components/BottomNav';
 import { AddTransactionSheet } from '@/components/AddTransactionSheet';
 import { useQuery } from '@tanstack/react-query';
-import { formatARS, formatUSD, arsToUsd } from '@/lib/format';
+import { formatARS } from '@/lib/format';
 import { useFx } from '@/hooks/useFx';
 import Link from 'next/link';
 
@@ -45,7 +45,7 @@ const SUGGESTIONS = [
 
 export default function SimuladorClient({ profile }: { profile: Profile }) {
   const supabase = createClient();
-  const { format, secondary, arsPerUsd } = useFx();
+  const { format, secondary } = useFx();
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SimResult | null>(null);

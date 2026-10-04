@@ -1,8 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+import { inputFile, inputImage, inputText, functionTool, responsesRequest } from "../_shared/responses.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -89,38 +87,20 @@ async function parseReceipt(
 
   // One block per file, in upload order. A long ticket split across several
   // photos arrives here as multiple images that describe the SAME receipt.
-  const fileBlocks = files.map((f) => {
-    const isPdf = f.mimeType === "application/pdf";
-    return isPdf
-      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: f.base64 } }
-      : { type: "image", source: { type: "base64", media_type: f.mimeType, data: f.base64 } };
-  });
+  const fileBlocks = files.map((f) => f.mimeType === "application/pdf"
+    ? inputFile(f.base64, f.mimeType, "receipt.pdf")
+    : inputImage(f.base64, f.mimeType));
 
   const closing = files.length > 1
-    ? `Estas ${files.length} imágenes son fotos de UN MISMO comprobante largo, en orden. Leélas como un único ticket continuo: NO dupliques productos que aparezcan repetidos por el solapamiento entre fotos, y devolvé UN solo JSON con todos los productos y el total final del comprobante.`
-    : "Leé este comprobante (ticket o captura de notificación bancaria) y devolvé el JSON.";
-
-  const messages = [
-    {
-      role: "user",
-      content: [
-        {
-          type: "text",
-          text: `${SYSTEM_PROMPT}\n\nCategorías de gasto disponibles (elegí suggested_category EXACTAMENTE de esta lista): ${categories.join(", ")}\n\nFecha de hoy: ${today}`,
-          cache_control: { type: "ephemeral" },
-        },
-        ...fileBlocks,
-        { type: "text", text: closing },
-      ],
-    },
-  ];
+    ? `${files.length} ảnh là các phần của CÙNG MỘT hóa đơn dài, theo đúng thứ tự. Hãy đọc như một hóa đơn liên tục: KHÔNG lặp lại sản phẩm do ảnh chồng lấn, và trả về MỘT JSON duy nhất gồm tất cả sản phẩm cùng tổng cuối hóa đơn.`
+    : "Hãy đọc chứng từ này (hóa đơn hoặc ảnh chụp thông báo ngân hàng) và trả về JSON.";
 
   // Forced tool use: the API guarantees the reply is a structured tool call
   // matching this schema, so the model can never answer with prose.
-  const receiptTool = {
-    name: "registrar_comprobante",
-    description: "Registra los datos extraídos del comprobante de gasto.",
-    input_schema: {
+  const receiptTool = functionTool(
+    "registrar_comprobante",
+    "Ghi lại dữ liệu đã trích xuất từ chứng từ chi tiêu.",
+    {
       type: "object",
       properties: {
         merchant: { type: "string" },
@@ -144,36 +124,24 @@ async function parseReceipt(
       },
       required: ["merchant", "date", "total", "currency", "suggested_category", "items"],
     },
-  };
+  );
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-      "anthropic-beta": "prompt-caching-2024-07-31,pdfs-2024-09-25",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
-      messages,
-      tools: [receiptTool],
-      tool_choice: { type: "tool", name: "registrar_comprobante" },
-    }),
+  const response = await responsesRequest({
+    maxOutputTokens: 4096,
+    instructions: `${SYSTEM_PROMPT}\n\nCác danh mục chi tiêu có sẵn (hãy chọn suggested_category CHÍNH XÁC từ danh sách này): ${categories.join(", ")}\n\nNgày hôm nay: ${today}`,
+    input: [...fileBlocks, inputText(closing)],
+    tools: [receiptTool],
+    toolChoice: { type: "function", name: "registrar_comprobante" },
   });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Claude API error ${response.status}: ${err}`);
+  const call = response.functionCalls.find((f) => f.name === "registrar_comprobante");
+  if (!call) throw new Error("Không thể đọc chứng từ. Hãy thử chụp ảnh rõ hơn và đầy đủ hơn.");
+  let parsed: ParsedReceipt;
+  try {
+    parsed = JSON.parse(call.arguments) as ParsedReceipt;
+  } catch {
+    throw new Error("Không thể đọc chứng từ. Hãy thử chụp ảnh rõ hơn và đầy đủ hơn.");
   }
-
-  const data = await response.json();
-  const toolUse = (data.content ?? []).find((b: { type: string }) => b.type === "tool_use");
-  if (!toolUse?.input) {
-    throw new Error("No se pudo leer el comprobante. Probá con una foto más nítida y completa.");
-  }
-  const parsed = toolUse.input as ParsedReceipt;
 
   // Normalize. Money keeps up to 2 decimals (a USD proof may have cents); the
   // currency is constrained to what the app supports, defaulting to ARS.
@@ -209,23 +177,23 @@ Deno.serve(async (req: Request) => {
     );
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: "No autorizado" }), { status: 401, headers: { ...CORS, "Content-Type": "application/json" } });
+    if (!user) return new Response(JSON.stringify({ error: "Không được phép" }), { status: 401, headers: { ...CORS, "Content-Type": "application/json" } });
 
     const { data: profile } = await supabase
       .from("profiles").select("household_id").eq("id", user.id).single();
-    if (!profile?.household_id) return new Response(JSON.stringify({ error: "Sin hogar" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+    if (!profile?.household_id) return new Response(JSON.stringify({ error: "Chưa có hộ gia đình" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
 
     const body = await req.json();
     // Accept the new multi-photo shape (file_paths) and the legacy single one.
     const filePaths: string[] = Array.isArray(body.file_paths)
       ? body.file_paths.filter((p: unknown) => typeof p === "string")
       : body.file_path ? [body.file_path] : [];
-    if (filePaths.length === 0) return new Response(JSON.stringify({ error: "file_path requerido" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+    if (filePaths.length === 0) return new Response(JSON.stringify({ error: "cần có file_path" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
 
     const files: ReceiptFile[] = [];
     for (const fp of filePaths) {
       const { data: fileData, error: dlErr } = await serviceClient.storage.from("statements").download(fp);
-      if (dlErr || !fileData) throw new Error(`Error descargando archivo: ${dlErr?.message}`);
+      if (dlErr || !fileData) throw new Error("Không thể tải tệp chứng từ");
 
       const arrayBuffer = await fileData.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
@@ -244,8 +212,15 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ ok: true, receipt: parsed }), { headers: { ...CORS, "Content-Type": "application/json" } });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("parse-receipt error:", msg);
-    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
+    const errorCode = err instanceof Error && err.message === "Không thể tải tệp chứng từ"
+      ? "FILE_DOWNLOAD_FAILED"
+      : "RECEIPT_PARSE_FAILED";
+    console.error("parse-receipt error:", err);
+    return new Response(JSON.stringify({
+      error: errorCode === "FILE_DOWNLOAD_FAILED"
+        ? "Không thể tải tệp chứng từ"
+        : "Không thể đọc hóa đơn. Hãy thử lại với ảnh rõ hơn.",
+      code: errorCode,
+    }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
   }
 });

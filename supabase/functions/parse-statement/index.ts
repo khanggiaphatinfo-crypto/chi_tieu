@@ -1,9 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { inputFile, inputImage, inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
 import { normalize, isDuplicate } from "./math.ts";
-
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -30,7 +28,7 @@ interface AIProvider {
   ): Promise<ParsedTransaction[]>;
 }
 
-// ── Claude provider ───────────────────────────────────────────────────
+// ── Responses provider ───────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `Bạn là trợ lý trích xuất giao dịch từ tài liệu tài chính Argentina: sao kê thẻ, sao kê ngân hàng và hóa đơn/biên lai mua hàng.
 
@@ -85,84 +83,27 @@ class ClaudeProvider implements AIProvider {
   ): Promise<ParsedTransaction[]> {
     const categoryList = categories.map((c) => c.name).join(", ");
     const aliasList = merchantAliases.length > 0
-      ? `\n\nAliases de comercios conocidos (usá estas categorías si el comercio coincide):\n${merchantAliases
+      ? `\n\nCác bí danh cửa hàng đã biết (dùng các danh mục này nếu cửa hàng khớp):\n${merchantAliases
           .map((a) => `- "${a.raw_pattern}" → ${categories.find((c) => c.id === a.category_id)?.name ?? ""}`)
           .join("\n")}`
       : "";
 
-    // Variable block: the document. CSVs go as plain text; PDFs as a
-    // document block; everything else as an image block.
-    let fileBlock: Record<string, unknown>;
+    let filePart;
     if (input.kind === "text") {
-      fileBlock = {
-        type: "text",
-        text: `Contenido del archivo CSV:\n\n${input.text}`,
-      };
+      filePart = inputText(`Nội dung tệp CSV:\n\n${input.text}`);
     } else if (input.mimeType === "application/pdf") {
-      fileBlock = {
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: input.data,
-        },
-      };
+      filePart = inputFile(input.data, input.mimeType, "statement.pdf");
     } else {
-      fileBlock = {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: input.mimeType as "image/jpeg" | "image/png" | "image/webp" | "image/gif",
-          data: input.data,
-        },
-      };
+      filePart = inputImage(input.data, input.mimeType);
     }
 
-    const messages = [
-      {
-        role: "user",
-        content: [
-          // Cached block: system context + schema + categories
-          {
-            type: "text",
-            text: `${SYSTEM_PROMPT}\n\nCategorías disponibles: ${categoryList}${aliasList}\n\nEsquema de salida:\n${JSON.stringify(TRANSACTION_SCHEMA, null, 2)}`,
-            cache_control: { type: "ephemeral" },
-          },
-          fileBlock,
-          {
-            type: "text",
-            text: "Analizá el documento y extraé las transacciones según su tipo (resumen/extracto: una por cada gasto; ticket/comprobante: una sola con el total y los productos en raw_description; CSV de actividad: una por cada gasto real).",
-          },
-        ],
-      },
-    ];
-
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "prompt-caching-2024-07-31,pdfs-2024-09-25",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 4096,
-        messages,
-      }),
+    const response = await responsesRequest({
+      maxOutputTokens: 4096,
+      instructions: `${SYSTEM_PROMPT}\n\nCác danh mục có sẵn: ${categoryList}${aliasList}\n\nĐịnh dạng đầu ra:\n${JSON.stringify(TRANSACTION_SCHEMA, null, 2)}`,
+      input: [filePart, inputText("Hãy phân tích tài liệu và trích xuất giao dịch theo loại (sao kê: một giao dịch cho mỗi khoản chi; hóa đơn/chứng từ: một giao dịch duy nhất với tổng tiền và sản phẩm trong raw_description; CSV hoạt động: một giao dịch cho mỗi khoản chi thực tế).")],
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`Claude API error ${response.status}: ${err}`);
-    }
-
-    const data = await response.json();
-    const text = data.content?.[0]?.text ?? "[]";
-
-    // Strip markdown code fences if present
-    const cleaned = text.replace(/^```[\w]*\n?/, "").replace(/\n?```$/, "").trim();
-    return JSON.parse(cleaned) as ParsedTransaction[];
+    return parseJson<ParsedTransaction[]>(response.text, []);
   }
 }
 
@@ -170,12 +111,26 @@ class ClaudeProvider implements AIProvider {
 
 
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS, "Content-Type": "application/json" },
+  });
+}
+
 // ── Main handler ─────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, content-type" } });
+    return new Response(null, { headers: CORS });
   }
+  if (req.method !== "POST") return json({ error: "Phương thức không được hỗ trợ" }, 405);
 
   const authHeader = req.headers.get("Authorization") ?? "";
   const supabase = createClient(
@@ -191,7 +146,7 @@ Deno.serve(async (req: Request) => {
 
   const { statement_id } = await req.json();
   if (!statement_id) {
-    return new Response(JSON.stringify({ error: "statement_id requerido" }), { status: 400 });
+    return json({ error: "cần có statement_id" }, 400);
   }
 
   // Get statement (RLS ensures user owns it via household)
@@ -202,11 +157,11 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (stmtErr || !statement) {
-    return new Response(JSON.stringify({ error: "Resumen no encontrado" }), { status: 404 });
+    return json({ error: "Không tìm thấy sao kê" }, 404);
   }
 
   if (!statement.file_path) {
-    return new Response(JSON.stringify({ error: "Sin archivo" }), { status: 400 });
+    return json({ error: "Không tìm thấy tệp" }, 400);
   }
 
   // Mark as parsing
@@ -218,7 +173,7 @@ Deno.serve(async (req: Request) => {
       .from("statements")
       .download(statement.file_path);
 
-    if (dlErr || !fileData) throw new Error(`Error descargando archivo: ${dlErr?.message}`);
+    if (dlErr || !fileData) throw new Error("Không thể tải tệp sao kê");
 
     const arrayBuffer = await fileData.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
@@ -234,7 +189,7 @@ Deno.serve(async (req: Request) => {
       let csvText = new TextDecoder("utf-8").decode(bytes);
       if (csvText.length > MAX_CSV_CHARS) {
         csvText = csvText.slice(0, MAX_CSV_CHARS) +
-          "\n\n[ARCHIVO TRUNCADO: se incluyen solo los primeros 150.000 caracteres]";
+          "\n\n[TỆP BỊ CẮT: chỉ bao gồm 150.000 ký tự đầu tiên]";
       }
       input = { kind: "text", text: csvText };
     } else {
@@ -348,14 +303,22 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ ok: true, count: drafts.length, skipped_duplicates: skipped }),
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { ...CORS, "Content-Type": "application/json" } },
     );
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const errorCode = err instanceof Error && err.message === "Không thể tải tệp sao kê"
+      ? "FILE_DOWNLOAD_FAILED"
+      : "STATEMENT_PARSE_FAILED";
+    console.error("parse-statement error:", err);
     await serviceClient
       .from("statements")
-      .update({ status: "failed", error: msg })
+      .update({ status: "failed", error: errorCode })
       .eq("id", statement_id);
-    return new Response(JSON.stringify({ error: msg }), { status: 500 });
+    return json({
+      error: errorCode === "FILE_DOWNLOAD_FAILED"
+        ? "Không thể tải tệp sao kê"
+        : "Không thể phân tích sao kê. Hãy thử lại.",
+      code: errorCode,
+    }, 500);
   }
 });

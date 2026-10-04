@@ -1,14 +1,29 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+function json(data: unknown, status = 200): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS, 'Content-Type': 'application/json' },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
+  if (req.method !== 'POST') return json({ error: 'Phương thức không được hỗ trợ' }, 405);
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
 
-  // Resolve household from JWT
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return new Response('Không được phép', { status: 401 });
+  if (!authHeader) return json({ error: 'Không được phép' }, 401);
 
   const userClient = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -16,14 +31,14 @@ Deno.serve(async (req: Request) => {
     { global: { headers: { Authorization: authHeader } } },
   );
   const { data: { user } } = await userClient.auth.getUser();
-  if (!user) return new Response('Không được phép', { status: 401 });
+  if (!user) return json({ error: 'Không được phép' }, 401);
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('household_id')
     .eq('id', user.id)
     .maybeSingle();
-  if (!profile) return new Response('Không tìm thấy hồ sơ', { status: 404 });
+  if (!profile) return json({ error: 'Không tìm thấy hồ sơ' }, 404);
 
   const householdId = profile.household_id;
 
@@ -34,9 +49,7 @@ Deno.serve(async (req: Request) => {
   ]);
 
   if (!inflRow) {
-    return new Response(JSON.stringify({ ok: false, reason: 'không có dữ liệu lạm phát' }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return json({ ok: false, reason: 'không có dữ liệu lạm phát' });
   }
 
   const inflationPct = Number(inflRow.monthly_pct);
@@ -47,7 +60,7 @@ Deno.serve(async (req: Request) => {
 
   // Compare the previous CLOSED month against the month before it. Comparing
   // the partial current month vs a full previous month produced false
-  // "Perdiste poder adquisitivo" warnings most of the month — and the
+  // Cảnh báo "sức mua giảm" xuất hiện phần lớn tháng — và
   // inflation data is for closed months too. (Columns are amount/occurred_on;
   // the old code queried non-existent amount_ars/date and silently no-op'd.)
   // "now" in Argentina (UTC-3, no DST) — the server clock is UTC and would
@@ -74,26 +87,24 @@ Deno.serve(async (req: Request) => {
   const baseTotal = sumArs(baseIncome as IncomeRow[] | null);
 
   if (baseTotal === 0) {
-    return new Response(JSON.stringify({ ok: false, reason: 'không có thu nhập tháng cơ sở' }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return json({ ok: false, reason: 'không có thu nhập tháng cơ sở' });
   }
 
   const incomePct = Math.round(((lastTotal - baseTotal) / baseTotal) * 10000) / 100;
   const diff = Math.round((incomePct - inflationPct) * 100) / 100;
   const gained = incomePct >= inflationPct;
 
-  const monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const monthNames = ['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12'];
   const lastMonthDate = new Date(Date.UTC(y, m - 1, 1)); // previous (closed) month label
   // Keep this period label distinct from generate-insights' "YYYY-MM" so its
   // period-scoped delete never wipes this purchasing-power card.
   const period = monthNames[lastMonthDate.getUTCMonth()] + ' ' + lastMonthDate.getUTCFullYear();
 
   const title = gained
-    ? `Ganaste poder adquisitivo en ${period}`
-    : `Perdiste poder adquisitivo en ${period}`;
+    ? `Sức mua tăng trong ${period}`
+    : `Sức mua giảm trong ${period}`;
 
-  const body = `Tus ingresos ${incomePct >= 0 ? 'subieron' : 'bajaron'} ${Math.abs(incomePct)}% en ${period} vs el mes anterior. La inflación fue ${inflationPct}% (${inflDate}). ${gained ? 'Ganaste' : 'Perdiste'} ${Math.abs(diff)}% de poder adquisitivo.`;
+  const body = `Thu nhập ${incomePct >= 0 ? 'tăng' : 'giảm'} ${Math.abs(incomePct)}% trong ${period} so với tháng trước. Lạm phát là ${inflationPct}% (${inflDate}). Sức mua ${gained ? 'tăng' : 'giảm'} ${Math.abs(diff)}%.`;
 
   const severity = gained ? 'positive' : 'warning';
 
@@ -115,7 +126,5 @@ Deno.serve(async (req: Request) => {
     seen: false,
   });
 
-  return new Response(JSON.stringify({ ok: true, incomePct, inflationPct, diff, gained, lastTotal, baseTotal }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return json({ ok: true, incomePct, inflationPct, diff, gained, lastTotal, baseTotal });
 });

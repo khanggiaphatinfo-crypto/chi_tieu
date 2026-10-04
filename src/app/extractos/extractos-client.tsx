@@ -119,8 +119,8 @@ export default function ExtractosClient({
       await qc.invalidateQueries({ queryKey: ['statements'] });
       toast.success('Đã tải sao kê — đang phân tích bằng AI…');
       router.push(`/extractos/${statementId}`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Lỗi khi tải lên sao kê');
+    } catch {
+      toast.error('Không thể tải lên hoặc phân tích sao kê. Hãy thử lại.');
     } finally {
       setUploading(false);
     }

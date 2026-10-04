@@ -398,7 +398,7 @@ export default function DeudasClient({ profile }: { profile: Profile }) {
         .map((t) => ({
           id: t.id,
           occurred_on: t.occurred_on,
-          label: `${t.occurred_on.slice(5)} · ${t.merchant || t.categories?.name || 'Gasto'} · ${t.currency === 'USD' ? formatUSD(t.amount) : formatARS(t.amount)}`,
+          label: `${t.occurred_on.slice(5)} · ${t.merchant || t.categories?.name || 'Chi tiêu'} · ${t.currency === 'USD' ? formatUSD(t.amount) : formatARS(t.amount)}`,
         }));
     },
   });

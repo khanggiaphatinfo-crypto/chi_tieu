@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 // runs identically under Node — no Deno toolchain needed.
 export default defineConfig({
   test: {
-    include: ['supabase/functions/**/*.test.ts'],
+    include: ['supabase/functions/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
   },
 });

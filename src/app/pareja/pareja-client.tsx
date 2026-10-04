@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { useFx } from '@/hooks/useFx';
@@ -128,21 +128,6 @@ function SettleUpSheet({
     toAccountId && toAccounts.some((a) => a.id === toAccountId) ? toAccountId : (toAccounts[0]?.id ?? null);
   const willMoveMoney = moveMoney && canMoveMoney && !!effectiveFromId && !!effectiveToId;
 
-  // Reset the form whenever the sheet (re)opens.
-  useEffect(() => {
-    if (open) {
-      setAmountVal(0);
-      setDate(todayISO());
-      setMoveMoney(true);
-      setFromAccountId(null);
-      setToAccountId(null);
-      // Default to the direction that settles the current balance.
-      setIPay(net < 0);
-    }
-  }, [open, absNet, net]);
-
-  if (!open) return null;
-
   async function handleSettle() {
     if (amount <= 0) return;
     setSaving(true);
@@ -166,19 +151,21 @@ function SettleUpSheet({
       );
       toast.success(
         settledExactly
-          ? '¡Quedaron a mano! Balance en cero ✓'
+          ? 'Đã tất toán! Số dư bằng không ✓'
           : newNet > 0
-            ? `Pago registrado. ${partnerName} te debe ${fmt(newNet)} ✓`
-            : `Pago registrado. Le debés ${fmt(-newNet)} a ${partnerName} ✓`,
+            ? `Đã ghi nhận khoản thanh toán. ${partnerName} còn nợ bạn ${fmt(newNet)} ✓`
+            : `Đã ghi nhận khoản thanh toán. Bạn còn nợ ${fmt(-newNet)} cho ${partnerName} ✓`,
       );
       onClose();
       setNote('');
     } catch {
-      toast.error('No se pudo registrar. Intentá de nuevo.');
+      toast.error('Không thể ghi nhận. Hãy thử lại.');
     } finally {
       setSaving(false);
     }
   }
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center animate-in fade-in duration-200" style={{ background: 'rgba(20,28,24,0.42)' }} onClick={onClose}>
@@ -191,17 +178,17 @@ function SettleUpSheet({
           <div className="w-10 h-1 rounded-full" style={{ background: '#E5EBE8' }} />
         </div>
 
-        <h2 className="text-xl font-black mb-1" style={{ color: '#18211D' }}>Registrar pago</h2>
+        <h2 className="text-xl font-black mb-1" style={{ color: '#18211D' }}>Ghi nhận khoản thanh toán</h2>
         <p className="text-sm mb-4" style={{ color: '#5B6660' }}>
           {absNet < 1
-            ? 'Están a mano.'
+            ? 'Đã thanh toán đủ.'
             : net > 0
-              ? `${partnerName} te debe ${fmt(absNet)}`
-              : `Le debés ${fmt(absNet)} a ${partnerName}`}
+              ? `${partnerName} còn nợ bạn ${fmt(absNet)}`
+              : `Bạn còn nợ ${fmt(absNet)} cho ${partnerName}`}
         </p>
 
         {/* Direction — either person can pay the other, regardless of who owes. */}
-        <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿Quién le paga a quién?</p>
+        <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Ai trả cho ai?</p>
         <div className="flex rounded-2xl overflow-hidden p-1 gap-1 mb-4" style={{ background: '#E5EBE8' }}>
           {([
             { key: true, label: `👤 ${myName} → ${partnerName}` },
@@ -227,7 +214,7 @@ function SettleUpSheet({
           style={{ background: settledExactly ? '#DDF0E8' : iPay ? '#FFE5E0' : '#DDF0E8' }}
         >
           <p className="text-3xl font-black" style={{ color: settledExactly ? '#1F8A68' : iPay ? '#E25749' : '#1F8A68' }}>
-            {settledExactly ? '🤝 ¡A mano!' : fmt(amount)}
+            {settledExactly ? '🤝 Đã thanh toán đủ!' : fmt(amount)}
           </p>
           <p className="text-xs mt-1" style={{ color: settledExactly ? '#1F8A68' : iPay ? '#E25749' : '#1F8A68', opacity: 0.75 }}>
             {settledExactly ? `${fmt(amount)} · ${payerName} → ${receiverName}` : `${payerName} → ${receiverName}`}
@@ -235,7 +222,7 @@ function SettleUpSheet({
         </div>
 
         {/* Amount — defaults to the current balance; type any amount you want. */}
-        <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>¿Cuánto paga? (ARS)</p>
+        <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Số tiền thanh toán? (ARS)</p>
         <div className="flex items-center gap-2 mb-2">
           {/* MoneyInput handles the Vietnamese convention ('.' thousands, ',' decimal),
               so typing "15.000" means fifteen thousand, not fifteen pesos. */}
@@ -252,17 +239,17 @@ function SettleUpSheet({
               className="px-3 py-3 rounded-2xl text-xs font-bold border"
               style={{ borderColor: '#E5EBE8', color: '#5B6660', background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}
             >
-              Saldo
+              Số dư
             </button>
           )}
         </div>
         {amount > 0 && (
           <p className="text-xs mb-3" style={{ color: settledExactly ? '#1F8A68' : '#5B6660' }}>
             {settledExactly
-              ? 'Después de esto quedan a mano. 🤝'
+              ? 'Sau khoản này, hai người đã thanh toán đủ. 🤝'
               : newNet > 0
-                ? `Después de esto, ${partnerName} te debe ${fmt(newNet)}.`
-                : `Después de esto, le debés ${fmt(-newNet)} a ${partnerName}.`}
+                ? `Sau khoản này, ${partnerName} còn nợ bạn ${fmt(newNet)}.`
+                : `Sau khoản này, bạn còn nợ ${fmt(-newNet)} cho ${partnerName}.`}
           </p>
         )}
 
@@ -275,7 +262,7 @@ function SettleUpSheet({
             className="w-full flex items-center justify-between disabled:opacity-50"
           >
             <span className="text-xs font-bold" style={{ color: '#18211D' }}>
-              💸 Mover plata entre cuentas
+              💸 Chuyển tiền giữa các tài khoản
             </span>
             <span
               className="text-[11px] font-bold px-2 py-1 rounded-full"
@@ -284,18 +271,18 @@ function SettleUpSheet({
                 color: willMoveMoney ? '#1F8A68' : '#5B6660',
               }}
             >
-              {willMoveMoney ? 'Sí' : 'No'}
+              {willMoveMoney ? 'Có' : 'Không'}
             </span>
           </button>
           {!canMoveMoney ? (
             <p className="text-[11px] mt-2" style={{ color: '#5B6660' }}>
-              Hace falta una cuenta en pesos (no tarjeta) de cada uno para registrar el movimiento.
+              Cần có một tài khoản bằng peso (không phải thẻ) của mỗi người để ghi nhận giao dịch.
             </p>
           ) : (
             willMoveMoney && (
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex-1">
-                  <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Desde · {payerName}</p>
+                  <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Từ · {payerName}</p>
                   <select
                     value={effectiveFromId ?? ''}
                     onChange={(e) => setFromAccountId(e.target.value || null)}
@@ -309,7 +296,7 @@ function SettleUpSheet({
                 </div>
                 <span className="text-lg mt-4" style={{ color: '#4E84E0' }}>→</span>
                 <div className="flex-1">
-                  <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Hacia · {receiverName}</p>
+                  <p className="text-[11px] font-bold mb-1" style={{ color: '#5B6660' }}>Đến · {receiverName}</p>
                   <select
                     value={effectiveToId ?? ''}
                     onChange={(e) => setToAccountId(e.target.value || null)}
@@ -329,7 +316,7 @@ function SettleUpSheet({
         <div className="flex items-center gap-2 mb-4">
           <input
             type="text"
-            placeholder="Nota (opcional)"
+            placeholder="Ghi chú (tùy chọn)"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             className="flex-1 px-4 py-3 rounded-2xl text-sm border bg-white outline-none"
@@ -350,8 +337,34 @@ function SettleUpSheet({
           className="w-full py-4 rounded-2xl text-lg font-black text-white disabled:opacity-40"
           style={{ background: 'linear-gradient(135deg, #FF8173 0%, #E25749 100%)', boxShadow: 'var(--shadow-glow)' }}
         >
-          {saving ? 'Guardando…' : settledExactly ? 'Saldar y quedar a mano' : 'Registrar pago'}
+          {saving ? 'Đang lưu…' : settledExactly ? 'Thanh toán đủ' : 'Ghi nhận khoản thanh toán'}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function CategorySplitColumn({ name, txs, total, accent, fallbackName, fmt }: { name: string; txs: SharedTx[]; total: number; accent: string; fallbackName: string; fmt: (n: number) => string }) {
+  return (
+    <div className="flex-1 min-w-0">
+      <div className="px-3 py-2 text-center" style={{ background: accent }}>
+        <p className="text-[11px] font-black truncate" style={{ color: '#FFFFFF' }}>{name}</p>
+        <p className="text-sm font-black tabular-nums" style={{ color: '#FFFFFF' }}>{fmt(total)}</p>
+      </div>
+      <div className="flex flex-col">
+        {txs.length === 0 ? (
+          <p className="text-[11px] text-center py-3" style={{ color: '#8C968F' }}>Chưa có khoản nào được thanh toán ở đây</p>
+        ) : (
+          txs.map((t, i) => (
+            <div key={t.id} className="px-3 py-2" style={{ borderTop: i > 0 ? '1px solid #E5EBE8' : 'none' }}>
+              <p className="text-[11px] font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || fallbackName}</p>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px]" style={{ color: '#8C968F' }}>{shortDayMonth(t.occurred_on)}</span>
+                <span className="text-[11px] font-bold tabular-nums" style={{ color: '#18211D' }}>{fmt(t.amountArs)}</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -383,30 +396,6 @@ function CategorySplitSheet({
   // Net from my perspective: >0 partner owes me, <0 I owe partner.
   const net = Math.round(detail.owedToMe - detail.iOwe);
 
-  const Column = ({ name, txs, total, accent }: { name: string; txs: SharedTx[]; total: number; accent: string }) => (
-    <div className="flex-1 min-w-0">
-      <div className="px-3 py-2 text-center" style={{ background: accent }}>
-        <p className="text-[11px] font-black truncate" style={{ color: '#FFFFFF' }}>{name}</p>
-        <p className="text-sm font-black tabular-nums" style={{ color: '#FFFFFF' }}>{fmt(total)}</p>
-      </div>
-      <div className="flex flex-col">
-        {txs.length === 0 ? (
-          <p className="text-[11px] text-center py-3" style={{ color: '#8C968F' }}>No pagó nada acá</p>
-        ) : (
-          txs.map((t, i) => (
-            <div key={t.id} className="px-3 py-2" style={{ borderTop: i > 0 ? '1px solid #E5EBE8' : 'none' }}>
-              <p className="text-[11px] font-semibold truncate" style={{ color: '#18211D' }}>{t.merchant || detail.name}</p>
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px]" style={{ color: '#8C968F' }}>{shortDayMonth(t.occurred_on)}</span>
-                <span className="text-[11px] font-bold tabular-nums" style={{ color: '#18211D' }}>{fmt(t.amountArs)}</span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center animate-in fade-in duration-200" style={{ background: 'rgba(20,28,24,0.45)' }} onClick={onClose}>
       <div
@@ -419,22 +408,22 @@ function CategorySplitSheet({
           <span className="text-2xl">{detail.icon}</span>
           <h2 className="text-lg font-black flex-1 min-w-0 truncate" style={{ color: '#18211D' }}>{detail.name}</h2>
         </div>
-        <p className="text-xs mb-4" style={{ color: '#5B6660' }}>Total compartido este mes · <strong>{fmt(detail.amount)}</strong></p>
+        <p className="text-xs mb-4" style={{ color: '#5B6660' }}>Tổng chi tiêu chung trong tháng này · <strong>{fmt(detail.amount)}</strong></p>
 
         {/* Double entry — what each person fronted */}
-        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Quién pagó qué</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Ai đã trả khoản nào</p>
         <div className="flex rounded-2xl overflow-hidden mb-4" style={{ background: '#F1F5F3', border: '1px solid #E5EBE8' }}>
-          <Column name={myName} txs={detail.myTxs} total={paidByMe} accent="#34AD84" />
+          <CategorySplitColumn name={myName} txs={detail.myTxs} total={paidByMe} accent="#34AD84" fallbackName={detail.name} fmt={fmt} />
           <div className="w-px" style={{ background: '#E5EBE8' }} />
-          <Column name={partnerName} txs={detail.partnerTxs} total={paidByPartner} accent="#4E84E0" />
+          <CategorySplitColumn name={partnerName} txs={detail.partnerTxs} total={paidByPartner} accent="#4E84E0" fallbackName={detail.name} fmt={fmt} />
         </div>
 
         {/* Reconciliation — how the net is reached */}
-        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Cómo se reparte</p>
+        <p className="text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: '#5B6660' }}>Phân chia như thế nào</p>
         <div className="rounded-2xl overflow-hidden mb-4" style={{ background: '#F1F5F3' }}>
           {[
-            { l: 'Pagó', a: fmt(paidByMe), b: fmt(paidByPartner) },
-            { l: 'Le corresponde', a: fmt(Math.round(myShare)), b: fmt(Math.round(partnerShare)) },
+            { l: 'Đã trả', a: fmt(paidByMe), b: fmt(paidByPartner) },
+            { l: 'Phần của mỗi người', a: fmt(Math.round(myShare)), b: fmt(Math.round(partnerShare)) },
           ].map((r, i) => (
             <div key={r.l} className="grid grid-cols-[1fr_auto_auto] gap-2 px-4 py-2.5 items-center" style={{ borderTop: i > 0 ? '1px solid #E5EBE8' : 'none' }}>
               <span className="text-xs" style={{ color: '#5B6660' }}>{r.l}</span>
@@ -443,7 +432,7 @@ function CategorySplitSheet({
             </div>
           ))}
           <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-4 py-2.5 items-center" style={{ borderTop: '1px solid #E5EBE8', background: '#FFFFFF' }}>
-            <span className="text-xs font-bold" style={{ color: '#18211D' }}>Diferencia</span>
+            <span className="text-xs font-bold" style={{ color: '#18211D' }}>Chênh lệch</span>
             <span className="text-xs font-black tabular-nums text-right w-20" style={{ color: net > 0 ? '#1F8A68' : net < 0 ? '#E25749' : '#5B6660' }}>{net >= 0 ? '+' : ''}{fmt(net)}</span>
             <span className="text-xs font-black tabular-nums text-right w-20" style={{ color: net < 0 ? '#1F8A68' : net > 0 ? '#E25749' : '#5B6660' }}>{net <= 0 ? '+' : ''}{fmt(-net)}</span>
           </div>
@@ -453,10 +442,10 @@ function CategorySplitSheet({
         <div className="rounded-2xl p-4 text-center" style={{ background: Math.abs(net) < 1 ? '#DDF0E8' : net > 0 ? '#DDF0E8' : '#FFE5E0' }}>
           <p className="text-sm font-black" style={{ color: Math.abs(net) < 1 ? '#1F8A68' : net > 0 ? '#1F8A68' : '#E25749' }}>
             {Math.abs(net) < 1
-              ? '🤝 Están a mano en esta categoría'
+              ? '🤝 Hai người đã thanh toán đủ trong danh mục này'
               : net > 0
-                ? `${partnerName} te debe ${fmt(net)} acá`
-                : `Le debés ${fmt(-net)} a ${partnerName} acá`}
+                ? `${partnerName} còn nợ bạn ${fmt(net)} trong danh mục này`
+                : `Bạn còn nợ ${fmt(-net)} cho ${partnerName} trong danh mục này`}
           </p>
         </div>
       </div>
@@ -473,7 +462,7 @@ export default function ParejaClient({
 }) {
   const supabase = createClient();
   const qc = useQueryClient();
-  const { format, showUSD, arsPerUsd, toggle } = useFx();
+  const { showUSD, arsPerUsd, toggle } = useFx();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [fabType, setFabType] = useState<'expense' | 'income' | 'transfer'>('expense');
   const [settleOpen, setSettleOpen] = useState(false);
@@ -481,7 +470,7 @@ export default function ParejaClient({
   // Which shared category's double-entry breakdown is open (its category key).
   const [detailKey, setDetailKey] = useState<string | null>(null);
 
-  const myName = profile.nickname || profile.display_name || 'Yo';
+  const myName = profile.nickname || profile.display_name || 'Bạn';
 
   const { net, loading: balanceLoading } = useCoupleBalance(
     profile.household_id,
@@ -528,10 +517,10 @@ export default function ParejaClient({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Listo ✓');
+      toast.success('Đã lưu ✓');
       qc.invalidateQueries({ queryKey: ['household', profile.household_id] });
     },
-    onError: () => toast.error('No se pudo guardar. Intentá de nuevo.'),
+    onError: () => toast.error('Không thể lưu. Hãy thử lại.'),
   });
   // Reflect the tapped option immediately while the update is in flight.
   const activeSplitMode = splitModeMutation.isPending ? splitModeMutation.variables : splitMode;
@@ -597,7 +586,7 @@ export default function ParejaClient({
     const cat = (t as unknown as { categories: { name: string; icon: string } | null }).categories;
     const key = t.category_id ?? 'sin-categoria';
     if (!sharedByCategory[key]) {
-      sharedByCategory[key] = { key, name: cat?.name ?? 'Sin categoría', icon: cat?.icon ?? '🏷️', amount: 0, owedToMe: 0, iOwe: 0, myTxs: [], partnerTxs: [] };
+      sharedByCategory[key] = { key, name: cat?.name ?? 'Chưa phân loại', icon: cat?.icon ?? '🏷️', amount: 0, owedToMe: 0, iOwe: 0, myTxs: [], partnerTxs: [] };
     }
     const entry = sharedByCategory[key];
     const amountArs = toArs(t.amount, t.currency);
@@ -645,7 +634,7 @@ export default function ParejaClient({
       <header className="flex items-center gap-3 px-5 pt-14 pb-4">
         <Link href="/mas" style={{ color: '#5B6660', fontSize: 22 }}>←</Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Vista de pareja</h1>
+          <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Chế độ xem cặp đôi</h1>
           {partner && <p className="text-xs" style={{ color: '#5B6660' }}>{myName} & {partner.name}</p>}
         </div>
         <button
@@ -660,15 +649,15 @@ export default function ParejaClient({
       {/* Combined summary */}
       <div className="mx-4 rounded-3xl p-5 mb-4 shadow-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
         <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>
-          Resumen del mes
+          Tóm tắt tháng
         </p>
         <div className="flex gap-4">
           <div className="flex-1 rounded-2xl p-3" style={{ background: '#DDF0E8' }}>
-            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: '#1F8A68' }}>Ingresos</p>
+            <p className="text-[11px] font-black uppercase mb-1" style={{ color: '#1F8A68' }}>Thu nhập</p>
             <p className="text-lg font-black" style={{ color: '#1F8A68', fontVariantNumeric: 'tabular-nums' }}>{f(totalIncome)}</p>
           </div>
           <div className="flex-1 rounded-2xl p-3" style={{ background: '#FFE5E0' }}>
-            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: '#E25749' }}>Gastos</p>
+            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: '#E25749' }}>Chi tiêu</p>
             <p className="text-lg font-black" style={{ color: '#E25749', fontVariantNumeric: 'tabular-nums' }}>{f(totalExpenses)}</p>
           </div>
         </div>
@@ -676,11 +665,11 @@ export default function ParejaClient({
         {/* Household vs personal */}
         <div className="mt-4 pt-4" style={{ borderTop: '1px solid #E5EBE8' }}>
           <div className="flex justify-between mb-2">
-            <p className="text-xs" style={{ color: '#5B6660' }}>🏠 Hogar</p>
+            <p className="text-xs" style={{ color: '#5B6660' }}>🏠 Hộ gia đình</p>
             <p className="text-xs font-bold" style={{ color: '#18211D' }}>{f(householdExpenses)}</p>
           </div>
           <div className="flex justify-between">
-            <p className="text-xs" style={{ color: '#5B6660' }}>👤 Personal</p>
+            <p className="text-xs" style={{ color: '#5B6660' }}>👤 Cá nhân</p>
             <p className="text-xs font-bold" style={{ color: '#18211D' }}>{f(personalExpenses)}</p>
           </div>
         </div>
@@ -690,16 +679,16 @@ export default function ParejaClient({
       {!partner ? (
         <div className="mx-4 rounded-3xl p-5 mb-4 text-center" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <p className="text-3xl mb-2">👫</p>
-          <p className="text-sm font-bold" style={{ color: '#18211D' }}>Todavía no hay pareja vinculada al hogar</p>
+          <p className="text-sm font-bold" style={{ color: '#18211D' }}>Chưa có người bạn đời nào liên kết với hộ gia đình</p>
           <p className="text-sm mt-1 mb-4" style={{ color: '#5B6660' }}>
-            Invitá a tu pareja para compartir esta vista y dividir gastos.
+            Mời người bạn đời để cùng xem và chia sẻ chi phí.
           </p>
           <button
             onClick={() => setInviteOpen(true)}
             className="px-5 py-3 rounded-2xl text-sm font-black text-white transition-transform hover:-translate-y-0.5"
             style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
           >
-            💌 Invitar a mi pareja
+            💌 Mời người bạn đời
           </button>
         </div>
       ) : (
@@ -717,21 +706,21 @@ export default function ParejaClient({
           >
             <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
             <p className="relative text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>
-              Quién le debe a quién
+              Ai đang nợ ai
             </p>
 
             {balanceLoading ? (
-              <p className="relative text-sm mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Calculando…</p>
+              <p className="relative text-sm mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Đang tính…</p>
             ) : balanced ? (
               <div className="relative mt-2">
                 <p className="text-3xl mb-1">🤝</p>
-                <p className="text-[2.4rem] leading-none font-black tracking-tight" style={{ color: '#FFFFFF' }}>¡Estamos al día!</p>
-                <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>No hay deudas pendientes entre ustedes.</p>
+                <p className="text-[2.4rem] leading-none font-black tracking-tight" style={{ color: '#FFFFFF' }}>Đã cân bằng!</p>
+                <p className="text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>Không còn khoản nợ nào giữa hai người.</p>
               </div>
             ) : (
               <div className="relative mt-2">
                 <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  {partnerOwesMe ? `${partner.name} te debe` : `Le debés a ${partner.name}`}
+                  {partnerOwesMe ? `${partner.name} còn nợ bạn` : `Bạn còn nợ ${partner.name}`}
                 </p>
                 <p
                   className="text-[2.4rem] leading-none font-black mt-1 tracking-tight"
@@ -748,15 +737,15 @@ export default function ParejaClient({
               <div className="flex items-center gap-3">
                 <p className="flex-1 text-xs" style={{ color: partnerOwesMe ? '#1F8A68' : '#E25749' }}>
                   {partnerOwesMe
-                    ? `Pagaste gastos compartidos que ${partner.name} aún no compensó.`
-                    : `${partner.name} pagó gastos compartidos que todavía no compensaste.`}
+                    ? `Bạn đã trả các chi phí chung mà ${partner.name} chưa hoàn lại.`
+                    : `${partner.name} đã trả các chi phí chung mà bạn chưa hoàn lại.`}
                 </p>
                 <button
                   onClick={() => setSettleOpen(true)}
                   className="px-4 py-2.5 rounded-2xl text-sm font-black text-white transition-transform hover:-translate-y-0.5"
                   style={{ background: 'linear-gradient(135deg, #FF8173 0%, #E25749 100%)', boxShadow: 'var(--shadow-glow)' }}
                 >
-                  Saldar
+                  Thanh toán đủ
                 </button>
               </div>
             </div>
@@ -768,12 +757,12 @@ export default function ParejaClient({
       {partner && (
         <div className="mx-4 rounded-3xl p-5 mb-4 shadow-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <p className="text-sm font-bold mb-3" style={{ color: '#18211D' }}>
-            ⚖️ ¿Cómo dividen los gastos del hogar?
+            ⚖️ Hai người muốn chia chi phí hộ gia đình như thế nào?
           </p>
           <div className="flex rounded-2xl overflow-hidden p-1 gap-1 mb-3" style={{ background: '#E5EBE8' }}>
             {([
               { key: 'equal', label: '50/50' },
-              { key: 'income', label: 'Según ingresos' },
+              { key: 'income', label: 'Theo thu nhập' },
             ] as const).map((o) => {
               const active = activeSplitMode === o.key;
               return (
@@ -793,15 +782,15 @@ export default function ParejaClient({
           {activeSplitMode === 'income' &&
             (totalPrevIncome > 0 ? (
               <p className="text-xs font-bold mb-2" style={{ color: '#18211D' }}>
-                Este mes: {myName} {myIncomePct}% · {partner.name} {partnerIncomePct}%
+                Tháng này: {myName} {myIncomePct}% · {partner.name} {partnerIncomePct}%
               </p>
             ) : (
               <p className="text-xs mb-2" style={{ color: '#5B6660', opacity: 0.7 }}>
-                Sin ingresos el mes pasado — se usa 50/50
+                Không có thu nhập tháng trước — sử dụng tỷ lệ 50/50
               </p>
             ))}
           <p className="text-[11px]" style={{ color: '#5B6660' }}>
-            Se aplica como división sugerida en los nuevos gastos del hogar y en los gastos fijos.
+            Áp dụng làm cách chia gợi ý cho các chi phí hộ gia đình mới và chi phí cố định.
           </p>
         </div>
       )}
@@ -810,10 +799,10 @@ export default function ParejaClient({
       {sharedCats.length > 0 && (
         <div className="mx-4 rounded-3xl p-5 mb-4 shadow-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color: '#5B6660' }}>
-            Gastos compartidos por categoría
+            Chi phí chung theo danh mục
           </p>
           <p className="text-[11px] mb-3" style={{ color: '#8C968F' }}>
-            Tocá una categoría para ver quién pagó qué y cómo se reparte.
+            Chạm vào một danh mục để xem ai đã trả gì và cách chia.
           </p>
           <div className="flex flex-col gap-2">
             {sharedCats.map((cat) => {
@@ -845,8 +834,8 @@ export default function ParejaClient({
                   {partner && Math.abs(net) >= 1 && (
                     <p className="text-[11px] mt-1" style={{ color: net > 0 ? '#1F8A68' : '#E25749' }}>
                       {net > 0
-                        ? `${partner.name} te debe ${f(net)} acá`
-                        : `Le debés ${f(-net)} a ${partner.name} acá`}
+                        ? `${partner.name} còn nợ bạn ${f(net)} trong danh mục này`
+                        : `Bạn còn nợ ${f(-net)} cho ${partner.name} trong danh mục này`}
                     </p>
                   )}
                 </button>
@@ -854,7 +843,7 @@ export default function ParejaClient({
             })}
           </div>
           <p className="text-xs mt-3" style={{ color: '#5B6660' }}>
-            Total compartido este mes: <strong>{f(sharedExpenses)}</strong>
+            Tổng chi phí chung trong tháng này: <strong>{f(sharedExpenses)}</strong>
           </p>
         </div>
       )}
@@ -874,6 +863,7 @@ export default function ParejaClient({
 
       {partner && (
         <SettleUpSheet
+          key={`${settleOpen ? 'open' : 'closed'}-${net}`}
           open={settleOpen}
           onClose={() => setSettleOpen(false)}
           net={net}

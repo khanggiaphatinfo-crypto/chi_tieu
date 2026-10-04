@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
+import { inputText, responsesRequest } from "../_shared/responses.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 /* ── web-push (VAPID / RFC 8291), unchanged ──────────────────────────────── */
@@ -61,7 +61,7 @@ interface Fact{kind:string;severity:'info'|'positive'|'warning';weight:number;te
 interface Split{payer_profile_id:string;ower_profile_id:string;amount:number;}
 interface Exp{id:string;category_id:string|null;categories:{name:string}|null;profile_id:string;scope:string;is_shared:boolean;amount:number;currency:string;usd_rate_snapshot:number|null;merchant:string|null;occurred_on:string;splits:Split[]|null;}
 interface Debt{transaction_id:string|null;direction:string;amount:number;currency:string;}
-// id null = household ("Nuestro"); otherwise a person ("Mío" for that person).
+// id null = household; otherwise a person.
 interface Aud{id:string|null;name:string;}
 
 const fmt=(n:number):string=>'$'+Math.round(n).toLocaleString('vi-VN');
@@ -169,9 +169,9 @@ function buildFacts(aud:Aud,d:Data):{facts:Fact[];expense:number}{
 
   // category current + 3-month history for this audience
   const catCur:Record<string,{total:number;n:number;small:number}>={};
-  for(const t of d.curr){const v=shareFor(t,aud.id,d.blue,d.debtByTx);if(v<=0)continue;const n=t.categories?.name??'Sin categoría';(catCur[n]??={total:0,n:0,small:0});catCur[n].total+=v;catCur[n].n++;if(v<12000)catCur[n].small++;}
+  for(const t of d.curr){const v=shareFor(t,aud.id,d.blue,d.debtByTx);if(v<=0)continue;const n=t.categories?.name??'Chưa phân loại';(catCur[n]??={total:0,n:0,small:0});catCur[n].total+=v;catCur[n].n++;if(v<12000)catCur[n].small++;}
   const catHist:Record<string,number>={};
-  for(const t of d.hist){const v=shareFor(t,aud.id,d.blue,d.debtByTx);if(v<=0)continue;const n=t.categories?.name??'Sin categoría';catHist[n]=(catHist[n]??0)+v;}
+  for(const t of d.hist){const v=shareFor(t,aud.id,d.blue,d.debtByTx);if(v<=0)continue;const n=t.categories?.name??'Chưa phân loại';catHist[n]=(catHist[n]??0)+v;}
   const expense=Object.values(catCur).reduce((s,v)=>s+v.total,0);
 
   // 1. savings rate (household only — couple-level income vs ALL spending).
@@ -183,16 +183,16 @@ function buildFacts(aud:Aud,d:Data):{facts:Fact[];expense:number}{
     const net=income-totalExp;
     if(income>0){
       const rate=Math.round(net/income*100);
-      if(rate>=d.targetPct) facts.push({kind:'saving',severity:'positive',weight:6,text:`Tasa de ahorro del hogar al día ${day} del mes (mes incompleto): ${rate}% (ahorran ${fmt(net)} de ${fmt(income)} de ingresos). Meta: ${d.targetPct}%. Van por encima.`});
+      if(rate>=d.targetPct) facts.push({kind:'saving',severity:'positive',weight:6,text:`Tỷ lệ tiết kiệm của hộ gia đình tính đến ngày ${day} trong tháng (tháng chưa kết thúc): ${rate}% (đã tiết kiệm ${fmt(net)} trên ${fmt(income)} thu nhập). Mục tiêu: ${d.targetPct}%. Đang cao hơn mục tiêu.`});
       // A negative rate early in the month usually just means salaries haven't
       // landed yet — skip the alarmist fact until day 20.
-      else if(rate>=0||day>=20) facts.push({kind:'saving',severity:'warning',weight:9,text:`Tasa de ahorro del hogar al día ${day} del mes (mes incompleto, puede faltar ingresar sueldos): ${rate}% (ahorran ${fmt(net)} de ${fmt(income)}), por debajo de la meta de ${d.targetPct}%. Falta recortar ${fmt(income*d.targetPct/100-net)}.`});
+      else if(rate>=0||day>=20) facts.push({kind:'saving',severity:'warning',weight:9,text:`Tỷ lệ tiết kiệm của hộ gia đình tính đến ngày ${day} trong tháng (tháng chưa kết thúc, có thể còn thiếu lương): ${rate}% (đã tiết kiệm ${fmt(net)} trên ${fmt(income)}), thấp hơn mục tiêu ${d.targetPct}%. Cần giảm thêm ${fmt(income*d.targetPct/100-net)}.`});
     }
   }else{
     // money a friend will repay this person (already netted out of the figures)
     let owed=0;
     for(const t of d.curr){ if(t.profile_id===aud.id) owed+=owedBackArs(t.id,d.debtByTx,d.blue); }
-    if(owed>=3000) facts.push({kind:'debt',severity:'info',weight:5,text:`Te van a devolver ${fmt(owed)} de tus gastos (ya descontado de estos números).`});
+    if(owed>=3000) facts.push({kind:'debt',severity:'info',weight:5,text:`Bạn sẽ được hoàn lại ${fmt(owed)} từ các khoản chi của mình (đã trừ khỏi các số liệu này).`});
   }
 
   // 2. category spikes vs the average of the months that actually have data
@@ -202,17 +202,17 @@ function buildFacts(aud:Aud,d:Data):{facts:Fact[];expense:number}{
   for(const [name,v] of Object.entries(catCur)){
     const avg=(catHist[name]??0)/histMonths;
     if(avg>0){const pct=Math.round((v.total-avg)/avg*100);
-      if(pct>=25&&(v.total-avg)>=20000) facts.push({kind:'spike',severity:'warning',weight:8,text:`${name}: ${fmt(v.total)} este mes vs ${fmt(avg)} de promedio (${pct>0?'+':''}${pct}%). ${fmt(v.total-avg)} más de lo habitual.`});
-    }else if(v.total>=40000){ facts.push({kind:'spike',severity:'info',weight:5,text:`${name}: ${fmt(v.total)} este mes, categoría nueva (sin historial).`}); }
+      if(pct>=25&&(v.total-avg)>=20000) facts.push({kind:'spike',severity:'warning',weight:8,text:`${name}: ${fmt(v.total)} trong tháng này so với mức trung bình ${fmt(avg)} (${pct>0?'+':''}${pct}%). Cao hơn thông thường ${fmt(v.total-avg)}.`});
+    }else if(v.total>=40000){ facts.push({kind:'spike',severity:'info',weight:5,text:`${name}: ${fmt(v.total)} trong tháng này, đây là danh mục mới (chưa có lịch sử).`}); }
   }
   // 3. ant-spending
-  for(const [name,v] of Object.entries(catCur)){ if(v.small>=6&&v.total>=30000) facts.push({kind:'anthill',severity:'info',weight:7,text:`Gastos hormiga: ${v.small} compras chicas en ${name} suman ${fmt(v.total)} este mes.`}); }
+  for(const [name,v] of Object.entries(catCur)){ if(v.small>=6&&v.total>=30000) facts.push({kind:'anthill',severity:'info',weight:7,text:`Các khoản chi nhỏ lẻ: ${v.small} giao dịch nhỏ trong ${name} cộng lại thành ${fmt(v.total)} trong tháng này.`}); }
   // 4. possible duplicates (only this audience's own transactions)
   const dup:Record<string,{n:number;name:string;amt:number;day:string}>={};
   for(const t of d.curr){ if(!t.merchant)continue; if(shareFor(t,aud.id,d.blue,d.debtByTx)<=0)continue;
     const a=Math.round(toArs(t.amount,t.currency,t.usd_rate_snapshot,d.blue)); const k=`${t.merchant.toLowerCase()}_${a}_${t.occurred_on}`;
     (dup[k]??={n:0,name:t.merchant,amt:a,day:t.occurred_on}).n++; }
-  for(const dd of Object.values(dup)) if(dd.n>=2&&dd.amt>=3000) facts.push({kind:'duplicate',severity:'warning',weight:8,text:`Posible cargo duplicado: "${dd.name}" por ${fmt(dd.amt)} aparece ${dd.n} veces el ${dd.day}. Revisalo.`});
+  for(const dd of Object.values(dup)) if(dd.n>=2&&dd.amt>=3000) facts.push({kind:'duplicate',severity:'warning',weight:8,text:`Có thể bị tính trùng: "${dd.name}" với giá ${fmt(dd.amt)} xuất hiện ${dd.n} lần vào ngày ${dd.day}. Hãy kiểm tra.`});
 
   // 5. subscriptions / fixed costs relevant to the audience
   const recAud=d.rec.filter(r=>isHH?r.scope==='household':(r.scope==='personal'&&r.profile_id===aud.id));
@@ -221,28 +221,28 @@ function buildFacts(aud:Aud,d:Data):{facts:Fact[];expense:number}{
     const subsTotal=monthly.reduce((s,r)=>s+r.m,0);
     const pctOfExp=expense>0?Math.round(subsTotal/expense*100):0;
     const top=[...monthly].sort((a,b)=>b.m-a.m).slice(0,3).map(r=>`${r.label} ${fmt(r.m)}`).join(', ');
-    facts.push({kind:'subscription',severity:'info',weight:6,text:`Gastos fijos: ${fmt(subsTotal)}/mes en ${recAud.length} (${top}${monthly.length>3?'…':''})${pctOfExp?`, ${pctOfExp}% de los gastos al día ${day} (mes incompleto)`:''}.`});
+    facts.push({kind:'subscription',severity:'info',weight:6,text:`Chi phí cố định: ${fmt(subsTotal)}/tháng cho ${recAud.length} khoản (${top}${monthly.length>3?'…':''})${pctOfExp?`, chiếm ${pctOfExp}% chi tiêu tính đến ngày ${day} (tháng chưa kết thúc)`:''}.`});
     const byCat:Record<string,number>={}; for(const r of monthly)byCat[r.name]=(byCat[r.name]??0)+1;
-    for(const [name,n] of Object.entries(byCat)) if(n>=2) facts.push({kind:'subscription',severity:'warning',weight:8,text:`${n} suscripciones en ${name}. Cancelando una recortás el gasto fijo.`});
+    for(const [name,n] of Object.entries(byCat)) if(n>=2) facts.push({kind:'subscription',severity:'warning',weight:8,text:`Có ${n} gói đăng ký trong ${name}. Hủy một gói sẽ giảm chi phí cố định.`});
   }
 
   // 6. budgets relevant to the audience
   const budAud=d.buds.filter(b=>isHH?b.scope==='household':(b.scope==='personal'&&b.profile_id===aud.id));
   for(const b of budAud){ const name=b.categories?.name; if(!name)continue; const lim=toArs(b.amount,b.currency,null,d.blue); if(lim<=0)continue;
     const spent=catCur[name]?.total??0; const pct=Math.round(spent/lim*100); const projected=day>0?spent/day*dim:spent;
-    if(pct>=85) facts.push({kind:'budget',severity:pct>=100?'warning':'info',weight:pct>=100?9:7,text:`Presupuesto ${name}: ${fmt(spent)} de ${fmt(lim)} (${pct}%)${pct<100?`, quedan ${dim-day} días`:' — superado'}.`});
-    else if(projected>lim*1.1) facts.push({kind:'budget',severity:'info',weight:6,text:`Presupuesto ${name}: vas ${fmt(spent)} de ${fmt(lim)}; a este ritmo proyectás ${fmt(projected)}.`}); }
+    if(pct>=85) facts.push({kind:'budget',severity:pct>=100?'warning':'info',weight:pct>=100?9:7,text:`Ngân sách ${name}: đã chi ${fmt(spent)} trên ${fmt(lim)} (${pct}%)${pct<100?`, còn ${dim-day} ngày`:' — đã vượt'}.`});
+    else if(projected>lim*1.1) facts.push({kind:'budget',severity:'info',weight:6,text:`Ngân sách ${name}: đã chi ${fmt(spent)} trên ${fmt(lim)}; nếu giữ tốc độ này, dự kiến ${fmt(projected)}.`}); }
 
   // 7. goals relevant to the audience
   const goalAud=d.goals.filter(g=>isHH?g.scope==='household':(g.scope==='personal'&&g.profile_id===aud.id));
   for(const g of goalAud){ if(!g.deadline)continue;
     const remaining=Math.max(0,(g.target_currency==='USD'?(g.target_amount-g.current_amount)*d.blue:(g.target_amount-g.current_amount)));
     if(remaining<=0)continue; const months=Math.max(1,monthsBetween(now,new Date(g.deadline))); const required=remaining/months;
-    facts.push({kind:'goal',severity:'info',weight:4,text:`Meta "${g.name}": faltan ${fmt(remaining)}, apartando ${fmt(required)}/mes llegás al ${g.deadline}.`}); }
+    facts.push({kind:'goal',severity:'info',weight:4,text:`Mục tiêu "${g.name}": còn thiếu ${fmt(remaining)}, nếu dành ${fmt(required)}/tháng bạn sẽ đạt vào ${g.deadline}.`}); }
 
   // 8. top category summary
   const top=Object.entries(catCur).sort((a,b)=>b[1].total-a[1].total)[0];
-  if(top) facts.push({kind:'summary',severity:'info',weight:3,text:`Mayor gasto: ${top[0]} con ${fmt(top[1].total)} en ${top[1].n} movimientos.`});
+  if(top) facts.push({kind:'summary',severity:'info',weight:3,text:`Danh mục chi tiêu lớn nhất: ${top[0]} với ${fmt(top[1].total)} trong ${top[1].n} giao dịch.`});
 
   facts.sort((a,b)=>b.weight-a.weight);
   return {facts:facts.slice(0,12),expense};
@@ -251,13 +251,13 @@ function buildFacts(aud:Aud,d:Data):{facts:Fact[];expense:number}{
 function buildPrompt(aud:Aud,facts:Fact[],mode:string):string{
   const n=mode==='lite'?'2-3':'3-6';
   const who=aud.id===null
-    ? 'Estos son los gastos COMPARTIDOS / del hogar de la pareja (no incluyen gastos personales de cada uno).'
-    : `Estos son los gastos de ${aud.name} (su parte personal: lo suyo + su mitad de lo compartido, ya descontando lo que le devuelven amigos).`;
+    ? 'Đây là các khoản chi DÙNG CHUNG / của hộ gia đình (không gồm chi tiêu cá nhân của từng người).'
+    : `Đây là các khoản chi của ${aud.name} (phần cá nhân: phần riêng của họ + một nửa phần dùng chung, đã trừ khoản bạn bè hoàn lại).`;
   const lines=facts.map((f,i)=>`${i+1}. [${f.severity}] ${f.text}`);
-  return `${who}\nHechos ya calculados (números EXACTOS, usalos tal cual, no recalcules):\n${lines.join('\n')}\n\nElegí los ${n} más importantes y accionables y convertilos en cards.`;
+  return `${who}\nCác dữ kiện đã được tính sẵn (số liệu CHÍNH XÁC, dùng nguyên văn, không tính lại):\n${lines.join('\n')}\n\nHãy chọn ${n} dữ kiện quan trọng và có thể hành động nhất, rồi chuyển thành các thẻ.`;
 }
 
-const SYSTEM='Sos el coach financiero de Morchis, una app para una pareja argentina (Lucas y Sofi). Hablás en español rioplatense, cercano y motivador. Te paso HECHOS ya calculados (los montos son exactos). Elegí los más importantes y convertilos en cards breves y ACCIONABLES — cada una sugiere UNA cosa concreta para gastar menos, ahorrar más o evitar un problema. Reglas: (1) Usá SOLO números que aparezcan en los hechos, nunca inventes ni recalcules. (2) Priorizá ahorro y alertas por encima de lo descriptivo. (3) Si un hecho aclara que el mes está incompleto (ej: "al día N del mes"), presentalo como parcial — nunca como resultado final del mes ni como pérdida confirmada; una tasa de ahorro negativa a mitad de mes suele ser que faltan ingresar sueldos. (4) Respondé SOLO con un array JSON sin markdown. Cada item: {"title":string(≤7 palabras),"body":string(1-2 oraciones con el número del hecho + una acción concreta, ≤30 palabras),"severity":"info"|"positive"|"warning","kind":"saving"|"spike"|"anthill"|"duplicate"|"subscription"|"budget"|"goal"|"debt"|"summary"}.';
+const SYSTEM='Bạn là huấn luyện viên tài chính của Morchis, một ứng dụng cho các cặp đôi tại Argentina (Lucas và Sofi). Hãy viết bằng tiếng Việt, gần gũi và động viên. Tôi cung cấp các DỮ KIỆN đã được tính sẵn (số tiền là chính xác). Hãy chọn những dữ kiện quan trọng nhất và chuyển thành các thẻ ngắn gọn, CÓ THỂ HÀNH ĐỘNG — mỗi thẻ đề xuất MỘT việc cụ thể để chi ít hơn, tiết kiệm nhiều hơn hoặc tránh một vấn đề. Quy tắc: (1) CHỈ dùng số xuất hiện trong dữ kiện, không bịa hoặc tính lại. (2) Ưu tiên tiết kiệm và cảnh báo hơn mô tả. (3) Nếu dữ kiện cho biết tháng chưa đầy đủ (ví dụ: "đến ngày N trong tháng"), hãy trình bày là tạm tính — không coi là kết quả cuối tháng hoặc khoản lỗ chắc chắn; tỷ lệ tiết kiệm âm giữa tháng thường chỉ có nghĩa là chưa nhận đủ lương. (4) CHỈ trả về một mảng JSON, không markdown. Mỗi phần tử: {"title":string (≤7 từ),"body":string (1-2 câu có số liệu từ dữ kiện + một hành động cụ thể, ≤30 từ),"severity":"info"|"positive"|"warning","kind":"saving"|"spike"|"anthill"|"duplicate"|"subscription"|"budget"|"goal"|"debt"|"summary"}.';
 
 async function generateFor(admin:SupabaseClient,hid:string,aud:Aud,d:Data,mode:string,period:string,vPub:string,vPriv:string):Promise<number>{
   const {facts}=buildFacts(aud,d);
@@ -294,7 +294,7 @@ async function generateFor(admin:SupabaseClient,hid:string,aud:Aud,d:Data,mode:s
 async function processHousehold(admin:SupabaseClient,hid:string,mode:string,vPub:string,vPriv:string):Promise<number>{
   const d=await fetchAll(admin,hid);
   if(d.curr.length===0&&d.income.length===0){console.log('No data',hid);return 0;}
-  const auds:Aud[]=[{id:null,name:'Hogar'},...d.profiles.map(p=>({id:p.id,name:p.nickname??p.display_name??'Usuario'}))];
+  const auds:Aud[]=[{id:null,name:'Hộ gia đình'},...d.profiles.map(p=>({id:p.id,name:p.nickname??p.display_name??'Người dùng'}))];
   const now=artNow();
   const period=`${now.getUTCFullYear()}-${String(now.getUTCMonth()+1).padStart(2,'0')}`;
   let total=0;
@@ -316,7 +316,7 @@ Deno.serve(async(req:Request)=>{
   const admin=createClient(supabaseUrl,serviceKey);
   const auth=req.headers.get('Authorization')??'';
   const token=auth.startsWith('Bearer ')?auth.slice(7):'';
-  if(!token)return new Response('Unauthorized',{status:401});
+  if(!token)return new Response('Không được phép',{status:401});
   const payload=jwtPayload(token);
   const role=payload?.role as string|undefined;
   let requestedHid:string|null=null;
@@ -325,9 +325,9 @@ Deno.serve(async(req:Request)=>{
   } else {
     const userClient=createClient(supabaseUrl,anonKey,{global:{headers:{Authorization:auth}}});
     const{data:{user}}=await userClient.auth.getUser();
-    if(!user)return new Response('Unauthorized',{status:401});
+    if(!user)return new Response('Không được phép',{status:401});
     const{data:prof}=await admin.from('profiles').select('household_id').eq('id',user.id).single();
-    if(!prof?.household_id)return new Response('No household',{status:400});
+    if(!prof?.household_id)return new Response('Chưa có hộ gia đình',{status:400});
     requestedHid=prof.household_id;
   }
   let body:{mode?:string}={};
@@ -337,7 +337,7 @@ Deno.serve(async(req:Request)=>{
   const results:{household_id:string;count?:number;error?:string}[]=[];
   for(const hh of(households??[])){
     try{results.push({household_id:hh.id,count:await processHousehold(admin,hh.id,mode,vPub,vPriv)});}
-    catch(err){console.error('Error',hh.id,err);results.push({household_id:hh.id,error:String(err)});}
+    catch(err){console.error('Error',hh.id,err);results.push({household_id:hh.id,error:'INSIGHTS_GENERATION_FAILED'});}
   }
   const generated=results.reduce((s,r)=>s+(r.count??0),0);
   const anyError=results.some(r=>r.error);

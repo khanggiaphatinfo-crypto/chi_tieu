@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { useCurrencyStore } from '@/store/currency';
@@ -31,11 +31,13 @@ export function useFx() {
   // The rate is "stale" if we fell back to the hardcoded default or the latest
   // stored rate is more than 3 days old (the cron refreshes it daily), so the UI
   // can warn that USD conversions are approximate.
-  const rateStale = (() => {
-    if (!fx?.date) return true;
-    const ageDays = (Date.now() - new Date(fx.date + 'T00:00:00').getTime()) / 86400000;
+  const fxDate = fx?.date ?? null;
+  const [nowMs] = useState(() => Date.now());
+  const rateStale = useMemo(() => {
+    if (!fxDate) return true;
+    const ageDays = (nowMs - new Date(fxDate + 'T00:00:00').getTime()) / 86400000;
     return ageDays > 3;
-  })();
+  }, [fxDate, nowMs]);
 
   // Stable across renders (only changes with the currency toggle or the rate),
   // so children memoized on these callbacks don't re-render needlessly.

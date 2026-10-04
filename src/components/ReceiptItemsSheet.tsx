@@ -263,7 +263,7 @@ export function ReceiptItemsSheet({
             </p>
             {tip > 0 && (
               <p className="text-[11px] mt-0.5" style={{ color: '#8C968F' }}>
-                Incluye {fmt(tip)} de tiền boa
+                Bao gồm {fmt(tip)} tiền boa
               </p>
             )}
           </div>
@@ -352,7 +352,7 @@ export function ReceiptItemsSheet({
 
                 {totalMismatch && (
                   <p className="text-[11px] -mt-1 px-1" style={{ color: '#B8860B' }}>
-                    ⚠️ La suma de productos ({fmt(itemsSum)}) no coincide con el total del gasto ({fmt(total)}).
+                    ⚠️ Tổng các sản phẩm ({fmt(itemsSum)}) không khớp với tổng chi tiêu ({fmt(total)}).
                   </p>
                 )}
 
@@ -368,7 +368,7 @@ export function ReceiptItemsSheet({
                         className="text-xs font-bold px-3 py-1 rounded-full border"
                         style={{ borderColor: '#2FA37C', color: '#1F8A68' }}
                       >
-                        ✏️ Editar
+                        ✏️ Chỉnh sửa
                       </button>
                     )}
                   </div>

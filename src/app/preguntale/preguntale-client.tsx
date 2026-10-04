@@ -47,16 +47,14 @@ export default function PreguntaleClient({ householdId, profileId }: { household
   const recognitionRef = useRef<SpeechRec | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [listening, setListening] = useState(false);
-  const [micSupported, setMicSupported] = useState(false);
+  const micSupported = typeof window !== 'undefined' && Boolean(
+    (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition
+      || (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).webkitSpeechRecognition,
+  );
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
-
-  useEffect(() => {
-    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
-    setMicSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
-  }, []);
 
   // Voice dictation (vi-VN): fills the input as you speak; tap again to stop.
   function toggleMic() {
@@ -160,7 +158,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
         body: JSON.stringify({ file_paths: [path] }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.receipt) throw new Error(data?.error || 'parse failed');
+      if (!res.ok || !data?.receipt) throw new Error(data?.error || 'Không thể đọc hóa đơn');
       const r = data.receipt as { merchant?: string; total: number; currency: string; items?: unknown[] };
       const cur = r.currency === 'USD' ? 'USD' : 'ARS';
       const amountTxt = cur === 'USD' ? `US$${Math.round(r.total)}` : `$${Math.round(r.total).toLocaleString('vi-VN')}`;
@@ -236,7 +234,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
                       className="rounded-full px-4 py-2 text-sm font-semibold"
                       style={{ background: '#EAF0ED', color: '#5B6660' }}
                     >
-                      Cancelar
+                      Hủy
                     </button>
                   </div>
                 </div>
@@ -260,7 +258,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
           {loading && (
             <div className="flex justify-start">
               <div className="rounded-3xl px-4 py-3 text-sm" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660', borderBottomLeftRadius: 6 }}>
-                Morchi está pensando…
+                Morchi đang suy nghĩ…
               </div>
             </div>
           )}
@@ -288,7 +286,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={loading}
-            aria-label="Mandar foto de un ticket"
+            aria-label="Gửi ảnh hóa đơn"
             className="w-11 h-11 rounded-full text-lg flex items-center justify-center shrink-0"
             style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', color: '#5B6660', border: '1px solid #E5EBE8' }}
           >
@@ -298,7 +296,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
             <button
               type="button"
               onClick={toggleMic}
-              aria-label={listening ? 'Detener dictado' : 'Dictar por voz'}
+              aria-label={listening ? 'Dừng đọc chính tả' : 'Đọc chính tả bằng giọng nói'}
               className="w-11 h-11 rounded-full text-lg flex items-center justify-center shrink-0"
               style={listening
                 ? { background: '#E25749', color: '#FFFFFF', border: '1px solid #E25749' }
@@ -310,7 +308,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={listening ? 'Escuchando…' : 'Escribí tu pregunta…'}
+            placeholder={listening ? 'Đang lắng nghe…' : 'Nhập câu hỏi của bạn…'}
             enterKeyHint="send"
             className="flex-1 rounded-full px-4 py-3 text-sm outline-none"
             style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)', border: '1px solid #E5EBE8', color: '#18211D' }}
@@ -320,7 +318,7 @@ export default function PreguntaleClient({ householdId, profileId }: { household
             disabled={loading || !input.trim()}
             className="w-11 h-11 rounded-full text-xl text-white flex items-center justify-center shrink-0"
             style={{ background: loading || !input.trim() ? '#B0BAB4' : '#2FA37C' }}
-            aria-label="Enviar"
+            aria-label="Gửi câu hỏi"
           >
             ↑
           </button>

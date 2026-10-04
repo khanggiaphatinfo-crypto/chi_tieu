@@ -89,7 +89,7 @@ export default function InsightsClient({ householdId, profileId }: { householdId
       setTimeout(() => setJustDone(false), 1600);
     } catch (e) {
       console.error(e);
-      toast.error('No se pudieron actualizar los insights. Probá de nuevo.');
+      toast.error('Không thể cập nhật phân tích. Hãy thử lại.');
     } finally {
       setRefreshing(false);
     }

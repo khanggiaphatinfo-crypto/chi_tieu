@@ -17,7 +17,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
   const startY = useRef<number | null>(null);
   const refreshingRef = useRef(false);
   const pullRef = useRef(0);
-  pullRef.current = pull;
+  const [gestureActive, setGestureActive] = useState(false);
 
   useEffect(() => {
     function onTouchStart(e: TouchEvent) {
@@ -28,11 +28,13 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       const target = e.target as Element | null;
       if (target?.closest('[data-slot="sheet-content"], [role="dialog"]')) {
         startY.current = null;
+        setGestureActive(false);
         return;
       }
       // Only arm the gesture when the page is at the top.
       if (window.scrollY <= 0 && e.touches.length === 1) {
         startY.current = e.touches[0].clientY;
+        setGestureActive(true);
       } else {
         startY.current = null;
       }
@@ -44,8 +46,10 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       if (dy > 0 && window.scrollY <= 0) {
         // Resistance: the further you pull, the slower it moves.
         const dist = Math.min(MAX_PULL, dy * 0.5);
+        pullRef.current = dist;
         setPull(dist);
       } else {
+        pullRef.current = 0;
         setPull(0);
       }
     }
@@ -54,6 +58,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       if (startY.current === null || refreshingRef.current) return;
       const shouldRefresh = pullRef.current >= THRESHOLD;
       startY.current = null;
+      setGestureActive(false);
       if (shouldRefresh) {
         refreshingRef.current = true;
         setRefreshing(true);
@@ -65,10 +70,12 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
           toast.error('Không thể cập nhật');
         } finally {
           refreshingRef.current = false;
+          pullRef.current = 0;
           setRefreshing(false);
           setPull(0);
         }
       } else {
+        pullRef.current = 0;
         setPull(0);
       }
     }
@@ -81,7 +88,6 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       document.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('touchend', onTouchEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc]);
 
   const ready = pull >= THRESHOLD;
@@ -89,7 +95,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
     <>
       <div
         className="fixed top-0 inset-x-0 z-40 flex items-end justify-center pointer-events-none overflow-hidden"
-        style={{ height: pull, transition: startY.current === null ? 'height 0.2s ease' : 'none' }}
+        style={{ height: pull, transition: gestureActive ? 'none' : 'height 0.2s ease' }}
       >
         <div
           className="mb-2 w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm"
@@ -105,7 +111,7 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
       <div
         style={{
           transform: pull > 0 ? `translateY(${pull}px)` : undefined,
-          transition: startY.current === null ? 'transform 0.2s ease' : 'none',
+          transition: gestureActive ? 'none' : 'transform 0.2s ease',
         }}
       >
         {children}

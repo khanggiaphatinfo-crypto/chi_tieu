@@ -83,7 +83,7 @@ export function InsightTopCard({ householdId, profileId }: { householdId: string
           className="text-xs font-bold px-3 py-1.5 rounded-full"
           style={{ background: '#E5EBE8', color: refreshing ? '#B0BAB4' : '#5B6660' }}
         >
-          {refreshing ? '…' : 'Actualizar'}
+          {refreshing ? '…' : 'Làm mới'}
         </button>
       </div>
     );
@@ -107,7 +107,7 @@ export function InsightTopCard({ householdId, profileId }: { householdId: string
           className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 mt-0.5"
           style={{ background: `${s.color}22`, color: s.color }}
         >
-          {refreshing ? '…' : 'Actualizar'}
+          {refreshing ? '…' : 'Làm mới'}
         </button>
       </div>
     </div>

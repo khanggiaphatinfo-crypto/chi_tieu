@@ -131,7 +131,7 @@ Deno.serve(async (req: Request) => {
       const parts: string[] = [];
       if (c.statement_ars) parts.push(fmtARS(Number(c.statement_ars)));
       if (c.statement_usd) parts.push(`US$${Math.round(Number(c.statement_usd)).toLocaleString('vi-VN')}`);
-      if (parts.length) amountTxt = ` · resumen ${parts.join(' + ')}`;
+      if (parts.length) amountTxt = ` · sao kê ${parts.join(' + ')}`;
     } else if (c.closing_date) {
       const lastClose = prevOccurrence(c.closing_date, todayISO);
       const prevClose = prevOccurrence(c.closing_date, lastClose);
@@ -155,8 +155,8 @@ Deno.serve(async (req: Request) => {
       .map(p => p.id);
 
     const payload = {
-      title: days === 0 ? '💳 Hoy vence la tarjeta' : '💳 Vencimiento en 3 días',
-      body: `${c.name} vence ${days === 0 ? 'hoy' : `el ${due.slice(8, 10)}/${due.slice(5, 7)}`}${amountTxt}.`,
+      title: days === 0 ? '💳 Hôm nay đến hạn thẻ' : '💳 Thẻ đến hạn sau 3 ngày',
+      body: `${c.name} đến hạn ${days === 0 ? 'hôm nay' : `vào ${due.slice(8, 10)}/${due.slice(5, 7)}`}${amountTxt}.`,
       url: '/cuentas',
     };
     sent += await pushToProfiles(admin, targets, payload);

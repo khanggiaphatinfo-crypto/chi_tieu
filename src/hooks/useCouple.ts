@@ -1,9 +1,8 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase';
 import { todayISO, toLocalISO } from '@/lib/date';
-import { toast } from 'sonner';
 
 export interface CoupleBalance {
   /** Positive = partner owes me. Negative = I owe partner. */

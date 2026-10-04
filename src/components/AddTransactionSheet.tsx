@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -17,6 +17,7 @@ import { triggerBudgetAlerts } from '@/lib/notifyBudgets';
 import { recordSettlement } from '@/hooks/useCouple';
 import { FLAG_COLORS } from '@/lib/flags';
 import { toast } from 'sonner';
+import { VI_MESSAGES } from '@/lib/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Icon choices for the inline "create category" flow inside the sheet.
@@ -78,7 +79,12 @@ interface SavedSplit {
   ower_profile_id: string;
 }
 
-export function AddTransactionSheet({
+export function AddTransactionSheet(props: AddTransactionSheetProps) {
+  const resetKey = `${props.open ? 'open' : 'closed'}-${props.editTx?.id ?? 'new'}-${props.initialType ?? 'expense'}`;
+  return <AddTransactionSheetContent key={resetKey} {...props} />;
+}
+
+function AddTransactionSheetContent({
   open,
   onClose,
   householdId,
@@ -90,7 +96,7 @@ export function AddTransactionSheet({
   editTx,
   initialType = 'expense',
 }: AddTransactionSheetProps) {
-  const { arsPerUsd, showUSD } = useFx();
+  const { arsPerUsd } = useFx();
   const haptic = useHaptics();
   // Drag the grabber down to dismiss (mobile). dragY stays 0 on desktop — the
   // handle is sm:hidden — so it never fights the centered-dialog transform.
@@ -230,16 +236,16 @@ export function AddTransactionSheet({
 
   const effectivePartnerId = partnerProfileId ?? resolvedPartner?.id ?? null;
   const effectivePartnerName =
-    partnerName ?? resolvedPartner?.nickname ?? resolvedPartner?.display_name ?? 'Tu pareja';
+    partnerName ?? resolvedPartner?.nickname ?? resolvedPartner?.display_name ?? 'người đồng hành';
 
   // Decide who a movement belongs to when (re)opening the sheet. Household
   // beats everything; otherwise a profile_id that isn't mine means it's the
   // partner's; default to mine.
-  function ownerOf(tx: { scope: string; profile_id?: string | null }): 'me' | 'partner' | 'household' {
+  const ownerOf = useCallback((tx: { scope: string; profile_id?: string | null }): 'me' | 'partner' | 'household' => {
     if (tx.scope === 'household') return 'household';
     if (tx.profile_id && tx.profile_id !== profileId && tx.profile_id === effectivePartnerId) return 'partner';
     return 'me';
-  }
+  }, [effectivePartnerId, profileId]);
 
   const [inputUSD, setInputUSD] = useState(false);
   const [raw, setRaw] = useState('');
@@ -309,6 +315,7 @@ export function AddTransactionSheet({
   const [newCatIcon, setNewCatIcon] = useState('🏷️');
   const [savingCat, setSavingCat] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (open) {
       // Reset payee-memory state every time the sheet opens. Editing counts as a
@@ -376,7 +383,6 @@ export function AddTransactionSheet({
   useEffect(() => {
     if (!open || editTx || suggestedShare == null || splitDirtyRef.current) return;
     setMyShare(suggestedShare);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editTx, suggestedShare]);
 
   // When editing, load the saved split (and the FX snapshot the row was stored
@@ -428,8 +434,8 @@ export function AddTransactionSheet({
     // Intentionally NOT depending on arsPerUsd: the split is loaded once when the
     // sheet opens for editing. Re-running on every FX refresh would snap the
     // slider back to the saved value and discard a percentage the user just set.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, editTx]);
+  }, [open, editTx, supabase, arsPerUsd, profileId, ownerOf]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Refresh every query a money change can touch, so all pages stay in sync
   // after a save or delete (balances, budgets, analytics, couple balance).
@@ -1046,7 +1052,7 @@ export function AddTransactionSheet({
                   className="text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1"
                   style={{ borderColor: '#E5EBE8', color: '#5B6660', background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}
                 >
-                  🧾 Escanear ticket
+                  🧾 {VI_MESSAGES.scanReceipt}
                 </button>
               ) : (
                 <button
@@ -1073,11 +1079,11 @@ export function AddTransactionSheet({
               there's a partner to settle with, and never while editing a row. */}
           <div className="flex mx-6 mb-3 rounded-2xl overflow-hidden" style={{ background: '#E5EBE8' }}>
             {([
-              { t: 'expense' as const, label: 'Gasto', color: '#FF6F61' },
-              { t: 'income' as const, label: 'Ingreso', color: '#2FA37C' },
-              { t: 'transfer' as const, label: 'Transferencia', color: '#4E84E0' },
+              { t: 'expense' as const, label: 'Chi tiêu', color: '#FF6F61' },
+              { t: 'income' as const, label: 'Thu nhập', color: '#2FA37C' },
+              { t: 'transfer' as const, label: 'Chuyển khoản', color: '#4E84E0' },
               ...(!editTx && effectivePartnerId
-                ? [{ t: 'settle' as const, label: '🤝 Pareja', color: '#1F8A68' }]
+                ? [{ t: 'settle' as const, label: '🤝 Người đồng hành', color: '#1F8A68' }]
                 : []),
             ]).map(({ t, label, color }) => (
               <button
@@ -1241,8 +1247,8 @@ export function AddTransactionSheet({
               <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Ai trả cho ai?</p>
               <div className="flex rounded-2xl overflow-hidden p-1 gap-1 mb-3" style={{ background: '#E5EBE8' }}>
                 {([
-                  { key: true, label: `👤 Yo → ${effectivePartnerName}` },
-                  { key: false, label: `👥 ${effectivePartnerName} → Yo` },
+                  { key: true, label: `👤 Tôi → ${effectivePartnerName}` },
+                  { key: false, label: `👥 ${effectivePartnerName} → Tôi` },
                 ] as const).map((o) => {
                   const active = iPaySettle === o.key;
                   return (
@@ -1259,7 +1265,7 @@ export function AddTransactionSheet({
               </div>
 
               <p className="text-[11px] mb-3 leading-snug" style={{ color: '#5B6660' }}>
-                🤝 Salda la <b>deuda con la pareja</b>. No cuenta como gasto: ajusta el balance del hogar.
+                🤝 Thanh toán <b>khoản nợ với người đồng hành</b>. Không tính là chi tiêu: chỉ điều chỉnh số dư hộ gia đình.
               </p>
 
               {/* Real money movement — record the transfer between accounts, not
@@ -1271,17 +1277,17 @@ export function AddTransactionSheet({
                   disabled={!settleCanMove}
                   className="w-full flex items-center justify-between disabled:opacity-50"
                 >
-                  <span className="text-xs font-bold" style={{ color: '#18211D' }}>💸 Mover plata entre cuentas</span>
+                  <span className="text-xs font-bold" style={{ color: '#18211D' }}>💸 Chuyển tiền giữa các tài khoản</span>
                   <span
                     className="text-[11px] font-bold px-2 py-1 rounded-full"
                     style={{ background: settleWillMove ? '#DDF0E8' : '#E5EBE8', color: settleWillMove ? '#1F8A68' : '#5B6660' }}
                   >
-                    {settleWillMove ? 'Sí' : 'No'}
+                    {settleWillMove ? 'Có' : 'Không'}
                   </span>
                 </button>
                 {!settleCanMove ? (
                   <p className="text-[11px] mt-2" style={{ color: '#5B6660' }}>
-                    Hace falta una cuenta en pesos (no tarjeta) de cada uno para registrar el movimiento.
+                    Cần có một tài khoản tiền mặt (không phải thẻ) của mỗi người để ghi nhận giao dịch.
                   </p>
                 ) : (
                   settleWillMove && (
@@ -1336,11 +1342,11 @@ export function AddTransactionSheet({
             <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Giao dịch này của ai?</p>
             <div className="flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
               {([
-                { key: 'me' as const, label: '👤 Mío' },
+                { key: 'me' as const, label: '👤 Của tôi' },
                 ...(effectivePartnerId
                   ? [{ key: 'partner' as const, label: `👥 ${effectivePartnerName}` }]
                   : []),
-                { key: 'household' as const, label: '🏠 Hogar' },
+                { key: 'household' as const, label: '🏠 Hộ gia đình' },
               ]).map((o) => {
                 const active = owner === o.key;
                 return (
@@ -1369,7 +1375,7 @@ export function AddTransactionSheet({
               <p className="text-xs font-bold mb-1.5" style={{ color: '#5B6660' }}>Ai đã trả?</p>
               <div className="flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
                 {([
-                  { key: 'me' as const, label: '👤 Yo' },
+                  { key: 'me' as const, label: '👤 Tôi' },
                   { key: 'partner' as const, label: `👥 ${effectivePartnerName}` },
                 ]).map((o) => {
                   const active = paidBy === o.key;
@@ -1406,7 +1412,7 @@ export function AddTransactionSheet({
                 color: isShared ? '#FF6F61' : '#5B6660',
               }}
             >
-              {isShared ? '🤝 Compartido' : '🤝 Dividir'}
+              {isShared ? '🤝 Đã chia sẻ' : '🤝 Chia sẻ'}
             </button>
             )}
 
@@ -1421,7 +1427,7 @@ export function AddTransactionSheet({
                 color: isFixed ? '#4E84E0' : '#5B6660',
               }}
             >
-              {isFixed ? '📌 Gasto fijo' : '📌 Fijo'}
+              {isFixed ? '📌 Chi phí cố định' : '📌 Cố định'}
             </button>
             )}
 
@@ -1436,7 +1442,7 @@ export function AddTransactionSheet({
                 color: excludeStats ? '#7C6FF0' : '#5B6660',
               }}
             >
-              🔄 Transf./FX
+                🔄 Chuyển đổi/FX
             </button>
 
             {/* Account */}
@@ -1482,14 +1488,14 @@ export function AddTransactionSheet({
           {/* Hint for the fixed-expense toggle. */}
           {!isTransfer && txType === 'expense' && isFixed && (
             <p className="px-4 mt-2 text-[11px]" style={{ color: '#5B6660' }}>
-              📌 Gasto fijo (recurrente, tipo alquiler o servicios).
+              📌 Chi phí cố định (định kỳ, như tiền thuê nhà hoặc dịch vụ).
             </p>
           )}
 
           {/* Transferencia/FX hint */}
           {!isTransfer && !isSettle && excludeStats && (
             <p className="px-4 mt-2 text-[11px]" style={{ color: '#7C6FF0' }}>
-              🔄 No cuenta como {txType === 'income' ? 'ingreso' : 'gasto'} en el análisis (cambio de moneda, pago de tarjeta, plata a familia, préstamo o reintegro). Igual afecta el saldo de la cuenta.
+              🔄 Không tính {txType === 'income' ? 'thu nhập' : 'chi tiêu'} trong phân tích (đổi tiền, thanh toán thẻ, gửi tiền cho gia đình, cho vay hoặc hoàn tiền). Số dư tài khoản vẫn thay đổi.
             </p>
           )}
 
@@ -1503,7 +1509,7 @@ export function AddTransactionSheet({
                     <div className="flex gap-1">
                       {[
                         { label: '50/50', v: 50 },
-                        { label: 'Yo todo', v: 100 },
+                        { label: 'Tôi trả toàn bộ', v: 100 },
                         { label: `${effectivePartnerName}`, v: 0 },
                       ].map((p) => (
                         <button
@@ -1533,7 +1539,7 @@ export function AddTransactionSheet({
                   />
                   <div className="flex justify-between mt-1.5">
                     <div>
-                      <p className="text-[11px]" style={{ color: '#5B6660' }}>Yo ({myShare}%)</p>
+                      <p className="text-[11px]" style={{ color: '#5B6660' }}>Tôi ({myShare}%)</p>
                       <p className="text-sm font-bold" style={{ color: '#18211D' }}>{fmtNative(myShareNative)}</p>
                     </div>
                     <div className="text-right">
@@ -1550,7 +1556,7 @@ export function AddTransactionSheet({
             </div>
           )}
 
-          {/* Cuotas (solo para gastos nuevos) */}
+          {/* Kỳ trả góp (chỉ dành cho khoản chi mới) */}
           {canInstallments && (
             <div className="px-4 mt-3">
               <div className="flex items-center justify-between mb-1.5">
@@ -1573,7 +1579,7 @@ export function AddTransactionSheet({
                       color: installments === n ? '#FF6F61' : '#5B6660',
                     }}
                   >
-                    {n === 1 ? '1 pago' : `${n}`}
+                    {n === 1 ? '1 lần thanh toán' : `${n}`}
                   </button>
                 ))}
               </div>

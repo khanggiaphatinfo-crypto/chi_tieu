@@ -84,12 +84,12 @@ function toArs(amount: number, currency: string, arsPerUsd: number): number {
 }
 
 const CADENCE_LABEL: Record<string, string> = {
-  weekly: 'Semanal',
-  biweekly: 'Quincenal',
-  monthly: 'Mensual',
+  weekly: 'Hàng tuần',
+  biweekly: 'Hai tuần một lần',
+  monthly: 'Hàng tháng',
 };
 
-const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
 
 // --- Subscription detection -------------------------------------------------
 
@@ -154,7 +154,7 @@ function UpcomingBills({ rules, availableByCat, onEdit }: { rules: Rule[]; avail
   return (
     <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Próximos vencimientos</p>
+        <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Các khoản sắp đến hạn</p>
         <span className="text-xs font-black" style={{ color: '#FF6F61' }}>{formatARS(totalExpense)}</span>
       </div>
       <div className="flex flex-col gap-2.5">
@@ -174,7 +174,7 @@ function UpcomingBills({ rules, availableByCat, onEdit }: { rules: Rule[]; avail
             <button
               key={r.id}
               onClick={() => onEdit(r)}
-              aria-label={`Editar ${r.label}`}
+              aria-label={`Chỉnh sửa ${r.label}`}
               className="flex items-center gap-3 w-full text-left active:scale-[0.99] transition-all rounded-2xl -mx-2 px-2 py-1 hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
             >
               <div
@@ -188,17 +188,17 @@ function UpcomingBills({ rules, availableByCat, onEdit }: { rules: Rule[]; avail
                   <p className="text-sm font-bold truncate" style={{ color: '#18211D' }}>{r.label}</p>
                   {r.is_variable && (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#FBF1D8', color: '#B8860B' }}>
-                      recordatorio
+                      nhắc nhở
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <p className="text-xs font-semibold" style={{ color: soon ? '#E25749' : '#5B6660' }}>{whenLabel(d)} · {shortDayMonth(r.next_run!)}</p>
                   {funded === true && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#DDF0E8', color: '#1F8A68' }}>Fondeado ✓</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#DDF0E8', color: '#1F8A68' }}>Đã cấp đủ ✓</span>
                   )}
                   {funded === false && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#FBF1D8', color: '#B8860B' }}>Falta {formatARS(shortfall)}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#FBF1D8', color: '#B8860B' }}>Thiếu {formatARS(shortfall)}</span>
                   )}
                 </div>
               </div>
@@ -239,11 +239,11 @@ function FixedSummaryCard({ rules }: { rules: Rule[] }) {
         <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'rgba(255,255,255,0.14)' }} />
         <div className="relative flex items-center justify-between">
           <p className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.82)' }}>
-            Margen fijo / mes
+            Biên cố định / tháng
           </p>
           {savingsRate != null && (
             <span className="relative inline-flex items-center gap-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.7)' }}>Ahorro fijo</span>
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.7)' }}>Tiết kiệm cố định</span>
               <span
                 className="inline-block text-xs font-black px-2.5 py-1 rounded-full"
                 style={{ background: 'rgba(255,255,255,0.2)', color: '#FFFFFF' }}
@@ -257,19 +257,19 @@ function FixedSummaryCard({ rules }: { rules: Rule[] }) {
           {!marginPositive && '−'}{formatARS(Math.abs(Math.round(margin)))}
         </p>
         <p className="relative text-[11px] mt-2" style={{ color: 'rgba(255,255,255,0.85)' }}>
-          Resumen mensual estimado
+          Tóm tắt hàng tháng ước tính
         </p>
       </div>
       <div className="px-4 py-4">
         <div className="flex gap-3">
           <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: '#DDF0E8' }}>
-            <p className="text-[11px] font-semibold" style={{ color: '#1F8A68' }}>Ingresos fijos</p>
+            <p className="text-[11px] font-semibold" style={{ color: '#1F8A68' }}>Thu nhập cố định</p>
             <p className="text-lg font-black leading-tight" style={{ color: '#1F8A68', fontVariantNumeric: 'tabular-nums' }}>
               {formatARS(Math.round(incomeMonthly))}
             </p>
           </div>
           <div className="flex-1 rounded-2xl px-3 py-3" style={{ background: '#FFE5E0' }}>
-            <p className="text-[11px] font-semibold" style={{ color: '#E25749' }}>Gastos fijos</p>
+            <p className="text-[11px] font-semibold" style={{ color: '#E25749' }}>Chi phí cố định</p>
             <p className="text-lg font-black leading-tight" style={{ color: '#E25749', fontVariantNumeric: 'tabular-nums' }}>
               {formatARS(Math.round(expenseMonthly))}
             </p>
@@ -391,7 +391,7 @@ function RuleForm({
     // and an amount. A date makes it a by-date goal; otherwise it accumulates.
     if (mode === 'savings') {
       if (!categoryId || !amount || amount <= 0) {
-        toast.error('Elegí una categoría de ahorro y un monto.');
+        toast.error('Hãy chọn một danh mục tiết kiệm và nhập số tiền.');
         return;
       }
       onSaveSavings({
@@ -403,7 +403,7 @@ function RuleForm({
       return;
     }
     if (!label.trim() || !amount || amount <= 0) {
-      toast.error('Completá el nombre y el monto.');
+      toast.error('Hãy nhập tên và số tiền.');
       return;
     }
     // Clamp to the valid range: weekday 0..6 for weekly, day-of-month 1..31
@@ -414,7 +414,7 @@ function RuleForm({
     const maxAnchor = cadence === 'weekly' ? 6 : 31;
     const anchor = Math.min(maxAnchor, Math.max(minAnchor, Number.isNaN(parsed) ? minAnchor : parsed));
     if (!Number.isNaN(parsed) && anchor !== parsed) {
-      toast(`Día ajustado a ${anchor} (el rango válido es ${minAnchor}–${maxAnchor}).`);
+      toast(`Ngày đã được điều chỉnh thành ${anchor} (phạm vi hợp lệ là ${minAnchor}–${maxAnchor}).`);
     }
     // Only recompute the next run when the schedule actually changed. Editing
     // just the amount/label of an existing rule should keep its current cycle
@@ -458,7 +458,7 @@ function RuleForm({
                 boxShadow: mode === m ? 'var(--shadow-soft)' : 'none',
               }}
             >
-              {m === 'income' ? 'Ingreso' : m === 'expense' ? 'Gasto' : 'Ahorro'}
+              {m === 'income' ? 'Thu nhập' : m === 'expense' ? 'Chi phí' : 'Tiết kiệm'}
             </button>
           );
         })}
@@ -468,7 +468,7 @@ function RuleForm({
       {mode !== 'savings' && (
         <input
           type="text"
-          placeholder="Nombre (ej: Sueldo, Alquiler…)"
+          placeholder="Tên (ví dụ: Lương, Tiền thuê nhà…)"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
@@ -479,7 +479,7 @@ function RuleForm({
       {/* Currency — savings targets are kept in ARS (like /presupuestos). */}
       {mode !== 'savings' && (
       <div>
-        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Moneda</p>
+        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Tiền tệ</p>
         <div className="flex rounded-2xl overflow-hidden" style={{ background: '#E5EBE8' }}>
           {(['ARS', 'USD'] as const).map((c) => (
             <button
@@ -494,7 +494,7 @@ function RuleForm({
                 boxShadow: currency === c ? 'var(--shadow-soft)' : 'none',
               }}
             >
-              {c === 'ARS' ? 'ARS (Pesos)' : 'USD (Dólares)'}
+              {c === 'ARS' ? 'ARS (Peso)' : 'USD (Đô la)'}
             </button>
           ))}
         </div>
@@ -503,7 +503,7 @@ function RuleForm({
 
       {/* Amount */}
       <MoneyInput
-        placeholder={mode === 'savings' ? 'Cuánto sumar' : `Monto en ${currency}`}
+        placeholder={mode === 'savings' ? 'Số tiền muốn thêm' : `Số tiền bằng ${currency}`}
         value={parseMoney(amountStr)}
         onChange={(n) => setAmountStr(n ? String(n) : '')}
         className="w-full px-4 py-3 rounded-2xl text-sm border outline-none"
@@ -514,7 +514,7 @@ function RuleForm({
       {!(mode === 'savings' && savingsDate) && (
       <div>
         <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>
-          {mode === 'savings' ? 'Cada cuánto sumás' : 'Frecuencia'}
+          {mode === 'savings' ? 'Thêm bao lâu một lần' : 'Tần suất'}
         </p>
         <div className="flex gap-2">
           {(mode === 'savings' ? (['weekly', 'monthly'] as const) : (['weekly', 'biweekly', 'monthly'] as const)).map((c) => (
@@ -548,7 +548,7 @@ function RuleForm({
           keep adding every month/week and let it accumulate. */}
       {mode === 'savings' && (
         <div>
-          <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>Meta con fecha (opcional)</p>
+          <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>Mục tiêu theo ngày (tùy chọn)</p>
           <input
             type="date"
             value={savingsDate}
@@ -558,8 +558,8 @@ function RuleForm({
           />
           <p className="text-[11px] mt-1.5" style={{ color: '#5B6660' }}>
             {savingsDate
-              ? 'Te calculamos cuánto poner por mes para llegar a esa fecha.'
-              : 'Sin fecha: sumás este monto cada período y se va acumulando.'}
+              ? 'Chúng tôi tính số tiền cần thêm mỗi tháng để đạt mục tiêu trước ngày đó.'
+              : 'Không có ngày: số tiền này sẽ được thêm vào mỗi kỳ và tích lũy.'}
           </p>
         </div>
       )}
@@ -568,7 +568,7 @@ function RuleForm({
       {mode !== 'savings' && (
       <div>
         <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>
-          {cadence === 'weekly' ? 'Día de la semana' : 'Día del mes'}
+          {cadence === 'weekly' ? 'Ngày trong tuần' : 'Ngày trong tháng'}
         </p>
         {cadence === 'weekly' ? (
           <select
@@ -603,7 +603,7 @@ function RuleForm({
                 boxShadow: anchorDay === '31' ? 'var(--shadow-soft)' : 'none',
               }}
             >
-              Último día
+              Ngày cuối cùng
             </button>
           </div>
         )}
@@ -614,12 +614,12 @@ function RuleForm({
           it that many times and then auto-pauses the rule. */}
       {mode !== 'savings' && (
         <div>
-          <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>Cuotas / repeticiones (opcional)</p>
+          <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>Số kỳ / lần lặp (tùy chọn)</p>
           <input
             type="number"
             min={1}
             inputMode="numeric"
-            placeholder="Siempre"
+            placeholder="Không giới hạn"
             value={installmentsStr}
             onChange={(e) => setInstallmentsStr(e.target.value)}
             className="w-32 px-4 py-2 rounded-xl text-sm border outline-none"
@@ -628,9 +628,9 @@ function RuleForm({
           <p className="text-[11px] mt-1.5" style={{ color: '#5B6660' }}>
             {installmentsStr && parseInt(installmentsStr, 10) > 0
               ? cadence === 'monthly'
-                ? `Se cobra por ${parseInt(installmentsStr, 10)} meses y se frena.`
-                : `Se repite ${parseInt(installmentsStr, 10)} veces y se frena.`
-              : 'Dejalo vacío para que se repita indefinidamente.'}
+                ? `Tính trong ${parseInt(installmentsStr, 10)} tháng rồi dừng.`
+                : `Lặp lại ${parseInt(installmentsStr, 10)} lần rồi dừng.`
+              : 'Để trống để lặp lại vô thời hạn.'}
           </p>
         </div>
       )}
@@ -638,7 +638,7 @@ function RuleForm({
       {/* Category — where the materialized transaction lands in the budget */}
       <div>
         <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>
-          {mode === 'savings' ? 'Categoría de ahorro' : 'Categoría'}
+          {mode === 'savings' ? 'Danh mục tiết kiệm' : 'Danh mục'}
         </p>
         <select
           value={categoryId}
@@ -646,7 +646,7 @@ function RuleForm({
           className="w-full px-4 py-2.5 rounded-xl text-sm border outline-none bg-white"
           style={{ borderColor: '#E5EBE8', color: '#18211D' }}
         >
-          <option value="">{mode === 'savings' ? 'Elegí una categoría' : 'Sin categoría'}</option>
+          <option value="">{mode === 'savings' ? 'Chọn danh mục' : 'Không có danh mục'}</option>
           {pickableCategories.map((c) => (
             <option key={c.id} value={c.id}>{c.icon ? `${c.icon} ` : ''}{c.name}</option>
           ))}
@@ -667,8 +667,8 @@ function RuleForm({
             boxShadow: reserveInBudget ? 'var(--shadow-soft)' : 'none',
           }}
         >
-          {reserveInBudget ? '✓ ' : '○ '}Reservar en presupuesto
-          <span className="font-normal" style={{ color: '#5B6660' }}>· objetivo mensual en la categoría</span>
+          {reserveInBudget ? '✓ ' : '○ '}Dành chỗ trong ngân sách
+          <span className="font-normal" style={{ color: '#5B6660' }}>· mục tiêu hàng tháng trong danh mục</span>
         </button>
       )}
 
@@ -677,7 +677,7 @@ function RuleForm({
           (Savings has none of these — it's just a budget target.) */}
       {mode !== 'savings' && (<>
       <div>
-        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Tipo de monto</p>
+        <p className="text-xs font-semibold mb-2" style={{ color: '#5B6660' }}>Loại số tiền</p>
         <div className="flex rounded-2xl overflow-hidden" style={{ background: '#E5EBE8' }}>
           {([['fijo', false], ['variable', true]] as const).map(([labelTxt, val]) => (
             <button
@@ -692,13 +692,13 @@ function RuleForm({
                 boxShadow: isVariable === val ? 'var(--shadow-soft)' : 'none',
               }}
             >
-              {val ? 'Variable' : 'Fijo'}
+              {val ? 'Biến đổi' : 'Cố định'}
             </button>
           ))}
         </div>
         {isVariable && (
           <p className="text-[11px] mt-1.5" style={{ color: '#5B6660' }}>
-            No se registra solo: aparece como recordatorio para que cargues el monto real.
+            Không tự ghi nhận: chỉ hiển thị lời nhắc để bạn nhập số tiền thực tế.
           </p>
         )}
       </div>
@@ -714,13 +714,13 @@ function RuleForm({
           boxShadow: scope === 'household' ? 'var(--shadow-soft)' : 'none',
         }}
       >
-        {scope === 'household' ? '🏠 Hogar' : '👤 Personal'}
+        {scope === 'household' ? '🏠 Hộ gia đình' : '👤 Cá nhân'}
       </button>
 
       {/* Account — where this rule credits (income) or debits (expense) */}
       <div>
         <p className="text-xs font-semibold mb-1" style={{ color: '#5B6660' }}>
-          {direction === 'income' ? 'Se acredita en' : 'Se debita de'}
+          {direction === 'income' ? 'Ghi vào tài khoản' : 'Trừ từ tài khoản'}
         </p>
         <select
           value={accountId}
@@ -728,7 +728,7 @@ function RuleForm({
           className="w-full px-4 py-2.5 rounded-xl text-sm border outline-none bg-white"
           style={{ borderColor: '#E5EBE8', color: '#18211D' }}
         >
-          <option value="">Sin cuenta</option>
+          <option value="">Không có tài khoản</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>{a.name}</option>
           ))}
@@ -746,20 +746,20 @@ function RuleForm({
           boxShadow: active ? 'var(--shadow-soft)' : 'none',
         }}
       >
-        {active ? '✓ Activa' : '✗ Inactiva'}
+        {active ? '✓ Đang bật' : '✗ Đã tắt'}
       </button>
       </>)}
 
       <div className="flex gap-3">
         <SecondaryButton onClick={onCancel} className="flex-1 py-3 text-sm">
-          Cancelar
+          Hủy
         </SecondaryButton>
         <PrimaryButton
           onClick={handleSave}
           disabled={(mode !== 'savings' && !label.trim()) || !(parseMoney(amountStr) > 0)}
           className="flex-1 py-3 text-sm"
         >
-          Guardar
+          Lưu
         </PrimaryButton>
       </div>
 
@@ -770,7 +770,7 @@ function RuleForm({
         <div className="flex gap-3 pt-1">
           {onSkip && canSkip && (
             <SecondaryButton onClick={onSkip} className="flex-1 py-3 text-sm">
-              ⏭ Saltar próxima
+              ⏭ Bỏ qua lần kế tiếp
             </SecondaryButton>
           )}
           {onDelete && (
@@ -779,7 +779,7 @@ function RuleForm({
               className="flex-1 py-3 text-sm font-bold rounded-2xl border"
               style={{ background: '#FFE5E0', borderColor: '#FFD6CF', color: '#E25749' }}
             >
-              🗑 Eliminar
+              🗑 Xóa
             </button>
           )}
         </div>
@@ -999,8 +999,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
       if (reserve) await syncTargetFromRule(data);
     },
-    onSuccess: () => { toast.success('Regla creada ✓'); setShowForm(false); invalidate(); },
-    onError: () => toast.error('No se pudo crear la regla.'),
+    onSuccess: () => { toast.success('Đã tạo quy tắc ✓'); setShowForm(false); invalidate(); },
+    onError: () => toast.error('Không thể tạo quy tắc.'),
   });
 
   const updateMutation = useMutation({
@@ -1009,8 +1009,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
       if (reserve) await syncTargetFromRule(data);
     },
-    onSuccess: () => { toast.success('Regla actualizada ✓'); setEditRule(null); invalidate(); },
-    onError: () => toast.error('No se pudo actualizar la regla.'),
+    onSuccess: () => { toast.success('Đã cập nhật quy tắc ✓'); setEditRule(null); invalidate(); },
+    onError: () => toast.error('Không thể cập nhật quy tắc.'),
   });
 
   // Skip the next occurrence: advance next_run by one cycle without posting.
@@ -1022,8 +1022,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
         .eq('id', rule.id);
       if (error) throw error;
     },
-    onSuccess: (_d, rule) => { toast.success(`Saltada la próxima de "${rule.label}"`); invalidate(); },
-    onError: () => toast.error('No se pudo saltar la ocurrencia.'),
+    onSuccess: (_d, rule) => { toast.success(`Đã bỏ qua lần kế tiếp của "${rule.label}"`); invalidate(); },
+    onError: () => toast.error('Không thể bỏ qua lần lặp.'),
   });
 
   // Update just a rule's amount from a detected price change (re-syncs the
@@ -1036,8 +1036,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
         await syncTargetFromRule({ direction: 'expense', category_id: s.categoryId, amount: s.newAmount, currency: s.currency, cadence: s.cadence } as RuleFormData);
       }
     },
-    onSuccess: () => { toast.success('Monto actualizado ✓'); invalidate(); },
-    onError: () => toast.error('No se pudo actualizar el monto.'),
+    onSuccess: () => { toast.success('Đã cập nhật số tiền ✓'); invalidate(); },
+    onError: () => toast.error('Không thể cập nhật số tiền.'),
   });
 
   // Pre-create a monthly rule from a detected subscription. The scope/profile
@@ -1064,8 +1064,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
     },
     // No need to touch dismissedSubs: once the rule exists, its active label
     // matches the merchant and the suggestion drops out on refetch.
-    onSuccess: () => { toast.success('Regla creada ✓'); invalidate(); },
-    onError: () => toast.error('No se pudo crear la regla.'),
+    onSuccess: () => { toast.success('Đã tạo quy tắc ✓'); invalidate(); },
+    onError: () => toast.error('Không thể tạo quy tắc.'),
   });
 
   const deleteMutation = useMutation({
@@ -1073,8 +1073,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
       const { error } = await supabase.from('recurring_rules').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success('Regla eliminada'); invalidate(); },
-    onError: () => toast.error('No se pudo eliminar la regla.'),
+    onSuccess: () => { toast.success('Đã xóa quy tắc'); invalidate(); },
+    onError: () => toast.error('Không thể xóa quy tắc.'),
   });
 
   // Savings = a budget target on a savings category (no recurring_rule, no
@@ -1104,8 +1104,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
       await supabase.from('categories').update({ is_goal: true }).eq('id', d.categoryId);
     },
-    onSuccess: () => { toast.success('Ahorro guardado ✓'); setShowForm(false); setEditSavings(null); invalidateSavings(); },
-    onError: () => toast.error('No se pudo guardar el ahorro.'),
+    onSuccess: () => { toast.success('Đã lưu khoản tiết kiệm ✓'); setShowForm(false); setEditSavings(null); invalidateSavings(); },
+    onError: () => toast.error('Không thể lưu khoản tiết kiệm.'),
   });
   const deleteSavingsMutation = useMutation({
     mutationFn: async (categoryId: string) => {
@@ -1113,8 +1113,8 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
       if (error) throw error;
       await supabase.from('categories').update({ is_goal: false }).eq('id', categoryId);
     },
-    onSuccess: () => { toast.success('Ahorro eliminado'); setEditSavings(null); invalidateSavings(); },
-    onError: () => toast.error('No se pudo eliminar el ahorro.'),
+    onSuccess: () => { toast.success('Đã xóa khoản tiết kiệm'); setEditSavings(null); invalidateSavings(); },
+    onError: () => toast.error('Không thể xóa khoản tiết kiệm.'),
   });
 
   // Savings entries to list: is_goal categories that have a target this user set.
@@ -1138,11 +1138,11 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
     const scheduleBase =
       rule.cadence === 'weekly'
         ? `${CADENCE_LABEL[rule.cadence]} · ${WEEKDAYS[rule.anchor_day ?? 0]}`
-        : `${CADENCE_LABEL[rule.cadence]} · ${rule.anchor_day === 31 ? 'último día' : `día ${rule.anchor_day}`}`;
+        : `${CADENCE_LABEL[rule.cadence]} · ${rule.anchor_day === 31 ? 'ngày cuối cùng' : `ngày ${rule.anchor_day}`}`;
     // "cuota N de M" for finite rules — the cron decrements remaining_count.
     const cuota =
       rule.installments_total != null && rule.remaining_count != null
-        ? ` · cuota ${rule.installments_total - rule.remaining_count + 1} de ${rule.installments_total}`
+        ? ` · kỳ ${rule.installments_total - rule.remaining_count + 1} trên ${rule.installments_total}`
         : '';
     const schedule = scheduleBase + cuota;
     return (
@@ -1154,7 +1154,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
             so the upcoming list and these lists behave identically. */}
         <button
           onClick={() => setEditRule(rule)}
-          aria-label={`Editar ${rule.label}`}
+          aria-label={`Chỉnh sửa ${rule.label}`}
           className="flex items-center gap-3 flex-1 min-w-0 text-left active:scale-[0.99] transition-transform"
         >
           <div
@@ -1168,18 +1168,18 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
               <p className="font-bold text-sm truncate" style={{ color: '#18211D' }}>{rule.label}</p>
               {rule.is_variable && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#FBF1D8', color: '#B8860B' }}>
-                  estimado
+                  ước tính
                 </span>
               )}
               {!rule.active && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#EAF0ED', color: '#5B6660' }}>
-                  inactiva
+                  không hoạt động
                 </span>
               )}
             </div>
             <p className="text-xs truncate" style={{ color: '#5B6660' }}>
               {schedule}
-              {rule.active && rule.next_run ? ` · próx. ${shortDayMonth(rule.next_run)}` : ''}
+              {rule.active && rule.next_run ? ` · kế tiếp ${shortDayMonth(rule.next_run)}` : ''}
             </p>
           </div>
           <p
@@ -1198,7 +1198,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
     <div className="min-h-screen pb-24" style={{ background: '#F1F5F3' }}>
       <header className="px-5 pt-14 pb-4 flex items-center gap-3">
         <Link href="/presupuestos" className="text-2xl">←</Link>
-        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Ingresos y gastos fijos</h1>
+        <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Thu nhập và chi phí cố định</h1>
       </header>
 
       <div className="px-4 flex flex-col gap-4">
@@ -1212,7 +1212,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
         {!showForm && !editRule && !editSavings && priceChangeSuggestions.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>
-              📈 Cambios de precio detectados
+              📈 Đã phát hiện thay đổi giá
             </p>
             <div className="flex flex-col gap-2.5">
               {priceChangeSuggestions.map((s) => (
@@ -1229,7 +1229,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
                     className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full text-white"
                     style={{ background: '#2FA37C' }}
                   >
-                    Actualizar regla
+                    Cập nhật quy tắc
                   </button>
                 </div>
               ))}
@@ -1241,7 +1241,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
         {!showForm && !editRule && !editSavings && subscriptionSuggestions.length > 0 && (
           <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: '#5B6660' }}>
-              📡 Posibles suscripciones detectadas
+              📡 Có thể là các gói đăng ký
             </p>
             <div className="flex flex-col gap-2.5">
               {subscriptionSuggestions.map((s) => (
@@ -1249,7 +1249,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#18211D' }}>{s.merchant}</p>
                     <p className="text-xs" style={{ color: '#5B6660' }}>
-                      Último cobro: {fmtMoney(s.amount, s.currency)}
+                      Lần tính phí gần nhất: {fmtMoney(s.amount, s.currency)}
                     </p>
                   </div>
                   <button
@@ -1258,11 +1258,11 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
                     className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full text-white"
                     style={{ background: '#2FA37C' }}
                   >
-                    Crear regla fija
+                    Tạo quy tắc cố định
                   </button>
                   <button
                     onClick={() => dismissSuggestion(s.key)}
-                    aria-label={`Descartar ${s.merchant}`}
+                    aria-label={`Bỏ qua ${s.merchant}`}
                     className="flex-shrink-0 text-xs px-2 py-1 rounded-lg border"
                     style={{ borderColor: '#E5EBE8', color: '#5B6660' }}
                   >
@@ -1320,7 +1320,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
             className="w-full py-4 rounded-3xl text-sm font-black text-white transition-transform active:scale-[0.99]"
             style={{ background: 'linear-gradient(135deg, #34AD84 0%, #1F8A68 100%)', boxShadow: 'var(--shadow-glow)' }}
           >
-            + Nueva regla o ahorro
+            + Quy tắc hoặc khoản tiết kiệm mới
           </button>
         )}
 
@@ -1329,7 +1329,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #E5EBE8' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B9BD5' }}>
-                Ahorros
+                Tiết kiệm
               </p>
               <span className="text-xs font-bold" style={{ color: '#B0BAB4' }}>{savingsList.length}</span>
             </div>
@@ -1337,11 +1337,11 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
               const cadenceLabel =
                 info.cadence === 'by_date'
                   ? info.targetDate
-                    ? `Meta para ${shortDayMonth(info.targetDate)}`
-                    : 'Meta con fecha'
+                    ? `Mục tiêu đến ${shortDayMonth(info.targetDate)}`
+                    : 'Mục tiêu có ngày'
                   : info.cadence === 'weekly'
-                    ? 'Sumás cada semana'
-                    : 'Sumás cada mes';
+                    ? 'Thêm mỗi tuần'
+                    : 'Thêm mỗi tháng';
               const draft: SavingsDraft = {
                 categoryId: category.id,
                 amount: Math.round(info.totalArs),
@@ -1352,7 +1352,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
                 <button
                   key={category.id}
                   onClick={() => setEditSavings({ categoryId: category.id, name: category.name, draft })}
-                  aria-label={`Editar ahorro ${category.name}`}
+                  aria-label={`Chỉnh sửa khoản tiết kiệm ${category.name}`}
                   className="flex items-center gap-3 w-full px-5 py-3.5 text-left active:scale-[0.99] transition-all hover:bg-[#F4F8F6] active:bg-[#EEF3F1]"
                   style={{ borderTop: '1px solid #E5EBE8' }}
                 >
@@ -1378,7 +1378,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #E5EBE8' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#2FA37C' }}>
-                Ingresos fijos
+                Thu nhập cố định
               </p>
               <span className="text-xs font-bold" style={{ color: '#B0BAB4' }}>{income.length}</span>
             </div>
@@ -1391,7 +1391,7 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
           <div className="rounded-3xl overflow-hidden" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
             <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #E5EBE8' }}>
               <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#FF6F61' }}>
-                Gastos fijos
+                Chi phí cố định
               </p>
               <span className="text-xs font-bold" style={{ color: '#B0BAB4' }}>{expenses.length}</span>
             </div>
@@ -1402,17 +1402,17 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
         {!isLoading && cashRules.length === 0 && !showForm && (
           <EmptyState
             icon="📅"
-            title="Sin reglas fijas"
-            subtitle="Agregá ingresos o gastos recurrentes."
+            title="Chưa có quy tắc cố định"
+            subtitle="Thêm thu nhập hoặc chi phí định kỳ."
           />
         )}
       </div>
 
       <ConfirmDialog
         open={confirmDeleteRule !== null}
-        title="¿Eliminar regla?"
-        message={confirmDeleteRule ? `Se eliminará "${confirmDeleteRule.label}". Esta acción no se puede deshacer.` : undefined}
-        confirmLabel="Eliminar"
+        title="Xóa quy tắc?"
+        message={confirmDeleteRule ? `Quy tắc "${confirmDeleteRule.label}" sẽ bị xóa. Hành động này không thể hoàn tác.` : undefined}
+        confirmLabel="Xóa"
         onConfirm={() => {
           if (confirmDeleteRule) deleteMutation.mutate(confirmDeleteRule.id);
           setConfirmDeleteRule(null);
@@ -1422,9 +1422,9 @@ export default function ReglasClient({ profile }: { profile: Profile }) {
 
       <ConfirmDialog
         open={confirmDeleteSavings !== null}
-        title="¿Eliminar ahorro?"
-        message={confirmDeleteSavings ? `Se quitará la meta de ahorro de "${confirmDeleteSavings.name}". El dinero ya asignado no se toca.` : undefined}
-        confirmLabel="Eliminar"
+        title="Xóa khoản tiết kiệm?"
+        message={confirmDeleteSavings ? `Mục tiêu tiết kiệm của "${confirmDeleteSavings.name}" sẽ bị xóa. Số tiền đã phân bổ không bị ảnh hưởng.` : undefined}
+        confirmLabel="Xóa"
         onConfirm={() => {
           if (confirmDeleteSavings) deleteSavingsMutation.mutate(confirmDeleteSavings.categoryId);
           setConfirmDeleteSavings(null);

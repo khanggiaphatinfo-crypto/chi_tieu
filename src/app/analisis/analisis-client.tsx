@@ -14,6 +14,7 @@ import { ageOfMoneyDays, type CashFlow } from '@/lib/ageOfMoney';
 import { myShareArs, isFixedExpense, type SplitRow } from '@/lib/budgets';
 import { toLocalISO } from '@/lib/date';
 import { formatARS } from '@/lib/format';
+import { VI_MESSAGES } from '@/lib/locale';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -583,7 +584,7 @@ export default function AnalisisClient({
         <h1 className="text-2xl font-black" style={{ color: '#18211D' }}>Phân tích 📊</h1>
       </header>
 
-      {/* Scope toggle: Mío / Nuestro / pareja */}
+      {/* Bộ lọc phạm vi: của tôi / của chúng ta / người đồng hành */}
       <div className="mx-4 mb-3 flex rounded-2xl overflow-hidden p-1 gap-1" style={{ background: '#E5EBE8' }}>
         {scopeTabs.map((tab) => (
           <button
@@ -778,7 +779,7 @@ export default function AnalisisClient({
                   <div key={w.idx}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold" style={{ color: '#18211D' }}>
-                        Sem {i + 1} <span className="text-[11px] font-normal" style={{ color: '#5B6660' }}>· {w.from}–{w.to}</span>
+                        Tuần {i + 1} <span className="text-[11px] font-normal" style={{ color: '#5B6660' }}>· {w.from}–{w.to}</span>
                       </span>
                       <span className="text-sm font-black tabular-nums ml-2 shrink-0" style={{ color: isPeak ? '#E25749' : '#18211D' }}>{formatARS(Math.round(w.value))}</span>
                     </div>
@@ -890,8 +891,8 @@ export default function AnalisisClient({
           <div className="flex items-center justify-between mb-2">
             <div className="flex rounded-full p-0.5 gap-0.5" style={{ background: '#E5EBE8' }}>
               {([
-                { key: false, label: '$ corrientes' },
-                { key: true, label: '$ constantes' },
+                { key: false, label: '$ hiện tại' },
+                { key: true, label: '$ cố định' },
               ] as const).map((opt) => (
                 <button
                   key={opt.label}
@@ -1005,7 +1006,7 @@ export default function AnalisisClient({
         {/* AI insights */}
         <div className="rounded-3xl p-5" style={{ background: '#FFFFFF', boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>Insights ✨</p>
+            <p className="text-xs font-bold uppercase tracking-wide" style={{ color: '#5B6660' }}>{VI_MESSAGES.insights} ✨</p>
             <button
               onClick={handleRefresh}
               disabled={refreshing}

@@ -16,7 +16,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:lucasfmujica@gmail.com";
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:hola@morchis.app";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: authHeader } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return json({ error: "không được phép" }, 401);
+    if (!user) return json({ error: "Không được phép" }, 401);
 
     if (!VAPID_PRIVATE || !VAPID_PUBLIC) return json({ error: "chưa cấu hình khóa VAPID" }, 200);
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
@@ -128,8 +128,8 @@ Deno.serve(async (req) => {
           if (!priorKeys.has(dedupeKey)) {
             const name = catName.get(catId) ?? "un sobre";
             sent += await pushToProfiles(admin, [member], JSON.stringify({
-              title: "🔴 Sobregiraste un sobre",
-              body: `Te pasaste en ${name} (${formatArs(-av)} de más).`,
+              title: '🔴 Bạn đã chi vượt một phong bì',
+              body: `Bạn đã chi vượt phong bì ${name} (${formatArs(-av)} vượt ngân sách).`,
               url: "/presupuestos",
             }));
             await admin.from("envelope_alerts").upsert({ profile_id: member, alert_key: catId, period });
@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
       if (rta < 0) {
         if (!priorKeys.has(rtaKey)) {
           sent += await pushToProfiles(admin, [member], JSON.stringify({
-            title: "⚠️ Para asignar en negativo",
-            body: `Asignaste más de lo que tenés (${formatArs(rta)}). Sacá de algún sobre.`,
+            title: "⚠️ Số tiền cần phân bổ đang âm",
+            body: `Bạn đã phân bổ nhiều hơn số tiền đang có (${formatArs(rta)}). Hãy rút bớt từ một phong bì khác.`,
             url: "/presupuestos",
           }));
           await admin.from("envelope_alerts").upsert({ profile_id: member, alert_key: "rta", period });
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
     return json({ ok: true, sent }, 200);
   } catch (err) {
     console.error("budget-alert error", err);
-    return json({ error: String(err) }, 200);
+    return json({ error: "Không thể cập nhật cảnh báo ngân sách", code: "BUDGET_ALERT_FAILED" }, 500);
   }
 });
 

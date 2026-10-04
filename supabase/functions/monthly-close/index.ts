@@ -51,7 +51,7 @@ async function encryptWebPush(payload: string, p256dh: string, authKey: string):
 }
 async function sendWebPush(sub: { endpoint: string; p256dh: string; auth_key: string }, payload: Record<string, string>, vPub: string, vPriv: string): Promise<void> {
   const { origin } = new URL(sub.endpoint);
-  const jwt = await vapidJWT(origin, 'mailto:hola@morchis.app', vPriv);
+  const jwt = await vapidJWT(origin, Deno.env.get('VAPID_SUBJECT') ?? 'mailto:hola@morchis.app', vPriv);
   const ct = await encryptWebPush(JSON.stringify(payload), sub.p256dh, sub.auth_key);
   const r = await fetch(sub.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/octet-stream', 'Content-Encoding': 'aes128gcm', 'TTL': '86400', 'Authorization': `vapid t=${jwt},k=${vPub}` }, body: ct });
   if (!r.ok && r.status !== 201) console.error('Push failed', r.status, await r.text().catch(() => ''));
@@ -83,7 +83,7 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
   const monthName = MONTHS[closedDate.getUTCMonth()];
 
   const expSel = 'category_id,categories(name),profile_id,scope,is_shared,amount,currency,usd_rate_snapshot,splits(payer_profile_id,ower_profile_id,amount)';
-  const [curR, prevR, incR, incPrevR, budR, profR, fxR, savR, inflR, splitR, settleR] = await Promise.all([
+  const [curR, prevR, incR, , budR, profR, fxR, savR, inflR, splitR, settleR] = await Promise.all([
     admin.from('transactions').select(expSel).eq('household_id', hid).eq('type', 'expense').eq('exclude_from_stats', false).gte('occurred_on', m0).lt('occurred_on', m1),
     admin.from('transactions').select(expSel).eq('household_id', hid).eq('type', 'expense').eq('exclude_from_stats', false).gte('occurred_on', b0).lt('occurred_on', m0),
     admin.from('transactions').select('amount,currency,usd_rate_snapshot').eq('household_id', hid).eq('type', 'income').eq('exclude_from_stats', false).gte('occurred_on', m0).lt('occurred_on', m1),
@@ -119,10 +119,10 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
   let changeTxt = '';
   if (prevExpense > 0) {
     const nomPct = Math.round(((expense - prevExpense) / prevExpense) * 100);
-    changeTxt = ` Gasto ${nomPct >= 0 ? '+' : ''}${nomPct}% nominal vs el mes anterior`;
+    changeTxt = ` Chi tiêu ${nomPct >= 0 ? '+' : ''}${nomPct}% theo giá trị danh nghĩa so với tháng trước`;
     if (infl != null) {
       const realPct = Math.round(((expense / prevExpense) / (1 + infl / 100) - 1) * 100);
-      changeTxt += ` (${realPct >= 0 ? '+' : ''}${realPct}% real, con inflación de ${infl}%)`;
+      changeTxt += ` (${realPct >= 0 ? '+' : ''}${realPct}% theo lạm phát, lạm phát ${infl}%)`;
     }
     changeTxt += '.';
   }
@@ -130,17 +130,17 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
   const cards: { title: string; body: string; severity: string }[] = [];
 
   // 1. Headline summary.
-  const rateTxt = rate == null ? '' : ` Ahorraron ${rate}% (${fmt(net)} de ${fmt(income)} de ingresos)${rate >= targetPct ? ' — por encima de la meta' : ` — meta ${targetPct}%`}.`;
+  const rateTxt = rate == null ? '' : ` Đã tiết kiệm ${rate}% (${fmt(net)} trên ${fmt(income)} thu nhập)${rate >= targetPct ? ' — cao hơn mục tiêu' : ` — mục tiêu ${targetPct}%`}.`;
   cards.push({
-    title: `Cierre de ${monthName}`,
-    body: `Gastaron ${fmt(expense)} en total.${rateTxt}${changeTxt}`,
+    title: `Đã chốt ${monthName}`,
+    body: `Tổng chi tiêu là ${fmt(expense)}.${rateTxt}${changeTxt}`,
     severity: rate == null ? 'info' : rate < 0 ? 'warning' : rate >= targetPct ? 'positive' : 'info',
   });
 
   // 2. Top categories + biggest increase (couple view, full amounts).
   const byCat = (rows: Exp[]) => {
     const map: Record<string, number> = {};
-    for (const t of rows) { const n = t.categories?.name ?? 'Sin categoría'; map[n] = (map[n] ?? 0) + toArs(t.amount, t.currency, t.usd_rate_snapshot, blue); }
+    for (const t of rows) { const n = t.categories?.name ?? 'Chưa phân loại'; map[n] = (map[n] ?? 0) + toArs(t.amount, t.currency, t.usd_rate_snapshot, blue); }
     return map;
   };
   const curCat = byCat(cur), prevCat = byCat(prev);
@@ -151,8 +151,8 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
       .map(([n, v]) => ({ n, v, d: v - (prevCat[n] ?? 0) }))
       .filter(x => prevCat[x.n] > 0 && x.d >= 20000 && x.d / prevCat[x.n] >= 0.25)
       .sort((a, b) => b.d - a.d);
-    if (jumps.length) body += ` Mayor suba: ${jumps[0].n} (+${fmt(jumps[0].d)} vs el mes anterior).`;
-    cards.push({ title: `En qué se fue ${monthName}`, body, severity: jumps.length ? 'warning' : 'info' });
+    if (jumps.length) body += ` Mức tăng lớn nhất: ${jumps[0].n} (+${fmt(jumps[0].d)} so với tháng trước).`;
+    cards.push({ title: `Chi tiêu vào đâu trong ${monthName}`, body, severity: jumps.length ? 'warning' : 'info' });
   }
 
   // 3. Budget compliance over the CLOSED month (monthly envelope targets only).
@@ -165,16 +165,16 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
     const results = monthly.map(b => {
       const limit = toArs(b.amount, b.currency ?? 'ARS', null, blue);
       const spent = spentForBudget(b, cur, blue);
-      return { name: b.category_id == null ? 'Límite total' : b.categories?.name ?? 'Categoría', limit, spent, ok: limit <= 0 || spent <= limit };
+      return { name: b.category_id == null ? 'Giới hạn tổng' : b.categories?.name ?? 'Danh mục', limit, spent, ok: limit <= 0 || spent <= limit };
     }).filter(r => r.limit > 0);
     if (results.length) {
       const ok = results.filter(r => r.ok).length;
       const worst = results.filter(r => !r.ok).sort((a, b) => (b.spent / b.limit) - (a.spent / a.limit))[0];
       cards.push({
-        title: `Presupuestos: ${ok} de ${results.length} cumplidos`,
+        title: `Ngân sách: ${ok}/${results.length} đạt mục tiêu`,
         body: worst
-          ? `Se pasaron en ${worst.name}: ${fmt(worst.spent)} de ${fmt(worst.limit)} (${Math.round((worst.spent / worst.limit) * 100)}%).`
-          : 'Cumplieron todos los presupuestos del mes. 🎉',
+          ? `Đã chi vượt ở ${worst.name}: ${fmt(worst.spent)} trên ${fmt(worst.limit)} (${Math.round((worst.spent / worst.limit) * 100)}%).`
+          : 'Tất cả ngân sách tháng này đều đạt mục tiêu. 🎉',
         severity: worst ? 'warning' : 'positive',
       });
     }
@@ -191,8 +191,8 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
   // Push the headline (prefs key: monthly_report).
   const reportTargets = profiles.filter(p => prefOn(p, 'monthly_report')).map(p => p.id);
   await pushTo(admin, reportTargets, {
-    title: `📋 Cerró ${monthName}`,
-    body: `Gastaron ${fmt(expense)}${rate != null ? ` · ahorro ${rate}%` : ''}. Tocá para ver el cierre.`,
+    title: `📋 Đã chốt ${monthName}`,
+    body: `Tổng chi tiêu ${fmt(expense)}${rate != null ? ` · tiết kiệm ${rate}%` : ''}. Chạm để xem báo cáo chốt tháng.`,
     url: '/insights',
   }, vPub, vPriv);
 
@@ -210,12 +210,12 @@ async function processHousehold(admin: SupabaseClient, hid: string, vPub: string
     if (Math.abs(netAB) >= 1000) {
       const debtor = netAB > 0 ? b : a;
       const creditor = netAB > 0 ? a : b;
-      const dName = debtor.nickname ?? debtor.display_name ?? 'Tu pareja';
-      const cName = creditor.nickname ?? creditor.display_name ?? 'tu pareja';
+      const dName = debtor.nickname ?? debtor.display_name ?? 'người đồng hành';
+      const cName = creditor.nickname ?? creditor.display_name ?? 'người đồng hành';
       const settleTargets = profiles.filter(p => prefOn(p, 'settle_reminder')).map(p => p.id);
       await pushTo(admin, settleTargets, {
-        title: '💸 Hora de saldar cuentas',
-        body: `${dName} le debe ${fmt(Math.abs(netAB))} a ${cName} — buen momento para arrancar el mes en cero.`,
+        title: '💸 Đã đến lúc thanh toán các khoản nợ',
+        body: `${dName} còn nợ ${fmt(Math.abs(netAB))} cho ${cName} — đầu tháng là lúc tốt để cân bằng lại.`,
         url: '/pareja',
       }, vPub, vPriv);
     }
@@ -252,7 +252,7 @@ Deno.serve(async (req: Request) => {
   const results: { household_id: string; cards?: number; error?: string }[] = [];
   for (const hh of (households ?? [])) {
     try { results.push({ household_id: hh.id, cards: await processHousehold(admin, hh.id, vPub, vPriv) }); }
-    catch (err) { console.error('Error', hh.id, err); results.push({ household_id: hh.id, error: String(err) }); }
+    catch (err) { console.error('Error', hh.id, err); results.push({ household_id: hh.id, error: 'MONTHLY_CLOSE_FAILED' }); }
   }
   return new Response(JSON.stringify({ ok: true, results }), { headers: cors });
 });

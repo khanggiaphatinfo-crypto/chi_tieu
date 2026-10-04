@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
-import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { fmt, iso, buildSuggestions } from "./math.ts";
 import type { Suggestion } from "./math.ts";
 
@@ -33,12 +33,12 @@ Deno.serve(async (req: Request) => {
   } else {
     const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: cors });
+    if (!user) return new Response(JSON.stringify({ error: 'Không được phép' }), { status: 401, headers: cors });
     uid = user.id;
     const { data: prof } = await admin.from('profiles').select('household_id').eq('id', user.id).single();
     hid = prof?.household_id ?? null;
   }
-  if (!hid) return new Response(JSON.stringify({ error: 'No household' }), { status: 400, headers: cors });
+  if (!hid) return new Response(JSON.stringify({ error: 'Chưa có hộ gia đình' }), { status: 400, headers: cors });
 
   let body: { scope?: string } = {};
   try { body = await req.json(); } catch { /* empty */ }
@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
     const byName: Record<string, string> = {};
     for (const r of arr) if (r && typeof r.name === 'string' && typeof r.rationale === 'string') byName[r.name] = r.rationale.trim();
     for (const sg of suggestions) sg.rationale = byName[sg.name] ?? `Theo chi tiêu gần đây của bạn (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), giới hạn này vẫn để lại một khoảng đệm thoải mái.`;
-  } catch (_e) {
+  } catch {
     for (const sg of suggestions) sg.rationale = `Theo chi tiêu gần đây của bạn (${fmt(Math.max(sg.avg3m, sg.lastMonth, sg.projected))}), giới hạn này vẫn để lại một khoảng đệm thoải mái.`;
   }
 

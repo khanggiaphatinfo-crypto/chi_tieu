@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createClient } from '@/lib/supabase';
 import type { Json } from '@/lib/database.types';
 
 // These keys mirror what the server-side push senders check before sending:
@@ -78,7 +79,7 @@ export default function NotificacionesClient() {
       const currentPrefs = asNotificationPrefs(current?.notification_prefs);
       const { error } = await supabase
         .from('profiles')
-        .update({ notification_prefs: { ...currentPrefs, ...next } })
+        .update({ notification_prefs: { ...currentPrefs, ...next } as Json })
         .eq('id', user.id);
       if (error) throw error;
     },

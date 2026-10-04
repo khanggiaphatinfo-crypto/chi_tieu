@@ -161,7 +161,7 @@ export function CashFlowForecast({
           <p className="text-lg font-black leading-tight tabular-nums" style={{ color: dipsNegative ? '#E25749' : '#18211D' }}>
             {formatARS(min.balance)}
           </p>
-          <p className="text-[10px]" style={{ color: '#8C968F' }}>{min.day === 0 ? 'hoy' : shortDayMonth(min.iso)}</p>
+          <p className="text-[10px]" style={{ color: '#8C968F' }}>{min.day === 0 ? 'hôm nay' : shortDayMonth(min.iso)}</p>
         </div>
       </div>
 

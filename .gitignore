@@ -43,5 +43,8 @@ next-env.d.ts
 # ShipStudio metadata
 .shipstudio/
 
+# graphify generated knowledge graph
+/graphify-out/
+
 # Playwright auth session (contains tokens — never commit)
 .auth/

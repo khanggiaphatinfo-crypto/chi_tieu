@@ -15,6 +15,12 @@ export interface ResponsesFunctionCall {
   arguments: string;
 }
 
+export interface ResponsesFunctionOutput {
+  type: "function_call_output";
+  call_id: string;
+  output: string;
+}
+
 export interface ResponsesResult {
   raw: Record<string, unknown>;
   text: string;
@@ -47,7 +53,7 @@ export interface InputFilePart {
   file_data: string;
 }
 
-export type ResponsesInputPart = InputTextPart | InputImagePart | InputFilePart;
+export type ResponsesInputPart = InputTextPart | InputImagePart | InputFilePart | ResponsesFunctionOutput;
 
 export function responsesConfig(): { apiKey: string; baseUrl: string; model: string } {
   const apiKey = Deno.env.get("RESPONSES_API_KEY")?.trim() ?? "";
@@ -87,8 +93,8 @@ export async function responsesRequest(request: ResponsesRequest): Promise<Respo
     raw = { raw: rawText.slice(0, 4000) };
   }
   if (!response.ok) {
-    const providerMessage = extractError(raw) || `HTTP ${response.status}`;
-    throw new Error(`Responses API error ${response.status}: ${providerMessage}`);
+    console.error("Responses API request failed", { status: response.status, raw });
+    throw new Error(`Responses API error ${response.status}`);
   }
   return {
     raw,
@@ -167,20 +173,14 @@ export function inputText(text: string): InputTextPart {
   return { type: "input_text", text };
 }
 
+export function functionOutput(callId: string, output: unknown): ResponsesFunctionOutput {
+  return { type: "function_call_output", call_id: callId, output: typeof output === "string" ? output : JSON.stringify(output) };
+}
+
 export function inputImage(data: string, mimeType: string): InputImagePart {
   return { type: "input_image", image_url: `data:${mimeType};base64,${data}` };
 }
 
 export function inputFile(data: string, mimeType: string, filename?: string): InputFilePart {
   return { type: "input_file", file_data: `data:${mimeType};base64,${data}`, ...(filename ? { filename } : {}) };
-}
-
-function extractError(raw: Record<string, unknown>): string {
-  const error = raw.error;
-  if (typeof error === "string") return error;
-  if (error && typeof error === "object") {
-    const message = (error as Record<string, unknown>).message;
-    if (typeof message === "string") return message;
-  }
-  return typeof raw.message === "string" ? raw.message : "";
 }

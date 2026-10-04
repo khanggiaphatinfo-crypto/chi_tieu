@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Anthropic from "npm:@anthropic-ai/sdk";
+import { inputText, functionOutput, responsesRequest } from "../_shared/responses.ts";
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { iso, MONTHLY, norm, toArs, jwtPayload, shareForExpense, lensFraction, buildPrimer } from "./math.ts";
 import type { Debt, ExpRow, ItemParent } from "./math.ts";
@@ -53,7 +53,7 @@ async function aggregateTransactions(ctx: Ctx, input: AggInput) {
     const people = Object.entries(ctx.pm);
     const groups = people.map(([pid, name]) => ({ key: name, total_ars: Math.round(rows.reduce((s, t) => s + contrib(t, pid), 0)), count: rows.filter(t => contrib(t, pid) > 0).length }))
       .filter(g => g.total_ars > 0).sort((a, b) => b.total_ars - a.total_ars);
-    return { type, lens: 'por persona', total_ars: groups.reduce((s, g) => s + g.total_ars, 0), group_by: 'person', groups };
+    return { type, lens: 'theo người', total_ars: groups.reduce((s, g) => s + g.total_ars, 0), group_by: 'person', groups };
   }
 
   if (lensTarget === '__none__') return { type, note: 'Không tìm thấy người đó trong hộ gia đình.', total_ars: 0, groups: [] };
@@ -139,7 +139,7 @@ async function getGoals(ctx: Ctx) {
 
 async function getDebts(ctx: Ctx) {
   const { data } = await ctx.admin.from('debts').select('counterparty,direction,amount,currency,note').eq('household_id', ctx.hid).eq('settled', false);
-  return { debts: ((data ?? []) as { counterparty: string; direction: string; amount: number; currency: string; note: string | null }[]).map(d => ({ counterparty: d.counterparty, direction: d.direction === 'owe' ? 'debemos' : 'nos deben', amount: Math.round(d.amount), currency: d.currency, note: d.note })) };
+  return { debts: ((data ?? []) as { counterparty: string; direction: string; amount: number; currency: string; note: string | null }[]).map(d => ({ counterparty: d.counterparty, direction: d.direction === 'owe' ? 'chúng ta nợ' : 'họ nợ chúng ta', amount: Math.round(d.amount), currency: d.currency, note: d.note })) };
 }
 
 async function getRecurring(ctx: Ctx) {
@@ -296,14 +296,19 @@ const TOOLS = [
       type: 'object',
       properties: {
         category: { type: 'string', description: 'tên danh mục chi tiêu' },
-        amount: { type: 'number', description: 'monto del presupuesto, positivo' },
+        amount: { type: 'number', description: 'số tiền ngân sách, là số dương' },
         currency: { type: 'string', enum: ['ARS', 'USD'], description: 'ARS (mặc định) hoặc USD' },
         cadence: { type: 'string', enum: ['monthly', 'weekly'], description: 'hàng tháng (mặc định) hoặc hàng tuần' },
       },
       required: ['category', 'amount'],
     },
   },
-];
+].map((tool) => ({
+  type: 'function' as const,
+  name: tool.name,
+  description: tool.description,
+  parameters: tool.input_schema,
+}));
 
 async function runTool(name: string, input: Record<string, unknown>, ctx: Ctx): Promise<unknown> {
   switch (name) {
@@ -357,7 +362,7 @@ async function buildAction(ctx: Ctx, kind: string, input: Record<string, unknown
       is_fixed: false, flag: null, source: 'manual',
     };
     const amountTxt = currency === 'USD' ? `US$${amount}` : arsFmt(amount);
-    const summary = `${type === 'income' ? 'Ingreso' : 'Gasto'} de ${amountTxt}${cat.name ? ` en ${cat.name}` : ''}${merchant ? ` (${merchant})` : ''}${occurred_on !== todayISO() ? ` el ${occurred_on}` : ''}`;
+    const summary = `${type === 'income' ? 'Thu nhập' : 'Chi tiêu'} ${amountTxt}${cat.name ? ` cho ${cat.name}` : ''}${merchant ? ` (${merchant})` : ''}${occurred_on !== todayISO() ? ` vào ngày ${occurred_on}` : ''}`;
     return { kind, payload, summary };
   }
   if (kind === 'settle_debt') {
@@ -379,7 +384,7 @@ async function buildAction(ctx: Ctx, kind: string, input: Record<string, unknown
     const currency = input.currency === 'USD' ? 'USD' : 'ARS';
     const cadence = input.cadence === 'weekly' ? 'weekly' : 'monthly';
     const amountTxt = currency === 'USD' ? `US$${amount}` : arsFmt(amount);
-    const summary = `Presupuesto ${cadence === 'weekly' ? 'semanal' : 'mensual'} de ${amountTxt} para ${cat.name}`;
+    const summary = `Ngân sách ${cadence === 'weekly' ? 'hàng tuần' : 'hàng tháng'} ${amountTxt} cho ${cat.name}`;
     return { kind, payload: { category_id: cat.id, target_amount: amount, currency, cadence }, summary };
   }
   return { error: 'Hành động không xác định.' };
@@ -399,7 +404,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
     const wanted = (action.payload.ids as string[]) ?? [];
     const { data } = await ctx.admin.from('debts').select('id').eq('household_id', ctx.hid).eq('settled', false).in('id', wanted);
     const ids = ((data ?? []) as { id: string }[]).map(d => d.id);
-    if (ids.length === 0) throw new Error('no matching debts');
+    if (ids.length === 0) throw new Error('Không tìm thấy khoản nợ phù hợp');
     const { error } = await ctx.admin.from('debts').update({ settled: true }).in('id', ids);
     if (error) throw error;
     return `Đã đánh dấu ${ids.length} khoản nợ đã thanh toán. ✅`;
@@ -407,7 +412,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
   if (action.kind === 'set_category_budget') {
     const p = action.payload as { category_id: string; target_amount: number; currency: string; cadence: string };
     const { data: cat } = await ctx.admin.from('categories').select('id').eq('household_id', ctx.hid).eq('id', p.category_id).maybeSingle();
-    if (!cat) throw new Error('category not in household');
+    if (!cat) throw new Error('Không tìm thấy danh mục trong hộ gia đình');
     const { data: existing } = await ctx.admin.from('category_targets').select('id').eq('household_id', ctx.hid).eq('profile_id', ctx.askerId).eq('category_id', p.category_id).maybeSingle();
     if (existing) {
       const { error } = await ctx.admin.from('category_targets').update({ target_amount: p.target_amount, currency: p.currency, cadence: p.cadence }).eq('id', (existing as { id: string }).id);
@@ -423,7 +428,7 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
     // and the user tapped Confirmar. Insert the expense + its line items.
     const r = action.payload.receipt as { merchant?: string; date?: string; total: number; currency: string; suggested_category?: string; items?: { name: string; qty?: number; line_total: number; group?: string }[] };
     const amount = Number(r?.total);
-    if (!amount || amount <= 0) throw new Error('bad receipt total');
+    if (!amount || amount <= 0) throw new Error('Tổng hóa đơn không hợp lệ');
     const currency = r.currency === 'USD' ? 'USD' : 'ARS';
     const occurred_on = (typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) ? r.date : todayISO();
     const cat = await resolveCategory(ctx, r.suggested_category, 'expense');
@@ -432,14 +437,14 @@ async function executeAction(ctx: Ctx, action: PendingAction): Promise<string> {
       usd_rate_snapshot: currency === 'USD' ? ctx.blue : null, category_id: cat.id, account_id: null,
       merchant: r.merchant || 'Compra', occurred_on, scope: 'personal', is_shared: false, is_fixed: false, flag: null, source: 'receipt',
     }).select('id').single();
-    if (error || !tx) throw error ?? new Error('insert failed');
+    if (error || !tx) throw error ?? new Error('Không thể lưu giao dịch');
     const items = Array.isArray(r.items) ? r.items : [];
     const rows = items.filter(it => it && it.name && Number(it.line_total) > 0)
       .map(it => ({ household_id: ctx.hid, transaction_id: (tx as { id: string }).id, name: String(it.name).slice(0, 200), qty: Number(it.qty) || 1, line_total: Number(it.line_total), item_group: it.group || 'otros' }));
     if (rows.length) await ctx.admin.from('transaction_items').insert(rows);
     return `Đã ghi nhận hóa đơn: ${action.summary}. ✅`;
   }
-  throw new Error('unknown action');
+  throw new Error('Hành động không xác định');
 }
 
 const SYSTEM = 'Bạn là Morchi, trợ lý tài chính của cặp đôi Lucas và Sofi trong ứng dụng Morchis (vi-VN, giọng thân thiện và động viên). Bạn có CÔNG CỤ để truy vấn cơ sở dữ liệu tài chính thực tế của họ. Với BẤT KỲ câu hỏi nào về số tiền, chi tiêu, thu nhập, cửa hàng, danh mục, tháng, số dư, ngân sách, mục tiêu hoặc khoản nợ, HÃY dùng công cụ để lấy số liệu chính xác trước khi trả lời. QUAN TRỌNG: phân biệt chi tiêu cá nhân với chi tiêu của hộ gia đình theo câu hỏi và chọn lens phù hợp trong aggregate_transactions (mine/partner/household/everyone). Nếu câu hỏi mơ hồ giữa "của tôi" và "của cả hai", hãy nói rõ ngắn gọn hoặc hỏi lại. Quy tắc: (1) Không bao giờ bịa hoặc ước tính số tiền: số liệu luôn lấy từ công cụ; nếu không có dữ liệu, hãy nói rõ. (2) Với ngày tháng, LUÔN dùng các khoảng đã tính sẵn trong CONTEXT (date_from/date_to) — không tự tính ngày. Nếu câu hỏi không nêu khoảng thời gian, mặc định là "tháng này" và nói rõ. (3) Hiển thị số tiền theo định dạng $1.234.567. (4) Ngắn gọn nhưng hữu ích: 2 đến 4 câu. Không dùng bảng markdown hoặc tiêu đề; nếu liệt kê, dùng vài dòng ngắn với dấu gạch ngang (-). Dùng **in đậm** để nhấn mạnh. (5) Đừng chỉ trả lời một con số: khi hữu ích, thêm MỘT dữ kiện bối cảnh đã truy vấn hoặc có thể truy vấn nhanh (so với tháng trước, % tổng, so với ngân sách hoặc một lời khuyên hành động ngắn). Thà dùng thêm một công cụ để trả lời đầy đủ còn hơn trả lời sơ sài. (6) Trước khi nói "không có dữ liệu", hãy xác nhận đã thử đúng lens và khoảng thời gian; nếu truy vấn đầu tiên rỗng, hãy thử mở rộng khoảng thời gian hoặc đổi lens. TRIẾT LÝ YNAB VÀ NGÂN SÁCH: Morchis dùng phương pháp YNAB với các phong bì (envelopes), và bạn biết cách giải thích. 4 quy tắc: (1) Giao nhiệm vụ cho từng đồng tiền: phân bổ TOÀN BỘ tiền có sẵn vào các danh mục cho đến khi "Cần phân bổ" bằng 0; tiền không mất đi, nó có mục đích. (2) Chấp nhận các khoản chi thực tế: các khoản lớn không hàng tháng (bảo hiểm, quà, kỳ nghỉ, phí xe) được chia thành mục tiêu nhỏ hàng tháng để không bất ngờ. (3) Xử lý linh hoạt: nếu vượt một danh mục, chuyển tiền từ danh mục còn dư, không tự trách và không phá ngân sách. (4) Làm cho tiền cũ dần: mục tiêu là tiêu tiền đã vào tài khoản hơn 30 ngày (đó là "tuổi của tiền" trong Phân tích); càng nhiều ngày càng có đệm. Trong /presupuestos, "Cần phân bổ" = tiền mặt on-budget trừ số tiền đã giữ trong các phong bì; mục tiêu là đưa về 0 ("mỗi đồng tiền có một nhiệm vụ"). VÌ SAO "CẦN PHÂN BỔ" ÂM: (a) đã vượt các danh mục — chi nhiều hơn số dư khả dụng — cần bù bằng cách chuyển tiền; (b) đã ứng trước một khoản chi chung và chưa được hoàn lại, làm giảm "Cần phân bổ" cho đến khi được trả; (c) đã phân bổ nhiều hơn số tiền thực có. Cách thường dùng để về 0: rút tiền từ một danh mục còn dư hoặc bù phần vượt. Số khả dụng ÂM trong một danh mục = vượt ngân sách, cần phân bổ thêm tiền. Mục tiêu mỗi danh mục có thể theo tháng, tuần hoặc ngày đích (tiết kiệm). Khi được hỏi về ngân sách, phong bì, "Cần phân bổ", mục tiêu hoặc cách lập ngân sách, hãy giải thích ngắn gọn và cụ thể theo logic này; nếu cần số chi tiêu so với giới hạn tháng, dùng get_budgets và nói rõ số "Cần phân bổ" chính xác được hiển thị ở màn hình /presupuestos. HÀNH ĐỘNG: ngoài trả lời, bạn có thể ĐĂNG KÝ thông tin bằng record_transaction (ghi chi tiêu/thu nhập), settle_debt (tất toán khoản nợ) và set_category_budget (đặt ngân sách). Khi người dùng yêu cầu ghi/tạo/tải/tất toán/đặt gì đó, hãy gọi công cụ tương ứng (CHỈ XEM TRƯỚC, không ghi), sau đó nói trong MỘT câu bạn sẽ làm gì và yêu cầu họ xác nhận bằng nút bên dưới. KHÔNG BAO GIỜ nói đã hoàn tất hoặc bịa rằng bạn đã ghi nhận: người dùng phải xác nhận. Nếu công cụ trả lỗi, giải thích ngắn gọn còn thiếu gì. CÂU HỎI TIẾP THEO: cuối MỖI câu trả lời thêm một dòng riêng, CHÍNH XÁC, gồm 2 hoặc 3 câu hỏi ngắn liên quan với định dạng: SUGERENCIAS: câu hỏi một | câu hỏi hai | câu hỏi ba. Không nhắc đến dòng này trong nội dung và không dùng tiền tố "SUGERENCIAS:" cho mục đích khác. Nếu đang đề xuất một hành động để xác nhận, KHÔNG thêm dòng SUGERENCIAS.'
@@ -451,7 +456,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-  const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')!;
   const admin = createClient(supabaseUrl, serviceKey);
 
   const auth = req.headers.get('Authorization') ?? '';
@@ -490,7 +494,7 @@ Deno.serve(async (req: Request) => {
   const catNames = ((cats ?? []) as { name: string }[]).map(c => c.name).join(', ');
   const pm: Record<string, string> = {};
   const profiles = (profs ?? []) as { id: string; nickname: string | null; display_name: string | null }[];
-  for (const p of profiles) pm[p.id] = p.nickname ?? p.display_name ?? 'Usuario';
+  for (const p of profiles) pm[p.id] = p.nickname ?? p.display_name ?? 'Người dùng';
   // Real users: askerId comes from their JWT (set above). Only the admin/test
   // path leaves it null — there an optional `as` (nickname or id) picks whose
   // viewpoint to simulate, otherwise the first profile.
@@ -519,48 +523,46 @@ Deno.serve(async (req: Request) => {
     .filter(h => (h.role === 'user' || h.role === 'assistant') && typeof h.content === 'string' && h.content.trim())
     .map(h => ({ role: h.role as 'user' | 'assistant', content: h.content }));
 
-  const anthropic = new Anthropic({ apiKey: anthropicKey });
-  // deno-lint-ignore no-explicit-any
-  const messages: any[] = [...history, { role: 'user', content: question }];
-
+  const responsesHistory = history.map((h) => inputText(`${h.role === 'user' ? 'Người dùng' : 'Trợ lý'}: ${h.content}`));
+  let previousResponseId: string | undefined;
+  let nextInput: unknown = [...responsesHistory, inputText(`Người dùng: ${question}`)];
   let answer = '';
   let pending: PendingAction | null = null;
   for (let i = 0; i < 8; i++) {
-    const resp = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2500,
-      // Extended thinking: que razone qué tool / lens / período usar antes de
-      // responder. max_tokens debe ser > budget_tokens (deja ~1500 para la
-      // respuesta). Los bloques de thinking se preservan al re-enviar `resp.content`.
-      thinking: { type: 'enabled', budget_tokens: 1024 },
-      system: [
-        { type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } },
-        { type: 'text', text: 'CONTEXTO:\n' + primer },
-      ],
+    const resp = await responsesRequest({
+      maxOutputTokens: 2500,
+      instructions: `${SYSTEM}\n\nCONTEXTO:\n${primer}`,
+      input: nextInput,
       tools: TOOLS,
-      messages,
+      previousResponseId,
     });
-    if (resp.stop_reason !== 'tool_use') {
-      answer = resp.content.filter(b => b.type === 'text').map(b => (b as { text: string }).text).join('\n').trim();
+    previousResponseId = resp.responseId ?? undefined;
+    if (resp.functionCalls.length === 0) {
+      answer = resp.text.trim();
       break;
     }
-    messages.push({ role: 'assistant', content: resp.content });
-    const results = [];
-    for (const block of resp.content) {
-      if (block.type === 'tool_use') {
-        let out: unknown;
-        if (WRITE_TOOLS.has(block.name)) {
-          // Write tools only PREVIEW — they never touch the DB here.
-          const built = await buildAction(ctx, block.name, block.input as Record<string, unknown>);
-          if ('error' in built) { out = built; }
-          else { pending = built; out = { ok: true, preview: built.summary, instruccion: 'Contale al usuario en una frase qué vas a registrar y pedile que confirme con el botón. NO digas que ya quedó hecho.' }; }
-        } else {
-          out = await runTool(block.name, block.input as Record<string, unknown>, ctx);
+    const outputs = [];
+    for (const call of resp.functionCalls) {
+      let input: Record<string, unknown> = {};
+      try { input = JSON.parse(call.arguments) as Record<string, unknown>; } catch { /* invalid tool arguments */ }
+      let out: unknown;
+      if (WRITE_TOOLS.has(call.name)) {
+        const built = await buildAction(ctx, call.name, input);
+        if ('error' in built) out = built;
+        else {
+          pending = built;
+          out = { ok: true, preview: built.summary, instruction: 'Hãy nói trong một câu bạn sẽ ghi nhận gì và yêu cầu người dùng xác nhận bằng nút. Không nói rằng đã hoàn tất.' };
         }
-        results.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out) });
+      } else {
+        out = await runTool(call.name, input, ctx);
       }
+      if (call.call_id) outputs.push(functionOutput(call.call_id, out));
     }
-    messages.push({ role: 'user', content: results });
+    if (outputs.length === 0) break;
+    // Responses API continuation requires function_call_output items directly in
+    // input. With previous_response_id, the provider already has the prior turn;
+    // resending the whole transcript as input text would make tool results opaque.
+    nextInput = outputs;
   }
   // Pull the trailing "SUGERENCIAS: a | b | c" line out of the answer into tappable
   // quick-replies. No suggestions alongside an action card (the card is the CTA).

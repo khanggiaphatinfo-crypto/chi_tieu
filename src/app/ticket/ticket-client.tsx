@@ -151,8 +151,8 @@ export default function TicketClient({ profile }: { profile: Profile }) {
       setReceipt({ ...r, currency: r.currency === 'USD' ? 'USD' : 'ARS' });
       setCategoryId(defaultCategory(r.suggested_category));
       setStatus('review');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Lỗi khi đọc hóa đơn');
+    } catch {
+      toast.error('Không thể đọc hóa đơn. Hãy thử ảnh rõ hơn hoặc nhập thủ công.');
       setStatus('idle');
     }
   }
@@ -243,8 +243,8 @@ export default function TicketClient({ profile }: { profile: Profile }) {
       triggerBudgetAlerts(supabase);
       setStatus('done');
       toast.success('Đã lưu hóa đơn ✓');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Lỗi khi lưu');
+    } catch {
+      toast.error('Không thể lưu hóa đơn. Hãy thử lại.');
       setStatus('review');
     }
   }

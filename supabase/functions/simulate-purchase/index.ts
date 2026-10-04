@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { occurrencesInRange, computeProjection, monthsBetween, normalize } from "./math.ts";
+import { computeProjection, monthsBetween, normalize } from "./math.ts";
 
 import { inputText, parseJson, responsesRequest } from "../_shared/responses.ts";
 
@@ -75,8 +75,8 @@ Deno.serve(async (req: Request) => {
   const parseResult = await responsesRequest({
     maxOutputTokens: 256,
     input: [
-      inputText('Parseá el texto en español de un usuario argentino que describe una compra. Respondé SOLO con JSON: {"item":string, "amount":number (siempre positivo), "currency":"ARS"|"USD", "installments":number|null, "category_guess":string}. El campo currency indica si el monto mencionado es en ARS (pesos, $) o USD (dólares, US$). Si dice "cuotas" o "en X cuotas" o "en cuotas", ponelo en installments. category_guess: categoría del gasto en español (ej: Tecnología, Ropa, Alimentos, Viajes, etc).'),
-      inputText(`Texto: "${text}"`),
+      inputText('Hãy phân tích bằng tiếng Việt nội dung người dùng mô tả một khoản mua sắm. Chỉ trả về JSON: {"item":string, "amount":number (luôn dương), "currency":"ARS"|"USD", "installments":number|null, "category_guess":string}. currency là ARS (peso, $) hoặc USD (đô la, US$). Nếu người dùng nói "trả góp" hoặc "X kỳ", điền số kỳ vào installments. category_guess là tên danh mục chi tiêu bằng tiếng Việt nếu người dùng nêu rõ.'),
+      inputText(`Nội dung: "${text}"`),
     ],
   });
 
